@@ -1,0 +1,33 @@
+.App {
+  padding: 1vh;
+}
+
+.App-header {
+  text-align: center;
+  font-size: 200%;
+}
+
+.App-link {
+  color: #61dafb;
+}
+
+.App-checklist-list {
+  font-size: 150%;
+
+  li {
+    list-style: none;
+    display: inline;
+    margin: 10px;
+    background-color: beige;
+  }
+}
+
+
+
+input[type=checkbox]:checked + label.strikethrough {
+  text-decoration: line-through;
+}
+/* <li key={item}>
+  <input type='checkbox' name={item} id={item}></input>
+  <label htmlFor={item} class='strikethrough'>{item}</label>
+</li> */
