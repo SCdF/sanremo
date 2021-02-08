@@ -15,14 +15,15 @@
   font-size: 150%;
 
   li {
-    list-style: none;
     display: inline;
     margin: 10px;
     background-color: beige;
   }
 }
 
-
+li {
+  list-style: none;
+}
 
 input[type=checkbox]:checked + label.strikethrough {
   text-decoration: line-through;

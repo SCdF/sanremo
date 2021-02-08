@@ -4,7 +4,7 @@ import { Router, Link } from "@reach/router"
 
 const Home = (props) => {
   const items = props.checklists.map(checklist => 
-    <li key={checklist.id}><Link to={'/checklist/' + checklist.id}>{checklist.name}</Link></li>
+    <li key={checklist.id}><Link to={`/checklist/${checklist.id}/new`}>{checklist.name}</Link></li>
   );
 
  return <ul className='App-checklist-list'>{items}</ul>;
@@ -13,8 +13,11 @@ const Home = (props) => {
 const Checklist = (props) => {
   const checklist = props.checklists.find(c => c.id === props.checklistId);
 
-  const items = checklist.items.map(item => 
-    <li key={item}>{item}</li>
+  const items = checklist.items.map((item, idx) => 
+    <li key={idx}>
+      <input type='checkbox' name={item} id={idx+item}></input>
+      <label htmlFor={idx+item} className='strikethrough'>{item}</label>
+    </li>
   );
 
   return <div>
@@ -45,8 +48,16 @@ class App extends React.Component {
           items: [
             '20x rotate CW',
             '20x rotate CCW',
+            '20x rotate CW',
+            '20x rotate CCW',
+            '20x rotate CW',
+            '20x rotate CCW',
             '10x10s ball squeeze',
-            '10x10s band stretch'
+            '10x10s ball squeeze',
+            '10x10s ball squeeze',
+            '10x10s band stretch',
+            '10x10s band stretch',
+            '10x10s band stretch',
           ]
         }
       ],
@@ -61,7 +72,8 @@ class App extends React.Component {
         </header>
         <Router>
           <Home path='/' checklists={this.state.checklists} />
-          <Checklist path='checklist/:checklistId' checklists={this.state.checklists}/>
+          {/* FIXME: we shouldn't have to pass *all* checklists to each checklist */}
+          <Checklist path='checklist/:checklistId/new' checklists={this.state.checklists}/>
         </Router>
       </div>
     );   
