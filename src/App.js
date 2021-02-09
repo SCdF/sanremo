@@ -53,26 +53,51 @@ const db = new PouchDB('sanremo');
 })();
 // TEMP data check
 
-const Home = (props) => {
-  const items = props.checklists.map(checklist => 
-    <li key={checklist._id}><Link to={`/checklist/${checklist._id}/new`}>{checklist.title}</Link></li>
+function Home(props) {
+  // TODO: create and redirect
+  // It would be cleaner for Home to not know how to name checklists
+  const items = props.templates.map(template => 
+    <li key={template._id}><Link to={`/checklist/${template._id}/checklist:instance:${uuid()}`}>
+      {template.title}
+    </Link></li>
   );
 
  return <ul className='App-checklist-list'>{items}</ul>;
 };
 
-class ChecklistInstance extends React.Component {
+class Checklist extends React.Component {
   constructor(props) {
     super(props);
 
     this.state = {
-      id: props.checklistId,
+      templateId: props.templateId,
+      checklistId: props.checklistId,
       checklist: {}
     };
   }
 
   componentDidMount() {
-    db.get(this.state.id)
+    db.get(this.state.checklistId)
+      .catch(err => {
+        if (err.status !== 404) {
+          throw err;
+        }
+
+        return db.get(this.state.templateId)
+          .then(template => {
+            const checklist = {
+              _id: this.state.checklistId,
+              created: Date.now(),
+              items: template.items
+            };
+
+            return db.put(checklist)
+              .then(({rev}) => {
+                checklist._rev = rev;
+                return checklist;
+              })
+          });
+      })
       .then(checklist => {
         this.setState({checklist});
       });
@@ -102,7 +127,8 @@ class App extends React.Component {
     super(props);
 
     this.state = {
-      checklists: [],
+      templates: [],
+      activeChecklists: [] // TODO
     };
   }
 
@@ -111,7 +137,7 @@ class App extends React.Component {
         selector: {_id: {$gt: 'checklist:template:'}},
         fields: ['_id', 'title']
       })
-      .then(({docs}) => this.setState({checklists: docs}));
+      .then(({docs}) => this.setState({templates: docs}));
   }
 
   render() {   
@@ -121,8 +147,8 @@ class App extends React.Component {
           <Link to='/'>Sanremo</Link>
         </header>
         <Router>
-          <Home path='/' checklists={this.state.checklists} />
-          <ChecklistInstance path='checklist/:checklistId/new'/>
+          <Home path='/' templates={this.state.templates} />
+          <Checklist path='checklist/:templateId/:checklistId'/>
         </Router>
       </div>
     );   

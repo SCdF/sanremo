@@ -1,3 +1,7 @@
 Highlight next task to complete in checklist, allow space / enter to complete the task and highlight the next one
 
 Stop item text from being selectable
+
+Create DB init where index creation etc takes place (for now we are not using indexes AT ALL!) 
+
+Spend a pomo looking into shorter and less ugly variations on raw uuids to clean up URLs etc.

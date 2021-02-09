@@ -19,8 +19,9 @@
 
 ```json
 {
-    "_id": "checklist:instance:<timestamp>",
+    "_id": "checklist:instance:<uuid>",
     "created": 1234567890,
+    "updated": 1234567890,
     "completed": 1234567890,
     "items": [
         {
@@ -31,3 +32,11 @@
     ]
 }
 ```
+
+# Indexes
+
+**TODO**: for the planning of indexes / data structures, we aren't actually using any yet. We need to create a versioning scheme / init where we create / delete indexes etc.  
+
+## Completed checklist instance
+
+`['_id', 'completed']`
