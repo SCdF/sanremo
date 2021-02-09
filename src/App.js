@@ -61,22 +61,41 @@ const Home = (props) => {
  return <ul className='App-checklist-list'>{items}</ul>;
 };
 
-const Checklist = (props) => {
-  const checklist = props.checklists.find(c => c._id === props.checklistId);
+class ChecklistInstance extends React.Component {
+  constructor(props) {
+    super(props);
 
-  const items = checklist.items.map(item => {
-    const {_id: id, text} = item;
-    return <li key={id}>
-      <input type='checkbox' name={id} id={id}></input>
-      <label htmlFor={id} className='strikethrough'>{text}</label>
-    </li>
-  });
+    this.state = {
+      id: props.checklistId,
+      checklist: {}
+    };
+  }
 
-  return <div>
-    <header>{checklist.title}</header>
-    <ol>{items}</ol>
-  </div>;
-};
+  componentDidMount() {
+    db.get(this.state.id)
+      .then(checklist => {
+        this.setState({checklist});
+      });
+  }
+
+  render() {
+    let items = [];
+    if (this.state.checklist && this.state.checklist.items) {
+      items = this.state.checklist.items.map(item => {
+        const {_id: id, text} = item;
+        return <li key={id}>
+          <input type='checkbox' name={id} id={id}></input>
+          <label htmlFor={id} className='strikethrough'>{text}</label>
+        </li>
+      });
+    }
+
+    return <div>
+      <header>{this.state.checklist && this.state.checklist.title}</header>
+      <ol>{items}</ol>
+    </div>;
+  }
+}
 
 class App extends React.Component {
   constructor(props) {
@@ -88,7 +107,10 @@ class App extends React.Component {
   }
 
   componentDidMount() {
-    db.find({selector: {_id: {$gt: 'checklist:template:'}}})
+    db.find({
+        selector: {_id: {$gt: 'checklist:template:'}},
+        fields: ['_id', 'title']
+      })
       .then(({docs}) => this.setState({checklists: docs}));
   }
 
@@ -100,8 +122,7 @@ class App extends React.Component {
         </header>
         <Router>
           <Home path='/' checklists={this.state.checklists} />
-          {/* FIXME: we shouldn't have to pass *all* checklists to each checklist */}
-          <Checklist path='checklist/:checklistId/new' checklists={this.state.checklists}/>
+          <ChecklistInstance path='checklist/:checklistId/new'/>
         </Router>
       </div>
     );   
