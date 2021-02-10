@@ -17,9 +17,13 @@
 
 ## Checklist instance
 
+Instances are copies of templates with additional data.
+
 ```json
 {
     "_id": "checklist:instance:<uuid>",
+    "template": "checklist:template:<uuid>",
+    "title": "Same as template",
     "created": 1234567890,
     "updated": 1234567890,
     "completed": 1234567890,

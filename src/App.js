@@ -1,5 +1,5 @@
 import './App.scss';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Router, Link } from "@reach/router"
 
 import PouchDB from "pouchdb";
@@ -53,106 +53,108 @@ const db = new PouchDB('sanremo');
 })();
 // TEMP data check
 
-function Home(props) {
+function Home() {
+  const [templates, setTemplates] = useState([]);
+  const [activeChecklists, setActiveChecklists] = useState([]);
+
+  useEffect(() => db.find({
+      selector: {_id: {$gt: 'checklist:template:', $lte: 'checklist:template:\uffff'}},
+      fields: ['_id', 'title']
+    })
+    .then(({docs}) => setTemplates(docs)), []);
+
+  useEffect(() => db.find({
+      selector: {
+        _id: {$gt: 'checklist:instance:', $lte: 'checklist:instance:\uffff'},
+        completed: {$exists: false}
+      },
+      fields: ['_id', 'title', 'templateId']
+    }).then(({docs}) => setActiveChecklists(docs)), []);
+
   // TODO: create and redirect
   // It would be cleaner for Home to not know how to name checklists
-  const items = props.templates.map(template => 
-    <li key={template._id}><Link to={`/checklist/${template._id}/checklist:instance:${uuid()}`}>
-      {template.title}
-    </Link></li>
+  const templateList = templates.map(template => 
+    <li key={template._id}>
+      <Link to={`/checklist/${template._id}/checklist:instance:${uuid()}`}>
+       {template.title}
+      </Link>
+    </li>
   );
 
- return <ul className='App-checklist-list'>{items}</ul>;
+  const checklistList = activeChecklists.map(checklist => 
+    <li key={checklist._id}>
+      <Link to={`/checklist/${checklist.templateId}/${checklist._id}`}>
+        {checklist.title}
+      </Link>
+    </li>
+  );
+
+  return <main>
+    <section>
+      <h1>Active checklists</h1>
+      <ul className='App-checklist-list'>{checklistList}</ul>
+    </section>
+    <section>
+      <h1>Templates</h1>
+      <ul className='App-checklist-list'>{templateList}</ul>
+    </section>
+  </main>;
 };
 
-class Checklist extends React.Component {
-  constructor(props) {
-    super(props);
+function Checklist(props) {
+  const [checklist, setChecklist] = useState({});
 
-    this.state = {
-      templateId: props.templateId,
-      checklistId: props.checklistId,
-      checklist: {}
-    };
+  useEffect(() => db.get(props.checklistId)
+    .catch(err => {
+      if (err.status !== 404) {
+        throw err;
+      }
+
+      return db.get(props.templateId)
+        .then(template => {
+          const checklist = Object.assign({}, template);
+          checklist._id = props.checklistId;
+          delete checklist._rev;
+          checklist.created = Date.now();
+
+          return db.put(checklist)
+            .then(({rev}) => {
+              checklist._rev = rev;
+              return checklist;
+            })
+        });
+    })
+    .then(checklist => setChecklist(checklist)));
+
+  let items = [];
+  if (checklist && checklist.items) {
+    items = checklist.items.map(item => {
+      const {_id: id, text} = item;
+      return <li key={id}>
+        <input type='checkbox' name={id} id={id}></input>
+        <label htmlFor={id} className='strikethrough'>{text}</label>
+      </li>
+    });
   }
 
-  componentDidMount() {
-    db.get(this.state.checklistId)
-      .catch(err => {
-        if (err.status !== 404) {
-          throw err;
-        }
-
-        return db.get(this.state.templateId)
-          .then(template => {
-            const checklist = {
-              _id: this.state.checklistId,
-              created: Date.now(),
-              items: template.items
-            };
-
-            return db.put(checklist)
-              .then(({rev}) => {
-                checklist._rev = rev;
-                return checklist;
-              })
-          });
-      })
-      .then(checklist => {
-        this.setState({checklist});
-      });
-  }
-
-  render() {
-    let items = [];
-    if (this.state.checklist && this.state.checklist.items) {
-      items = this.state.checklist.items.map(item => {
-        const {_id: id, text} = item;
-        return <li key={id}>
-          <input type='checkbox' name={id} id={id}></input>
-          <label htmlFor={id} className='strikethrough'>{text}</label>
-        </li>
-      });
-    }
-
-    return <div>
-      <header>{this.state.checklist && this.state.checklist.title}</header>
-      <ol>{items}</ol>
-    </div>;
-  }
+  return <div>
+    <header>{checklist && checklist.title}</header>
+    <ol>{items}</ol>
+  </div>;
 }
 
-class App extends React.Component {
-  constructor(props) {
-    super(props);
-
-    this.state = {
-      templates: [],
-      activeChecklists: [] // TODO
-    };
-  }
-
-  componentDidMount() {
-    db.find({
-        selector: {_id: {$gt: 'checklist:template:'}},
-        fields: ['_id', 'title']
-      })
-      .then(({docs}) => this.setState({templates: docs}));
-  }
-
-  render() {   
-    return (
-      <div className='App'>
-        <header className='App-header'>
-          <Link to='/'>Sanremo</Link>
-        </header>
-        <Router>
-          <Home path='/' templates={this.state.templates} />
-          <Checklist path='checklist/:templateId/:checklistId'/>
-        </Router>
-      </div>
-    );   
-  }
+function App() {
+  return (
+    <div className='App'>
+      <header className='App-header'>
+        <Link to='/'>Sanremo</Link>
+      </header>
+      <Router>
+        <Home path='/' />
+        <Checklist path='checklist/:templateId/:checklistId'/>
+      </Router>
+    </div>
+  );   
 }
 
 export default App;

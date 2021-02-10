@@ -5,3 +5,7 @@ Stop item text from being selectable
 Create DB init where index creation etc takes place (for now we are not using indexes AT ALL!) 
 
 Spend a pomo looking into shorter and less ugly variations on raw uuids to clean up URLs etc.
+
+Spend a pomo looking into TypeScript with React: a good idea?
+
+Spend a pomo thinking about whether the URL structure for a checklist really needs its template ID as well. This is arguably right from a REST philosophy, but who cares? Why does a checklist need to know its template origins? Are we ever going to take knowledge from a template and apply it to an existing instance? That seems unlikely to me.
