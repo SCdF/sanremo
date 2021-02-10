@@ -124,15 +124,18 @@ function Checklist(props) {
             })
         });
     })
-    .then(checklist => setChecklist(checklist)));
+    .then(checklist => setChecklist(checklist)), [props.checklistId, props.templateId]);
+  
 
   let items = [];
   if (checklist && checklist.items) {
     items = checklist.items.map(item => {
       const {_id: id, text} = item;
       return <li key={id}>
-        <input type='checkbox' name={id} id={id}></input>
-        <label htmlFor={id} className='strikethrough'>{text}</label>
+        <label className='strikethrough'>
+          <input type='checkbox' name={id} />
+          {text}
+        </label>
       </li>
     });
   }
@@ -151,6 +154,11 @@ function App() {
       </header>
       <Router>
         <Home path='/' />
+        {/* 
+          do we really want checklists to contain the template id in their url? why? 
+          We need them ATM because Checklist creates itself (and so needs the template 
+          id to clone), but we should fix that too!
+          */}
         <Checklist path='checklist/:templateId/:checklistId'/>
       </Router>
     </div>
