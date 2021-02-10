@@ -1,6 +1,6 @@
 import './App.scss';
 import React, { useEffect, useState } from 'react';
-import { Router, Link } from "@reach/router"
+import { navigate, Router, Link } from "@reach/router"
 
 import PouchDB from "pouchdb";
 import pdbFind from "pouchdb-find";
@@ -106,21 +106,22 @@ function Checklist(props) {
 
   // TODO: why does handleInputChange get called twice?
   // Is this me using React incorrectly, or HTML being HTML, or something else?
-  function handleInputChange(e) {
-    async function updateDataModel() {
-      const item = checklist.items.find(i => i._id === e.target.name);
-      if (item.checked !== e.target.checked) {
-        const updatedChecklist = Object.assign({}, checklist);
-        item.checked = e.target.checked;
+  async function handleInputChange(e) {
+    const item = checklist.items.find(i => i._id === e.target.name);
+    if (item.checked !== e.target.checked) {
+      const updatedChecklist = Object.assign({}, checklist);
+      item.checked = e.target.checked;
 
-        const {rev} = await db.put(updatedChecklist);
-        updatedChecklist._rev = rev;
-        setChecklist(updatedChecklist);
-      }
-
+      const {rev} = await db.put(updatedChecklist);
+      updatedChecklist._rev = rev;
+      setChecklist(updatedChecklist);
     }
+  }
 
-    updateDataModel();
+  async function deleteChecklist() {
+    await db.remove(checklist);
+
+    navigate('/');
   }
 
   useEffect(() => db.get(props.checklistId)
@@ -162,6 +163,7 @@ function Checklist(props) {
   return <div>
     <header>{checklist && checklist.title}</header>
     <ol>{items}</ol>
+    <button onClick={deleteChecklist}>Delete</button>
   </div>;
 }
 
