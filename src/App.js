@@ -69,7 +69,7 @@ function Home() {
         _id: {$gt: 'checklist:instance:', $lte: 'checklist:instance:\uffff'},
         completed: {$exists: false}
       },
-      fields: ['_id', 'title', 'templateId']
+      fields: ['_id', 'title', 'template']
     }).then(({docs}) => setActiveChecklists(docs)), []);
 
   useEffect(() => db.find({
@@ -77,7 +77,7 @@ function Home() {
       _id: {$gt: 'checklist:instance:', $lte: 'checklist:instance:\uffff'},
       completed: {$exists: true}
     },
-    fields: ['_id', 'title', 'templateId']
+    fields: ['_id', 'title', 'template']
   }).then(({docs}) => setCompleteChecklists(docs)), []);
 
   // TODO: create and redirect
@@ -92,7 +92,7 @@ function Home() {
 
   const checklistList = activeChecklists.map(checklist => 
     <li key={checklist._id}>
-      <Link to={`/checklist/${checklist.templateId}/${checklist._id}`}>
+      <Link to={`/checklist/${checklist.template}/${checklist._id}`}>
         {checklist.title}
       </Link>
     </li>
@@ -100,7 +100,7 @@ function Home() {
 
   const completeList = completeChecklists.map(checklist => 
     <li key={checklist._id}>
-      <Link to={`/checklist/${checklist.templateId}/${checklist._id}`}>
+      <Link to={`/checklist/${checklist.template}/${checklist._id}`}>
         {checklist.title}
       </Link>
     </li>
@@ -166,6 +166,7 @@ function Checklist(props) {
         .then(template => {
           const checklist = Object.assign({}, template);
           checklist._id = props.checklistId;
+          checklist.template = template._id;
           delete checklist._rev;
           checklist.created = Date.now();
 
