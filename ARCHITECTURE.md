@@ -9,7 +9,8 @@
     "items": [
         {
             "_id": "<uuid>",
-            "text": "description beside checkbox"
+            "text": "description beside checkbox",
+            "checked": false
         }
     ]
 }

@@ -23,27 +23,27 @@ const db = new PouchDB('sanremo');
       _id: `checklist:template:${uuid()}`,
       title: 'Wrist Stretches',
       items: [
-        { _id: uuid(), text: '20x rotate CW' },
-        { _id: uuid(), text: '20x rotate CCW' },
-        { _id: uuid(), text: '20x rotate CW' },
-        { _id: uuid(), text: '20x rotate CCW' },
-        { _id: uuid(), text: '20x rotate CW' },
-        { _id: uuid(), text: '20x rotate CCW' },
-        { _id: uuid(), text: '10x10s ball squeeze' },
-        { _id: uuid(), text: '10x10s ball squeeze' },
-        { _id: uuid(), text: '10x10s ball squeeze' },
-        { _id: uuid(), text: '10x10s band stretch' },
-        { _id: uuid(), text: '10x10s band stretch' },
-        { _id: uuid(), text: '10x10s band stretch' },
+        { _id: uuid(), checked: false, text: '20x rotate CW' },
+        { _id: uuid(), checked: false, text: '20x rotate CCW' },
+        { _id: uuid(), checked: false, text: '20x rotate CW' },
+        { _id: uuid(), checked: false, text: '20x rotate CCW' },
+        { _id: uuid(), checked: false, text: '20x rotate CW' },
+        { _id: uuid(), checked: false, text: '20x rotate CCW' },
+        { _id: uuid(), checked: false, text: '10x10s ball squeeze' },
+        { _id: uuid(), checked: false, text: '10x10s ball squeeze' },
+        { _id: uuid(), checked: false, text: '10x10s ball squeeze' },
+        { _id: uuid(), checked: false, text: '10x10s band stretch' },
+        { _id: uuid(), checked: false, text: '10x10s band stretch' },
+        { _id: uuid(), checked: false, text: '10x10s band stretch' },
       ]
     },
     {
       _id: `checklist:template:${uuid()}`,
       title: 'Before you push to Github',
       items: [
-        { _id: uuid(), text: 'Does ESLint pass?' },
-        { _id: uuid(), text: 'Have you covered your new functionality with unit tests?' },
-        { _id: uuid(), text: 'How about integration tests?' },
+        { _id: uuid(), checked: false, text: 'Does ESLint pass?' },
+        { _id: uuid(), checked: false, text: 'Have you covered your new functionality with unit tests?' },
+        { _id: uuid(), checked: false, text: 'How about integration tests?' },
       ]
     }]
 
@@ -104,6 +104,25 @@ function Home() {
 function Checklist(props) {
   const [checklist, setChecklist] = useState({});
 
+  // TODO: why does handleInputChange get called twice?
+  // Is this me using React incorrectly, or HTML being HTML, or something else?
+  function handleInputChange(e) {
+    async function updateDataModel() {
+      const item = checklist.items.find(i => i._id === e.target.name);
+      if (item.checked !== e.target.checked) {
+        const updatedChecklist = Object.assign({}, checklist);
+        item.checked = e.target.checked;
+
+        const {rev} = await db.put(updatedChecklist);
+        updatedChecklist._rev = rev;
+        setChecklist(updatedChecklist);
+      }
+
+    }
+
+    updateDataModel();
+  }
+
   useEffect(() => db.get(props.checklistId)
     .catch(err => {
       if (err.status !== 404) {
@@ -133,7 +152,7 @@ function Checklist(props) {
       const {_id: id, text} = item;
       return <li key={id}>
         <label className='strikethrough'>
-          <input type='checkbox' name={id} />
+          <input type='checkbox' name={id} checked={item.checked} onChange={handleInputChange}/>
           {text}
         </label>
       </li>
