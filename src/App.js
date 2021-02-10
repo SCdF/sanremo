@@ -56,6 +56,7 @@ const db = new PouchDB('sanremo');
 function Home() {
   const [templates, setTemplates] = useState([]);
   const [activeChecklists, setActiveChecklists] = useState([]);
+  const [completeChecklists, setCompleteChecklists] = useState([]);
 
   useEffect(() => db.find({
       selector: {_id: {$gt: 'checklist:template:', $lte: 'checklist:template:\uffff'}},
@@ -70,6 +71,14 @@ function Home() {
       },
       fields: ['_id', 'title', 'templateId']
     }).then(({docs}) => setActiveChecklists(docs)), []);
+
+  useEffect(() => db.find({
+    selector: {
+      _id: {$gt: 'checklist:instance:', $lte: 'checklist:instance:\uffff'},
+      completed: {$exists: true}
+    },
+    fields: ['_id', 'title', 'templateId']
+  }).then(({docs}) => setCompleteChecklists(docs)), []);
 
   // TODO: create and redirect
   // It would be cleaner for Home to not know how to name checklists
@@ -89,6 +98,14 @@ function Home() {
     </li>
   );
 
+  const completeList = completeChecklists.map(checklist => 
+    <li key={checklist._id}>
+      <Link to={`/checklist/${checklist.templateId}/${checklist._id}`}>
+        {checklist.title}
+      </Link>
+    </li>
+  );
+
   return <main>
     <section>
       <h1>Active checklists</h1>
@@ -97,6 +114,10 @@ function Home() {
     <section>
       <h1>Templates</h1>
       <ul className='App-checklist-list'>{templateList}</ul>
+    </section>
+    <section>
+      <h1>Completed checklists</h1>
+      <ul className='App-checklist-list'>{completeList}</ul>
     </section>
   </main>;
 };
