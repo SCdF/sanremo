@@ -104,16 +104,27 @@ function Home() {
 function Checklist(props) {
   const [checklist, setChecklist] = useState({});
 
-  // TODO: why does handleInputChange get called twice?
-  // Is this me using React incorrectly, or HTML being HTML, or something else?
   async function handleInputChange(e) {
     const item = checklist.items.find(i => i._id === e.target.name);
+    // TODO: why does handleInputChange get called twice?
+    // Is this me using React incorrectly, or HTML being HTML, or something else?
     if (item.checked !== e.target.checked) {
+      const now = Date.now();
       const updatedChecklist = Object.assign({}, checklist);
+
       item.checked = e.target.checked;
+      updatedChecklist.updated = now;
+      
+      const completed = updatedChecklist.items.every(i => i.checked);
+      if (completed) {
+        updatedChecklist.completed = now;
+      } else {
+        delete updatedChecklist.completed;
+      }
 
       const {rev} = await db.put(updatedChecklist);
       updatedChecklist._rev = rev;
+      
       setChecklist(updatedChecklist);
     }
   }
@@ -161,7 +172,7 @@ function Checklist(props) {
   }
 
   return <div>
-    <header>{checklist && checklist.title}</header>
+    <header className={checklist.completed && 'strikethrough'}>{checklist && checklist.title}</header>
     <ol>{items}</ol>
     <button onClick={deleteChecklist}>Delete</button>
   </div>;

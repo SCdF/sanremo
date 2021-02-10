@@ -25,9 +25,12 @@ li {
   list-style: none;
 }
 
-input[type=checkbox]:checked + label.strikethrough {
+input[type=checkbox]:checked + label.strikethrough,
+header.strikethrough
+{
   text-decoration: line-through;
 }
+
 /* <li key={item}>
   <input type='checkbox' name={item} id={item}></input>
   <label htmlFor={item} class='strikethrough'>{item}</label>
