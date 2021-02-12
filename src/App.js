@@ -87,6 +87,7 @@ function Home() {
       <Link to={`/checklist/${template._id}/checklist:instance:${uuid()}`}>
        {template.title}
       </Link>
+      <Link to={`/checklist/${template._id}/edit`}> [edit]</Link>
     </li>
   );
 
@@ -200,6 +201,52 @@ function Checklist(props) {
   </div>;
 }
 
+//TODO: temporary way to edit templates, DELETE ME!
+class HackEditor extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      id: props.templateId,
+      rawTemplate: ''
+    }
+
+    this.handleChange = this.handleChange.bind(this);
+    this.handleSubmit = this.handleSubmit.bind(this);
+  }
+
+  handleChange(event) {
+    this.setState({rawTemplate: event.target.value});
+  }
+
+  async componentDidMount() {
+    const template = await db.get(this.state.id);
+    this.setState({rawTemplate: JSON.stringify(template, null, 2)});
+  }
+
+  async handleSubmit(event) {
+    event.preventDefault();
+
+    const template = this.state.rawTemplate.replace(/<uuid>/g, () => uuid());
+
+    await db.put(JSON.parse(template));
+
+    navigate('/');
+  }
+
+  render() {
+    return (
+      <form onSubmit={this.handleSubmit}>        
+      <label>Raw Template:<br/>
+        <textarea style={{width: '100%', height: '20em'}} type="text" value={this.state.rawTemplate} onChange={this.handleChange} />        
+      </label>
+      <br/>
+      <input type="submit" value="Submit" />
+      </form>
+    );
+  }
+}
+
+
 function App() {
   return (
     <div className='App'>
@@ -208,6 +255,7 @@ function App() {
       </header>
       <Router>
         <Home path='/' />
+        <HackEditor path='checklist/:templateId/edit' />
         {/* 
           do we really want checklists to contain the template id in their url? why? 
           We need them ATM because Checklist creates itself (and so needs the template 
