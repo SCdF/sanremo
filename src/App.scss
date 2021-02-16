@@ -4,11 +4,7 @@
 
 .App-header {
   text-align: center;
-  font-size: 200%;
-}
-
-.App-link {
-  color: #61dafb;
+  font-size: 5vw;
 }
 
 .App-checklist-list {
@@ -30,8 +26,3 @@ header.strikethrough
 {
   text-decoration: line-through;
 }
-
-/* <li key={item}>
-  <input type='checkbox' name={item} id={item}></input>
-  <label htmlFor={item} class='strikethrough'>{item}</label>
-</li> */

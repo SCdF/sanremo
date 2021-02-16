@@ -53,6 +53,26 @@ const db = new PouchDB('sanremo');
 })();
 // TEMP data check
 
+function App() {
+  return (
+    <div className='App'>
+      <header className='App-header'>
+        <Link to='/'>Sanremo</Link>
+      </header>
+      <Router>
+        <Home path='/' />
+        <HackEditor path='hacks/:id/edit' />
+        {/* 
+          do we really want checklists to contain the template id in their url? why? 
+          We need them ATM because Checklist creates itself (and so needs the template 
+          id to clone), but we should fix that too!
+          */}
+        <Checklist path='checklist/:templateId/:checklistId'/>
+      </Router>
+    </div>
+  );   
+}
+
 function Home() {
   const [templates, setTemplates] = useState([]);
   const [activeChecklists, setActiveChecklists] = useState([]);
@@ -87,7 +107,7 @@ function Home() {
       <Link to={`/checklist/${template._id}/checklist:instance:${uuid()}`}>
        {template.title}
       </Link>
-      <Link to={`/checklist/${template._id}/edit`}> [edit]</Link>
+      <Link to={`/hacks/${template._id}/edit`}> [edit]</Link>
     </li>
   );
 
@@ -201,13 +221,13 @@ function Checklist(props) {
   </div>;
 }
 
-//TODO: temporary way to edit templates, DELETE ME!
+//TODO: temporary way to edit documents in general, DELETE ME!
 class HackEditor extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      id: props.templateId,
-      rawTemplate: ''
+      id: props.id,
+      rawDoc: ''
     }
 
     this.handleChange = this.handleChange.bind(this);
@@ -215,20 +235,20 @@ class HackEditor extends React.Component {
   }
 
   handleChange(event) {
-    this.setState({rawTemplate: event.target.value});
+    this.setState({rawDoc: event.target.value});
   }
 
   async componentDidMount() {
-    const template = await db.get(this.state.id);
-    this.setState({rawTemplate: JSON.stringify(template, null, 2)});
+    const doc = await db.get(this.state.id);
+    this.setState({rawDoc: JSON.stringify(doc, null, 2)});
   }
 
   async handleSubmit(event) {
     event.preventDefault();
 
-    const template = this.state.rawTemplate.replace(/<uuid>/g, () => uuid());
+    const rawDoc = this.state.rawDoc.replace(/<uuid>/g, () => uuid());
 
-    await db.put(JSON.parse(template));
+    await db.put(JSON.parse(rawDoc));
 
     navigate('/');
   }
@@ -237,34 +257,13 @@ class HackEditor extends React.Component {
     return (
       <form onSubmit={this.handleSubmit}>        
       <label>Raw Template:<br/>
-        <textarea style={{width: '100%', height: '20em'}} type="text" value={this.state.rawTemplate} onChange={this.handleChange} />        
+        <textarea style={{width: '100%', height: '20em'}} type="text" value={this.state.rawDoc} onChange={this.handleChange} />        
       </label>
       <br/>
       <input type="submit" value="Submit" />
       </form>
     );
   }
-}
-
-
-function App() {
-  return (
-    <div className='App'>
-      <header className='App-header'>
-        <Link to='/'>Sanremo</Link>
-      </header>
-      <Router>
-        <Home path='/' />
-        <HackEditor path='checklist/:templateId/edit' />
-        {/* 
-          do we really want checklists to contain the template id in their url? why? 
-          We need them ATM because Checklist creates itself (and so needs the template 
-          id to clone), but we should fix that too!
-          */}
-        <Checklist path='checklist/:templateId/:checklistId'/>
-      </Router>
-    </div>
-  );   
 }
 
 export default App;

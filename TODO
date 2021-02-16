@@ -1,3 +1,5 @@
+Set focus to first uncompleted task on render()
+
 Highlight next task to complete in checklist, allow space / enter to complete the task and highlight the next one
 
 Stop item text from being selectable
@@ -11,3 +13,5 @@ Spend a pomo looking into TypeScript with React: a good idea?
 Spend a pomo thinking about whether the URL structure for a checklist really needs its template ID as well. This is arguably right from a REST philosophy, but who cares? Why does a checklist need to know its template origins? Are we ever going to take knowledge from a template and apply it to an existing instance? That seems unlikely to me. OR MAYBE THIS IS RIGHT?? Maybe checklist instances should be just be templateId, then list of {_id: '<uuid>', value: 'xyz'} which are mapped onto templates. Upside is that the instance is smaller and so less network traffic, downside is it opens the question of whether updating templates changes instances (in progress and or historic).
 
 Most recently used checklist on front page.
+
+For performance, decouple visual actions (checking a box) with writing to DB? Consider it...
