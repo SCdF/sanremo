@@ -54,29 +54,35 @@ const db = new PouchDB('sanremo');
 // TEMP data check
 
 function App() {
+  const [title, setTitle] = useState('Sanremo');
+
   return (
     <div className='App'>
       <header className='App-header'>
-        <Link to='/'>Sanremo</Link>
+        <Link to='/'>{title}</Link>
       </header>
       <Router>
-        <Home path='/' />
-        <HackEditor path='hacks/:id/edit' />
+        <Home path='/' setTitle={setTitle}/>
+        <HackEditor path='hacks/:id/edit' setTitle={setTitle}/>
         {/* 
           do we really want checklists to contain the template id in their url? why? 
           We need them ATM because Checklist creates itself (and so needs the template 
           id to clone), but we should fix that too!
           */}
-        <Checklist path='checklist/:templateId/:checklistId'/>
+        <Checklist path='checklist/:templateId/:checklistId' setTitle={setTitle}/>
       </Router>
     </div>
   );   
 }
 
-function Home() {
+function Home(props) {
   const [templates, setTemplates] = useState([]);
   const [activeChecklists, setActiveChecklists] = useState([]);
   const [completeChecklists, setCompleteChecklists] = useState([]);
+
+  const {setTitle} = props;
+  
+  useEffect(() => setTitle('Sanremo'), [setTitle]);
 
   useEffect(() => db.find({
       selector: {_id: {$gt: 'checklist:template:', $lte: 'checklist:template:\uffff'}},
@@ -146,6 +152,8 @@ function Home() {
 function Checklist(props) {
   const [checklist, setChecklist] = useState({});
 
+  const {setTitle} = props;
+
   async function handleInputChange(e) {
     const item = checklist.items.find(i => i._id === e.target.name);
     // TODO: why does handleInputChange get called twice?
@@ -198,7 +206,11 @@ function Checklist(props) {
             })
         });
     })
-    .then(checklist => setChecklist(checklist)), [props.checklistId, props.templateId]);
+    .then(checklist => {
+      setTitle(checklist.title);
+      setChecklist(checklist);
+        // TODO I am blindly putting things in this. Read about it!
+    }), [props.checklistId, props.templateId, setTitle]);
   
 
   let items = [];
@@ -228,7 +240,9 @@ class HackEditor extends React.Component {
     this.state = {
       id: props.id,
       rawDoc: ''
-    }
+    } 
+
+    this.props.setTitle('Hack document editor');
 
     this.handleChange = this.handleChange.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
