@@ -113,7 +113,7 @@ class HackEditor extends React.Component {
 
   render() {
     return (
-      <Page title='Hack document editor'>
+      <Page title='Hack document editor' back='/'>
         <form onSubmit={this.handleSubmit}>        
         <label>Raw Template:<br/>
           <textarea style={{width: '100%', height: '20em'}} type="text" value={this.state.rawDoc} onChange={this.handleChange} />        

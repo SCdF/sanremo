@@ -80,10 +80,10 @@ export function Checklist(props) {
   }
 
   return (
-    <Page title={checklist && checklist.title}>
-      <header className={checklist.completed && 'strikethrough'}>{checklist && checklist.title}</header>
+    <Page title={checklist && checklist.title} back='/'>
       <ol>{items}</ol>
-      <Button onClick={deleteChecklist} color='primary' variant='contained'>Delete</Button>
+      <Button onclick={() => navigate('/')} color='primary' variant='contained' disabled={!checklist.completed}>Complete</Button>
+      <Button onClick={deleteChecklist} color='secondary'>Delete</Button>
     </Page>
   );
 }
