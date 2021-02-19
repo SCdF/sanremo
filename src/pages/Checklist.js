@@ -52,7 +52,7 @@ export function Checklist(props) {
           checklist._id = props.checklistId;
           checklist.template = template._id;
           delete checklist._rev;
-          checklist.created = Date.now();
+          checklist.created = checklist.updated = Date.now();
 
           return db.put(checklist)
             .then(({ rev }) => {
