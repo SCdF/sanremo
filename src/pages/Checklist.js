@@ -1,12 +1,13 @@
-import React, { useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { navigate } from "@reach/router";
 import Button from '@material-ui/core/Button';
 import Page from '../components/Page';
+import {DbContext} from "../contexts/db";
 
 export function Checklist(props) {
   const [checklist, setChecklist] = useState({});
 
-  const { db } = props;
+  const db = useContext(DbContext);
 
   async function handleInputChange(e) {
     const item = checklist.items.find(i => i._id === e.target.name);
@@ -19,13 +20,6 @@ export function Checklist(props) {
       item.checked = e.target.checked;
       updatedChecklist.updated = now;
 
-      const completed = updatedChecklist.items.every(i => i.checked);
-      if (completed) {
-        updatedChecklist.completed = now;
-      } else {
-        delete updatedChecklist.completed;
-      }
-
       const { rev } = await db.put(updatedChecklist);
       updatedChecklist._rev = rev;
 
@@ -35,6 +29,13 @@ export function Checklist(props) {
 
   async function deleteChecklist() {
     await db.remove(checklist);
+
+    navigate('/');
+  }
+
+  async function completeChecklist() {
+    checklist.completed = Date.now();
+    await db.put(checklist);
 
     navigate('/');
   }
@@ -82,7 +83,7 @@ export function Checklist(props) {
   return (
     <Page title={checklist && checklist.title} back='/'>
       <ol>{items}</ol>
-      <Button onclick={() => navigate('/')} color='primary' variant='contained' disabled={!checklist.completed}>Complete</Button>
+      <Button onClick={completeChecklist} color='primary' variant='contained'>Complete</Button>
       <Button onClick={deleteChecklist} color='secondary'>Delete</Button>
     </Page>
   );

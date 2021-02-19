@@ -1,5 +1,7 @@
 import { AppBar, Box, Container, IconButton, Toolbar, Typography } from "@material-ui/core";
-import { ArrowBack } from "@material-ui/icons";
+// TODO: configure babel properly so we can use { ArrowBack } etc instead
+// https://material-ui.com/guides/minimizing-bundle-size/#option-2
+import ArrowBack from "@material-ui/icons/ArrowBack";
 import { Link } from "@reach/router";
 
 function Page(props) {

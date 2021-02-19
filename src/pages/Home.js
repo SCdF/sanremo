@@ -1,11 +1,12 @@
 import { Link } from "@reach/router";
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import Page from "../components/Page";
 
 import { v4 as uuid } from 'uuid';
+import {DbContext} from "../contexts/db";
 
 function Home(props) {
-  const { db } = props;
+  const db = useContext(DbContext);
 
   const [templates, setTemplates] = useState([]);
   const [activeChecklists, setActiveChecklists] = useState([]);
@@ -35,7 +36,7 @@ function Home(props) {
 
   // TODO: create and redirect
   // It would be cleaner for Home to not know how to name checklists
-  const templateList = templates.map(template => 
+  const templateList = templates.map(template =>
     <li key={template._id}>
       <Link to={`/checklist/${template._id}/checklist:instance:${uuid()}`}>
        {template.title}
@@ -44,7 +45,7 @@ function Home(props) {
     </li>
   );
 
-  const checklistList = activeChecklists.map(checklist => 
+  const checklistList = activeChecklists.map(checklist =>
     <li key={checklist._id}>
       <Link to={`/checklist/${checklist.template}/${checklist._id}`}>
         {checklist.title}
@@ -52,7 +53,7 @@ function Home(props) {
     </li>
   );
 
-  const completeList = completeChecklists.map(checklist => 
+  const completeList = completeChecklists.map(checklist =>
     <li key={checklist._id}>
       <Link to={`/checklist/${checklist.template}/${checklist._id}`}>
         {checklist.title}

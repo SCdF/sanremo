@@ -15,3 +15,8 @@ Spend a pomo thinking about whether the URL structure for a checklist really nee
 Most recently used checklist on front page.
 
 For performance, decouple visual actions (checking a box) with writing to DB? Consider it...
+
+Questions on completion:
+  - If you complete all checks in a checklist, should it be automatically marked as completed?
+  - Should it also be automatically closed?
+  - Alternatively, should you be able to complete a checklist without completing all checks?
