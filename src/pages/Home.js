@@ -1,17 +1,20 @@
 import { useContext, useEffect, useState } from "react";
 import Page from "../components/Page";
 
-import {DbContext} from "../contexts/db";
+import { DbContext } from "../contexts/db";
 import ChecklistItem from "../components/ChecklistItem";
 import TemplateItem from "../components/TemplateItem";
 
-import { List, ListItem, ListSubheader } from "@material-ui/core";
+import { Box, Card, Container, Divider, List, ListItem, Typography } from "@material-ui/core";
 import { makeStyles } from '@material-ui/core/styles';
 
 // TODO: this does nothing, leaving it as an example for when we start using styling properly
-const useStyles = makeStyles(() => ({
+const useStyles = makeStyles((theme) => ({
   horizontal: {
-    display: 'flex'
+    display: 'inline-block',
+  },
+  root: {
+    padding: theme.spacing(1)
   }
 }));
 
@@ -39,7 +42,7 @@ function Home(props) {
   .then(({docs}) => setTemplates(docs)), [db]);
 
   const templateList = templates.map(template =>
-    <ListItem className={classes.horizontal} key={template._id}><TemplateItem template={template} /></ListItem>);
+    <ListItem key={template._id}><TemplateItem template={template} /></ListItem>);
 
   const checklistList = activeChecklists.map(checklist =>
     <ChecklistItem key={checklist._id} checklistStub={checklist} />
@@ -47,19 +50,16 @@ function Home(props) {
 
   return (
     <Page title='Sanremo'>
-      <List subheader={<li />}>
-        <li key='section-active-checklists'>
-          <ul>
-            <ListSubheader>Active checklists</ListSubheader>
-            {checklistList}
-            </ul>
-        </li>
-        <li key='section-templates'>
-          <ul>
-            <ListSubheader>Templates</ListSubheader>
-            {templateList}
-            </ul>
-        </li>
+      {}
+      { !!checklistList.length && <List>{checklistList}</List> }
+      { !!!checklistList.length &&
+          <Typography align='center' variant='body2' className={classes.root}>
+            Click on a template below to get started.
+          </Typography>
+      }
+      <Divider />
+      <List className={classes.horizontal}>
+        {templateList}
       </List>
     </Page>
   );

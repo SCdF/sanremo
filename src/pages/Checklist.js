@@ -7,7 +7,7 @@ import {DbContext} from "../contexts/db";
 
 import { v4 as uuid } from 'uuid';
 import qs from 'qs';
-import { ButtonGroup } from '@material-ui/core';
+import { ButtonGroup, Checkbox, List, ListItem, ListItemIcon, ListItemText } from '@material-ui/core';
 
 export function Checklist(props) {
   const [checklist, setChecklist] = useState({});
@@ -38,24 +38,6 @@ export function Checklist(props) {
     }
   }, [db, checklistId, location]);
 
-  async function handleInputChange(e) {
-    const item = checklist.items.find(i => i._id === e.target.name);
-    // TODO: why does handleInputChange get called twice?
-    // Is this me using React incorrectly, or HTML being HTML, or something else?
-    if (item.checked !== e.target.checked) {
-      const now = Date.now();
-      const updatedChecklist = Object.assign({}, checklist);
-
-      item.checked = e.target.checked;
-      updatedChecklist.updated = now;
-
-      const { rev } = await db.put(updatedChecklist);
-      updatedChecklist._rev = rev;
-
-      setChecklist(updatedChecklist);
-    }
-  }
-
   async function deleteChecklist() {
     await db.remove(checklist);
 
@@ -76,22 +58,45 @@ export function Checklist(props) {
     navigate('/');
   }
 
+
+  function handleToggle(id) {
+    const item = checklist.items.find(i => i._id === id);
+
+    return async () => {
+      const now = Date.now();
+      const updatedChecklist = Object.assign({}, checklist);
+
+      item.checked = !item.checked;
+      updatedChecklist.updated = now;
+
+      const { rev } = await db.put(updatedChecklist);
+      updatedChecklist._rev = rev;
+
+      setChecklist(updatedChecklist);
+    };
+  }
+
   let items = [];
-  if (checklist && checklist.items) {
+  if (checklist.items) {
+
+    const initialFocus = checklist.items.find(i => !i.checked);
+
     items = checklist.items.map(item => {
-      const { _id: id, text } = item;
-      return <li key={id}>
-        <label className='strikethrough'>
-          <input type='checkbox' name={id} checked={item.checked} onChange={handleInputChange} />
-          {text}
-        </label>
-      </li>;
+      const { _id: id, text, checked } = item;
+      return (
+        <ListItem key={id} button onClick={handleToggle(id)} disableRipple autoFocus={item === initialFocus}>
+          <ListItemIcon>
+            <Checkbox checked={checked} edge='start' tabIndex='-1'/>
+          </ListItemIcon>
+          <ListItemText primary={text} />
+        </ListItem>
+      );
     });
   }
 
   return (
     <Page title={checklist && checklist.title} back='/'>
-      <ol>{items}</ol>
+      <List dense>{items}</List>
       <ButtonGroup>
         {!checklist.completed && <Button onClick={completeChecklist} color='primary' variant='contained'>Complete</Button>}
         {checklist.completed && <Button onClick={uncompleteChecklist} color='primary' variant='contained'>Un-complete</Button>}
