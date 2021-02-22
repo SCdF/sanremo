@@ -20,12 +20,7 @@ function App() {
       <Router>
         <Home path='/' />
         <HackEditor path='hacks/:id/edit' />
-        {/*
-          do we really want checklists to contain the template id in their url? why?
-          We need them ATM because Checklist creates itself (and so needs the template
-          id to clone), but we should fix that too!
-          */}
-        <Checklist path='checklist/:templateId/:checklistId' />
+        <Checklist path='checklist/:checklistId' />
       </Router>
     </DbContext.Provider>
   );

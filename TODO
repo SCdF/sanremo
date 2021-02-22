@@ -4,7 +4,7 @@ Highlight next task to complete in checklist, allow space / enter to complete th
 
 Stop item text from being selectable
 
-Create DB init where index creation etc takes place (for now we are not using indexes AT ALL!) 
+Create DB init where index creation etc takes place (for now we are not using indexes AT ALL!)
 
 Spend a pomo looking into shorter and less ugly variations on raw uuids to clean up URLs etc.
 
@@ -20,3 +20,7 @@ Questions on completion:
   - If you complete all checks in a checklist, should it be automatically marked as completed?
   - Should it also be automatically closed?
   - Alternatively, should you be able to complete a checklist without completing all checks?
+
+"Repeatable” is a better name for checklists? Imagine also supporting a "daily mgmt” checklist that lets you increment a counter for every glass of water, generally record your day.
+
+Sanremo each repeatable has a key that you can search by, e.g. date, or random string (e.g. treeish). This is a field known to the indexer, and appears in the title alongside the name of the repeatable

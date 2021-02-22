@@ -1,13 +1,42 @@
 import React, { useContext, useEffect, useState } from 'react';
-import { navigate } from "@reach/router";
+import { navigate, useLocation } from "@reach/router";
 import Button from '@material-ui/core/Button';
+import DeleteIcon from '@material-ui/icons/Delete';
 import Page from '../components/Page';
 import {DbContext} from "../contexts/db";
+
+import { v4 as uuid } from 'uuid';
+import qs from 'qs';
+import { ButtonGroup } from '@material-ui/core';
 
 export function Checklist(props) {
   const [checklist, setChecklist] = useState({});
 
+  const location = useLocation();
+
+  const { checklistId } = props;
+
   const db = useContext(DbContext);
+
+  useEffect(() => {
+    if (checklistId === 'new') {
+      const templateId = qs.parse(location.search, { ignoreQueryPrefix: true }).template;
+      db.get(templateId)
+        .then(template => {
+          const checklist = Object.assign({}, template);
+          checklist._id = `checklist:instance:${uuid()}`;
+          checklist.template = template._id;
+          delete checklist._rev;
+          checklist.created = checklist.updated = Date.now();
+
+          return db.put(checklist);
+        })
+        .then(({id}) => navigate(`/checklist/${id}`));
+    } else {
+      db.get(checklistId)
+        .then(checklist => setChecklist(checklist));
+    }
+  }, [db, checklistId, location]);
 
   async function handleInputChange(e) {
     const item = checklist.items.find(i => i._id === e.target.name);
@@ -40,32 +69,12 @@ export function Checklist(props) {
     navigate('/');
   }
 
-  useEffect(() => db.get(props.checklistId)
-    .catch(err => {
-      if (err.status !== 404) {
-        throw err;
-      }
+  async function uncompleteChecklist() {
+    delete checklist.completed;
+    await db.put(checklist);
 
-      return db.get(props.templateId)
-        .then(template => {
-          const checklist = Object.assign({}, template);
-          checklist._id = props.checklistId;
-          checklist.template = template._id;
-          delete checklist._rev;
-          checklist.created = checklist.updated = Date.now();
-
-          return db.put(checklist)
-            .then(({ rev }) => {
-              checklist._rev = rev;
-              return checklist;
-            });
-        });
-    })
-    .then(checklist => {
-      setChecklist(checklist);
-      // TODO I am blindly putting things in this. Read about it!
-    }), [db, props.checklistId, props.templateId]);
-
+    navigate('/');
+  }
 
   let items = [];
   if (checklist && checklist.items) {
@@ -83,8 +92,11 @@ export function Checklist(props) {
   return (
     <Page title={checklist && checklist.title} back='/'>
       <ol>{items}</ol>
-      <Button onClick={completeChecklist} color='primary' variant='contained'>Complete</Button>
-      <Button onClick={deleteChecklist} color='secondary'>Delete</Button>
+      <ButtonGroup>
+        {!checklist.completed && <Button onClick={completeChecklist} color='primary' variant='contained'>Complete</Button>}
+        {checklist.completed && <Button onClick={uncompleteChecklist} color='primary' variant='contained'>Un-complete</Button>}
+        <Button onClick={deleteChecklist}><DeleteIcon /></Button>
+      </ButtonGroup>
     </Page>
   );
 }
