@@ -5,13 +5,15 @@ import { DbContext } from "../contexts/db";
 import ChecklistItem from "../components/ChecklistItem";
 import TemplateItem from "../components/TemplateItem";
 
-import { Box, Card, Container, Divider, List, ListItem, Typography } from "@material-ui/core";
+import { Divider, List, ListItem, Typography } from "@material-ui/core";
 import { makeStyles } from '@material-ui/core/styles';
 
 // TODO: this does nothing, leaving it as an example for when we start using styling properly
 const useStyles = makeStyles((theme) => ({
   horizontal: {
     display: 'inline-block',
+    'padding-right': 0,
+    width: 'auto'
   },
   root: {
     padding: theme.spacing(1)
@@ -42,7 +44,7 @@ function Home(props) {
   .then(({docs}) => setTemplates(docs)), [db]);
 
   const templateList = templates.map(template =>
-    <ListItem key={template._id}><TemplateItem template={template} /></ListItem>);
+    <ListItem key={template._id} className={classes.horizontal}><TemplateItem template={template} /></ListItem>);
 
   const checklistList = activeChecklists.map(checklist =>
     <ChecklistItem key={checklist._id} checklistStub={checklist} />
@@ -58,7 +60,7 @@ function Home(props) {
           </Typography>
       }
       <Divider />
-      <List className={classes.horizontal}>
+      <List>
         {templateList}
       </List>
     </Page>

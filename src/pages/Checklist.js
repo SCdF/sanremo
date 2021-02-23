@@ -79,6 +79,10 @@ export function Checklist(props) {
   let items = [];
   if (checklist.items) {
 
+    // FIXME: this works, but not always visually. Work out why
+    // Works: space bar, full reload
+    // Fails: Navigating into a list, clicking with the mouse
+    // Browsers: Chrome, Edge (fine on FF)
     const initialFocus = checklist.items.find(i => !i.checked);
 
     items = checklist.items.map(item => {
