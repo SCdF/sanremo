@@ -95,7 +95,7 @@ export function Checklist(props) {
   }
 
   return (
-    <Page title={checklist && checklist.title} back='/'>
+    <Page title={checklist?.title} back='/'>
       <List dense>{items}</List>
       <ButtonGroup>
         {!checklist.completed && <Button onClick={completeChecklist} color='primary' variant='contained'>Complete</Button>}

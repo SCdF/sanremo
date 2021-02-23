@@ -2,6 +2,7 @@ import { AppBar, Box, Container, IconButton, makeStyles, Paper, Toolbar, Typogra
 // TODO: configure babel properly so we can use { ArrowBack } etc instead
 // https://material-ui.com/guides/minimizing-bundle-size/#option-2
 import ArrowBack from "@material-ui/icons/ArrowBack";
+import MenuIcon from "@material-ui/icons/Menu";
 import { Link } from "@reach/router";
 
 const useStyles = makeStyles(() => ({
@@ -20,9 +21,11 @@ function Page(props) {
           <Toolbar>
             {props.back &&
               <Link to={props.back} tabIndex='-1'>
-                {/* this should be white not black! */}
-                <IconButton edge='start'><ArrowBack /></IconButton>
+                <IconButton edge='start' color='inherit'><ArrowBack /></IconButton>
               </Link>
+            }
+            {!props.back &&
+              <IconButton edge='start' color='inherit'><MenuIcon /></IconButton>
             }
             <Typography variant='h6'>
               {props.title}
