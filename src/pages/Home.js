@@ -27,7 +27,10 @@ function Home(props) {
   const [templates, setTemplates] = useState([]);
   const [activeChecklists, setActiveChecklists] = useState([]);
 
-  // FIXME: sort out an index creation strategy so we can use sorting etc
+  // FIXME: there is a bug / missing feature in PouchDB where you sort won't work in this
+  // situation because the query planner decides to use the default index, presumably because
+  // sort doesn't match the selector (as written below it uses a [_id, completed] index).
+  // We should see what CouchDB does in this situation and make sure it's the same
   useEffect(() => db.find({
       selector: {
         _id: {$gt: 'checklist:instance:', $lte: 'checklist:instance:\uffff'},

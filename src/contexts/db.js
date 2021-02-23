@@ -6,6 +6,8 @@ import pdbFind from "pouchdb-find";
 PouchDB.plugin(pdbFind);
 export const db = new PouchDB('sanremo');
 
+window.DB = db;
+
 // TEMP data check
 (async function () {
   console.log('TEMP data check');
@@ -48,5 +50,17 @@ export const db = new PouchDB('sanremo');
 
 })();
 // TEMP data check
+
+// TODO: move this somewhere less stupid (this will be stupid once we're syncing with a remote server probably)
+db.createIndex({
+  index: {
+    fields: ['updated']
+  }
+});
+db.createIndex({
+  index: {
+    fields: ['completed']
+  }
+});
 
 export const DbContext = React.createContext();
