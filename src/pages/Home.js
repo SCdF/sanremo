@@ -54,7 +54,7 @@ function Home(props) {
   );
 
   return (
-    <Page title='Sanremo'>
+    <Page title='Sanremo' under='home'>
       {}
       { !!checklistList.length && <List>{checklistList}</List> }
       { !!!checklistList.length &&

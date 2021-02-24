@@ -83,6 +83,7 @@ export function Checklist(props) {
     // Works: space bar, full reload
     // Fails: Navigating into a list, clicking with the mouse
     // Browsers: Chrome, Edge (fine on FF)
+    // TODO: consider using seleted against ListItem to show next focus
     // TODO: improve rules for focus:
     //  - on item completion move focus to *next* incomplete item, or complete button if at end
     //  - (^ consider: when at end go back to any existing incomplete items?)
@@ -103,7 +104,7 @@ export function Checklist(props) {
   }
 
   return (
-    <Page title={checklist?.title} back>
+    <Page title={checklist?.title} back under='home'>
       <List dense>{items}</List>
       <ButtonGroup>
         {!checklist.completed && <Button onClick={completeChecklist} color='primary' variant='contained'>Complete</Button>}

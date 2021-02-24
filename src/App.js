@@ -12,6 +12,7 @@ import { v4 as uuid } from 'uuid';
 import Page from './components/Page';
 
 import {DbContext, db} from './contexts/db';
+import History from './components/History';
 
 function App() {
   return (
@@ -21,6 +22,7 @@ function App() {
         <Home path='/' />
         <HackEditor path='hacks/:id/edit' />
         <Checklist path='checklist/:checklistId' />
+        <History path='history' />
       </Router>
     </DbContext.Provider>
   );
