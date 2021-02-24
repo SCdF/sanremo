@@ -3,7 +3,7 @@ import { AppBar, Box, Container, IconButton, makeStyles, Paper, Toolbar, Typogra
 // https://material-ui.com/guides/minimizing-bundle-size/#option-2
 import ArrowBack from "@material-ui/icons/ArrowBack";
 import MenuIcon from "@material-ui/icons/Menu";
-import { Link } from "@reach/router";
+import { navigate } from "@reach/router";
 
 const useStyles = makeStyles(() => ({
   mainbox: {
@@ -20,9 +20,7 @@ function Page(props) {
         <AppBar position="static">
           <Toolbar>
             {props.back &&
-              <Link to={props.back} tabIndex='-1'>
-                <IconButton edge='start' color='inherit'><ArrowBack /></IconButton>
-              </Link>
+              <IconButton edge='start' color='inherit' onClick={() => navigate(-1)}><ArrowBack /></IconButton>
             }
             {!props.back &&
               <IconButton edge='start' color='inherit'><MenuIcon /></IconButton>

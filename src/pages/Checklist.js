@@ -31,7 +31,7 @@ export function Checklist(props) {
 
           return db.put(checklist);
         })
-        .then(({id}) => navigate(`/checklist/${id}`));
+        .then(({id}) => navigate(`/checklist/${id}`, {replace: true}));
     } else {
       db.get(checklistId)
         .then(checklist => setChecklist(checklist));
@@ -103,7 +103,7 @@ export function Checklist(props) {
   }
 
   return (
-    <Page title={checklist?.title} back='/'>
+    <Page title={checklist?.title} back>
       <List dense>{items}</List>
       <ButtonGroup>
         {!checklist.completed && <Button onClick={completeChecklist} color='primary' variant='contained'>Complete</Button>}
