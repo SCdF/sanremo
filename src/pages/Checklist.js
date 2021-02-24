@@ -83,6 +83,10 @@ export function Checklist(props) {
     // Works: space bar, full reload
     // Fails: Navigating into a list, clicking with the mouse
     // Browsers: Chrome, Edge (fine on FF)
+    // TODO: improve rules for focus:
+    //  - on item completion move focus to *next* incomplete item, or complete button if at end
+    //  - (^ consider: when at end go back to any existing incomplete items?)
+    //  - on load set to first incomplete item
     const initialFocus = checklist.items.find(i => !i.checked);
 
     items = checklist.items.map(item => {

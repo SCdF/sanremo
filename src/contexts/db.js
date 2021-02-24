@@ -6,6 +6,7 @@ import pdbFind from "pouchdb-find";
 PouchDB.plugin(pdbFind);
 export const db = new PouchDB('sanremo');
 
+// TODO: probably drop this, or work out a more react way of accessing it from the console
 window.DB = db;
 
 // TEMP data check
