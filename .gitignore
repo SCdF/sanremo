@@ -21,11 +21,4 @@
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-sanremo/000005.ldb
-sanremo/000008.ldb
-sanremo/000009.log
-sanremo/CURRENT
-sanremo/LOCK
-sanremo/LOG
-sanremo/LOG.old
-sanremo/MANIFEST-000007
+sanremo/
