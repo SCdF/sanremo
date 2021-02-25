@@ -1,8 +1,8 @@
 import React from 'react';
 import { v4 as uuid } from 'uuid';
-import PouchDB from "pouchdb";
-import pdbFind from "pouchdb-find";
 
+import PouchDB from "pouchdb-browser";
+import pdbFind from "pouchdb-find";
 PouchDB.plugin(pdbFind);
 export const db = new PouchDB('sanremo');
 
@@ -16,7 +16,7 @@ window.DB = db;
     selector: { _id: { $gt: 'checklist:template:' } }
   });
 
-  if (!templates || !templates.docs.length) {
+  if (!templates?.docs.length) {
     console.log('No temp data found, adding');
     const TEMP_DATA = [{
       _id: `checklist:template:${uuid()}`,
