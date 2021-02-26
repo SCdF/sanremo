@@ -1,13 +1,14 @@
+import { useEffect, useState } from "react";
 import { List } from "@material-ui/core";
-import { useContext, useEffect, useState } from "react";
-import { DbContext } from "../contexts/db";
-import ChecklistItem from "./ChecklistItem";
+
 import Page from "./Page";
 
-export default function History() {
-  const db = useContext(DbContext);
+import ChecklistItem from "./ChecklistItem";
 
+function History(props) {
   const [checklists, setChecklists] = useState([]);
+
+  const { db } = props;
 
   useEffect(() => db.find({
     selector: {
@@ -30,3 +31,5 @@ export default function History() {
     </Page>
   )
 }
+
+export default History;

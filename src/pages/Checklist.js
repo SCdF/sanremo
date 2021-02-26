@@ -1,22 +1,20 @@
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { navigate, useLocation } from "@reach/router";
-import Button from '@material-ui/core/Button';
+
+import { Button, ButtonGroup, Checkbox, List, ListItem, ListItemIcon, ListItemText } from '@material-ui/core';
 import DeleteIcon from '@material-ui/icons/Delete';
-import Page from '../components/Page';
-import {DbContext} from "../contexts/db";
 
 import { v4 as uuid } from 'uuid';
 import qs from 'qs';
-import { ButtonGroup, Checkbox, List, ListItem, ListItemIcon, ListItemText } from '@material-ui/core';
 
-export function Checklist(props) {
+import Page from '../components/Page';
+
+function Checklist(props) {
   const [checklist, setChecklist] = useState({});
 
   const location = useLocation();
 
-  const { checklistId } = props;
-
-  const db = useContext(DbContext);
+  const { checklistId, db } = props;
 
   useEffect(() => {
     if (checklistId === 'new') {

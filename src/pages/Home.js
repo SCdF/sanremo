@@ -1,14 +1,12 @@
 import { useContext, useEffect, useState } from "react";
-import Page from "../components/Page";
-
-import { DbContext } from "../contexts/db";
-import ChecklistItem from "../components/ChecklistItem";
-import TemplateItem from "../components/TemplateItem";
-
 import { Divider, List, ListItem, Typography } from "@material-ui/core";
 import { makeStyles } from '@material-ui/core/styles';
 
-// TODO: this does nothing, leaving it as an example for when we start using styling properly
+import Page from "../components/Page";
+
+import ChecklistItem from "../components/ChecklistItem";
+import TemplateItem from "../components/TemplateItem";
+
 const useStyles = makeStyles((theme) => ({
   horizontal: {
     display: 'inline-block',
@@ -21,8 +19,9 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 function Home(props) {
-  const db = useContext(DbContext);
   const classes = useStyles();
+
+  const { db } = props;
 
   const [templates, setTemplates] = useState([]);
   const [activeChecklists, setActiveChecklists] = useState([]);
@@ -55,7 +54,6 @@ function Home(props) {
 
   return (
     <Page title='Sanremo' under='home'>
-      {}
       { !!checklistList.length && <List>{checklistList}</List> }
       { !!!checklistList.length &&
           <Typography align='center' variant='body2' className={classes.root}>

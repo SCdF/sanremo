@@ -4,27 +4,26 @@ import { navigate, Router } from "@reach/router"
 
 import CssBaseline from '@material-ui/core/CssBaseline';
 
+import db from './db';
+
+import Page from './components/Page';
 import Home from './pages/Home';
-import { Checklist } from './pages/Checklist';
+import Checklist from './pages/Checklist';
+import History from './components/History';
 
 import { v4 as uuid } from 'uuid';
 
-import Page from './components/Page';
-
-import {DbContext, db} from './contexts/db';
-import History from './components/History';
-
 function App() {
   return (
-    <DbContext.Provider value={db}>
+    <React.Fragment>
       <CssBaseline />
       <Router>
-        <Home path='/' />
-        <HackEditor path='hacks/:id/edit' />
-        <Checklist path='checklist/:checklistId' />
-        <History path='history' />
+        <Home db={db} path='/' />
+        <HackEditor db={db} path='hacks/:id/edit' />
+        <Checklist db={db} path='checklist/:checklistId' />
+        <History db={db} path='history' />
       </Router>
-    </DbContext.Provider>
+    </React.Fragment>
   );
 }
 
@@ -36,19 +35,18 @@ class HackEditor extends React.Component {
       id: props.id,
       rawDoc: ''
     }
+    this.db = props.db;
 
     this.handleChange = this.handleChange.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
   }
-
-  static contextType = DbContext;
 
   handleChange(event) {
     this.setState({rawDoc: event.target.value});
   }
 
   async componentDidMount() {
-    const doc = await this.context.get(this.state.id);
+    const doc = await this.db.get(this.state.id);
     this.setState({rawDoc: JSON.stringify(doc, null, 2)});
   }
 
@@ -57,7 +55,7 @@ class HackEditor extends React.Component {
 
     const rawDoc = this.state.rawDoc.replace(/<uuid>/g, () => uuid());
 
-    await this.context.put(JSON.parse(rawDoc));
+    await this.db.put(JSON.parse(rawDoc));
 
     navigate('/');
   }

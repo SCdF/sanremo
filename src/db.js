@@ -1,10 +1,10 @@
-import React from 'react';
 import { v4 as uuid } from 'uuid';
 
 import PouchDB from "pouchdb-browser";
 import pdbFind from "pouchdb-find";
 PouchDB.plugin(pdbFind);
-export const db = new PouchDB('sanremo');
+
+const db = new PouchDB('sanremo');
 
 // TODO: probably drop this, or work out a more react way of accessing it from the console
 window.DB = db;
@@ -64,4 +64,4 @@ db.createIndex({
   }
 });
 
-export const DbContext = React.createContext();
+export default db;
