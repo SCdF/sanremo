@@ -4,8 +4,8 @@ import { makeStyles } from '@material-ui/core/styles';
 
 import Page from "../components/Page";
 
-import ChecklistItem from "../components/ChecklistItem";
-import TemplateItem from "../components/TemplateItem";
+import ChecklistListItem from "../components/ChecklistListItem";
+import TemplateListItem from "../components/TemplateListItem";
 
 const useStyles = makeStyles((theme) => ({
   horizontal: {
@@ -46,10 +46,10 @@ function Home(props) {
   .then(({docs}) => setTemplates(docs)), [db]);
 
   const templateList = templates.map(template =>
-    <ListItem key={template._id} className={classes.horizontal}><TemplateItem template={template} /></ListItem>);
+    <ListItem key={template._id} className={classes.horizontal}><TemplateListItem template={template} /></ListItem>);
 
   const checklistList = activeChecklists.map(checklist =>
-    <ChecklistItem key={checklist._id} checklistStub={checklist} />
+    <ChecklistListItem key={checklist._id} checklistStub={checklist} />
   );
 
   return (

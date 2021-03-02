@@ -3,7 +3,7 @@ import { List } from "@material-ui/core";
 
 import Page from "./Page";
 
-import ChecklistItem from "./ChecklistItem";
+import ChecklistListItem from "./ChecklistListItem";
 
 function History(props) {
   const [checklists, setChecklists] = useState([]);
@@ -20,7 +20,7 @@ function History(props) {
   }).then(({docs}) => setChecklists(docs.sort((d1, d2) => d2.completed - d1.completed ))), [db]);
 
   const checklistList = checklists.map(checklist =>
-    <ChecklistItem key={checklist._id} checklistStub={checklist} />
+    <ChecklistListItem key={checklist._id} checklistStub={checklist} />
   );
 
   return (

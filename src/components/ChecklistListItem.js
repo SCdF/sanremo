@@ -2,7 +2,7 @@ import { ListItem, ListItemText } from "@material-ui/core";
 import { Link } from "@reach/router";
 import { RelativeTime } from "./RelativeTime";
 
-function ChecklistItem(props) {
+function ChecklistListItem(props) {
   const { checklistStub } = props;
 
   return (
@@ -16,4 +16,4 @@ function ChecklistItem(props) {
   );
 }
 
-export default ChecklistItem;
+export default ChecklistListItem;

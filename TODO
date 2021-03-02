@@ -18,9 +18,10 @@ Questions on completion:
 
 "Repeatable” is a better name for checklists? Imagine also supporting a "daily mgmt” checklist that lets you increment a counter for every glass of water, generally record your day.
 
-Sanremo each repeatable has a key that you can search by, e.g. date, or random string (e.g. treeish). This is a field known to the indexer, and appears in the title alongside the name of the repeatable
+Each repeatable has a key that you can search by, e.g. date, or random string (e.g. treeish). This is a field known to the indexer, and appears in the title alongside the name of the repeatable
+Each repeatable has a "notes" section that supports markdown at the end
 
 Other input types:
- - Text, URL, Date: all can be linked to `key` which can be searched on.
+ - Text, URL, Date: all can be linked to `key` which can be searched on (see above).
  - Counter with max. Starts at 0, hitting space stays on the same el until his max, then moves on.
  - Sub lists, when moving into one the outer area dims and once you complete everything inside it, the main checkbox completes (or increments, see above) and collapses, moving on
