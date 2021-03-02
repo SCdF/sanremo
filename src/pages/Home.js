@@ -53,7 +53,7 @@ function Home(props) {
   );
 
   return (
-    <Page title='Sanremo' under='home'>
+    <Page title='Checklists' under='home'>
       { !!checklistList.length && <List>{checklistList}</List> }
       { !!!checklistList.length &&
           <Typography align='center' variant='body2' className={classes.root}>

@@ -1,4 +1,4 @@
-import { AppBar, Box, Container, Divider, Drawer, Hidden, IconButton, List, ListItem, ListItemIcon, ListItemText, makeStyles, Paper, Toolbar, Typography } from "@material-ui/core";
+import { AppBar, Container, Divider, Drawer, Hidden, IconButton, List, ListItem, ListItemIcon, ListItemText, makeStyles, Toolbar, Typography } from "@material-ui/core";
 // TODO: configure babel properly so we can use { ArrowBack } etc instead
 // https://material-ui.com/guides/minimizing-bundle-size/#option-2
 import ArrowBack from "@material-ui/icons/ArrowBack";
@@ -7,6 +7,7 @@ import CheckBoxIcon from '@material-ui/icons/CheckBox';
 import HistoryIcon from '@material-ui/icons/History';
 import { navigate } from "@reach/router";
 import { useState } from "react";
+import { useEffect } from "react";
 
 const drawerWidth = 240;
 
@@ -56,6 +57,8 @@ function Page(props) {
   const { window, children, back, title, under } = props;
 
   const container = window !== undefined ? () => window().document.body : undefined;
+
+  useEffect(() => document.title = title ? `${title} | Sanremo` : 'Sanremo');
 
   function handleDrawerToggle() {
     setMobileOpen(!mobileOpen);

@@ -9,7 +9,7 @@ beforeAll(() => {
 beforeEach(() => {
 });
 
-test('Basic test', async () => {
+test('renders without crashing', async () => {
   db.find.mockImplementation(options => {
     if (options?.selector?._id?.$gt === 'checklist:instance:') {
       return Promise.resolve({docs: [
@@ -28,7 +28,4 @@ test('Basic test', async () => {
 
   await waitFor(() => screen.getByText(/A checklist/));
   await waitFor(() => screen.getByText(/A template/));
-
-  const linkElement = screen.getByText(/Sanremo/i);
-  expect(linkElement).toBeInTheDocument();
 });
