@@ -93,7 +93,7 @@ function Checklist(props) {
       return (
         <ListItem key={id} button onClick={handleToggle(id)} disableRipple autoFocus={item === initialFocus}>
           <ListItemIcon>
-            <Checkbox checked={checked} edge='start' tabIndex='-1'/>
+            <Checkbox checked={!!checked} edge='start' tabIndex='-1'/>
           </ListItemIcon>
           <ListItemText primary={text} />
         </ListItem>
