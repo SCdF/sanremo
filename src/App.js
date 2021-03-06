@@ -12,6 +12,7 @@ import Checklist from './pages/Checklist';
 import History from './components/History';
 
 import { v4 as uuid } from 'uuid';
+import About from './pages/About';
 
 function App() {
   return (
@@ -19,6 +20,7 @@ function App() {
       <CssBaseline />
       <Router>
         <Home db={db} path='/' />
+        <About db={db} path='/about' />
         <HackEditor db={db} path='hacks/:id/edit' />
         <Checklist db={db} path='checklist/:checklistId' />
         <History db={db} path='history' />

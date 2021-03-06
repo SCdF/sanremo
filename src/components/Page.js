@@ -5,6 +5,7 @@ import ArrowBack from "@material-ui/icons/ArrowBack";
 import MenuIcon from "@material-ui/icons/Menu";
 import CheckBoxIcon from '@material-ui/icons/CheckBox';
 import HistoryIcon from '@material-ui/icons/History';
+import InfoIcon from '@material-ui/icons/Info';
 import { navigate } from "@reach/router";
 import { useState } from "react";
 import { useEffect } from "react";
@@ -76,6 +77,10 @@ function Page(props) {
         <ListItem button key='history' selected={under === 'history'} onClick={() => navigate('/history')}>
           <ListItemIcon><HistoryIcon /></ListItemIcon>
           <ListItemText primary='History' />
+        </ListItem>
+        <ListItem button key='about' selected={under === 'about'} onClick={() => navigate('/about')}>
+          <ListItemIcon><InfoIcon /></ListItemIcon>
+          <ListItemText primary='About' />
         </ListItem>
       </List>
     </div>
