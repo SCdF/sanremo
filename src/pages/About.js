@@ -5,9 +5,9 @@ import Page from "../components/Page";
 function About(props) {
   const { db } = props;
 
-  const [ dbInfo, setDbInfo ] = useState({});
+  const [ dbInfo, setDbInfo ] = useState([]);
 
-  useEffect(() => db.info().then(info => setDbInfo(info)), [db]);
+  useEffect(() => db.info().then(info => setDbInfo(Object.keys(info).sort().map((k) => ([`db.${k}`, info[k]])))), [db]);
 
   const vars = [
     ['Deployment Type', <b>{process.env.NODE_ENV.toUpperCase()}</b>],
@@ -15,7 +15,7 @@ function About(props) {
     ['Release Created At', new Date(process.env.REACT_APP_RELEASE_CREATED_AT).toLocaleString()],
     ['Release Description', process.env.REACT_APP_RELEASE_DESCRIPTION],
     ['Commit', <Link href={`https://github.com/scdf/sanremo/commit/${process.env.REACT_APP_COMMIT}`}>{process.env.REACT_APP_COMMIT}</Link>],
-    ['Local Database', JSON.stringify(dbInfo)]
+    ...dbInfo
   ];
 
   return (
