@@ -26,8 +26,8 @@
   },
   "scripts": {
     "start": "serve -s build",
-    "dev": "react-scripts start",
-    "build": "react-scripts build",
+    "dev": "REACT_APP_COMMIT=$(git rev-parse HEAD) react-scripts start",
+    "build": "REACT_APP_COMMIT=$(git rev-parse HEAD) react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
