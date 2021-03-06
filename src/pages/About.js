@@ -11,10 +11,8 @@ function About(props) {
 
   const vars = [
     ['Deployment Type', <b>{process.env.NODE_ENV.toUpperCase()}</b>],
-    ['Release Version', process.env.REACT_APP_RELEASE_VERSION],
-    ['Release Created At', new Date(process.env.REACT_APP_RELEASE_CREATED_AT).toLocaleString()],
-    ['Release Description', process.env.REACT_APP_RELEASE_DESCRIPTION],
-    ['Commit', <Link href={`https://github.com/scdf/sanremo/commit/${process.env.REACT_APP_COMMIT}`}>{process.env.REACT_APP_COMMIT}</Link>],
+    ['Build Date', new Date(process.env.REACT_APP_RELEASE_CREATED_AT).toLocaleString()],
+    ['Build Commit', <Link href={`https://github.com/scdf/sanremo/commit/${process.env.REACT_APP_COMMIT}`}>{process.env.REACT_APP_COMMIT}</Link>],
     ...dbInfo
   ];
 
