@@ -7,6 +7,7 @@ PouchDB.plugin(pdbFind);
 const db = new PouchDB('sanremo');
 
 // TODO: probably drop this, or work out a more react way of accessing it from the console
+// NB: we at least need this for E2E tests right now
 window.DB = db;
 
 // TEMP data check
