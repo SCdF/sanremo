@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import ReactMarkdown from 'react-markdown';
 import { navigate, useLocation } from "@reach/router";
 
 import { Button, ButtonGroup, Checkbox, List, ListItem, ListItemIcon, ListItemText } from '@material-ui/core';
@@ -56,7 +57,6 @@ function Checklist(props) {
     navigate('/');
   }
 
-
   function handleToggle(id) {
     const item = checklist.items.find(i => i._id === id);
 
@@ -86,10 +86,21 @@ function Checklist(props) {
     //  - on item completion move focus to *next* incomplete item, or complete button if at end
     //  - (^ consider: when at end go back to any existing incomplete items?)
     //  - on load set to first incomplete item
-    const initialFocus = checklist.items.find(i => !i.checked);
+    const initialFocus = checklist.items.find(({checked, type}) => (!type || type === 'checkbox') && !!!checked);
 
     items = checklist.items.map(item => {
-      const { _id: id, text, checked } = item;
+      const { _id: id, text, checked, type } = item;
+
+      // TODO: consider splitting these out into components
+      if (type === 'note') {
+        return (
+          <ListItem key={id}>
+            <ListItemText><ReactMarkdown>{text}</ReactMarkdown></ListItemText>
+          </ListItem>
+        );
+      }
+
+      // if (!type || type === 'checkbox') {
       return (
         <ListItem key={id} button onClick={handleToggle(id)} disableRipple autoFocus={item === initialFocus}>
           <ListItemIcon>
@@ -98,6 +109,7 @@ function Checklist(props) {
           <ListItemText primary={text} />
         </ListItem>
       );
+      // }
     });
   }
 

@@ -32,6 +32,7 @@ Instances are copies of templates with additional data.
         {
             "_id": "<uuid>",
             "text": "description beside checkbox",
+            "type": "checkbox|note",
             "checked": false
         }
     ]
@@ -40,7 +41,7 @@ Instances are copies of templates with additional data.
 
 # Indexes
 
-**TODO**: for the planning of indexes / data structures, we aren't actually using any yet. We need to create a versioning scheme / init where we create / delete indexes etc.  
+**TODO**: for the planning of indexes / data structures, we aren't actually using any yet. We need to create a versioning scheme / init where we create / delete indexes etc.
 
 ## Completed checklist instance
 

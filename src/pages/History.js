@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import { List } from "@material-ui/core";
 
-import Page from "./Page";
+import Page from "../components/Page";
 
-import ChecklistListItem from "./ChecklistListItem";
+import ChecklistListItem from "../components/ChecklistListItem";
 
 function History(props) {
   const [checklists, setChecklists] = useState([]);

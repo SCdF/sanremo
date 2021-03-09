@@ -9,7 +9,7 @@ import db from './db';
 import Page from './components/Page';
 import Home from './pages/Home';
 import Checklist from './pages/Checklist';
-import History from './components/History';
+import History from './pages/History';
 
 import { v4 as uuid } from 'uuid';
 import About from './pages/About';
