@@ -1,11 +1,15 @@
-a:visited, a:hover, a:active, a:link {
-  text-decoration: none;
+// TODO: move all this SCSS into MUI style theming. This is also where we'd do stuff like disable ripple for desktop etc
+.rich {
+  a, a:visited, a:hover, a:active, a:link {
+    color: blue;
+  }
 }
 
 li {
   list-style: none;
 }
 
+// TODO: This is not being used, consider deleting
 input[type=checkbox]:checked + label.strikethrough,
 header.strikethrough
 {

@@ -133,10 +133,10 @@ function Page(props) {
         </Drawer>
       </Hidden>
     </nav>
-    <div className={classes.content}>
+    <main className={classes.content}>
       <div className={classes.toolbar} />
       {children}
-    </div>
+    </main>
   </Container>
   );
 }

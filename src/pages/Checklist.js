@@ -95,7 +95,9 @@ function Checklist(props) {
       if (type === 'note') {
         return (
           <ListItem key={id}>
-            <ListItemText><ReactMarkdown>{text}</ReactMarkdown></ListItemText>
+            <ListItemText>
+              <ReactMarkdown className='rich'>{text}</ReactMarkdown>
+            </ListItemText>
           </ListItem>
         );
       }

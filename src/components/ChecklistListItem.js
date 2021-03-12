@@ -1,13 +1,12 @@
-import { ListItem, ListItemText } from "@material-ui/core";
-import { Link } from "@reach/router";
+import { Link, ListItem, ListItemText } from "@material-ui/core";
 import RelativeTime from "./RelativeTime";
 
 function ChecklistListItem(props) {
   const { checklistStub } = props;
 
   return (
-    <Link to={`/checklist/${checklistStub._id}`}>
-      <ListItem button={true}>
+    <Link href={`/checklist/${checklistStub._id}`} underline="none">
+      <ListItem button disableRipple>
         <ListItemText
           primary={checklistStub.title}
           secondary={<RelativeTime date={checklistStub.updated} />} />
