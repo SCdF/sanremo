@@ -54,14 +54,14 @@ function Home(props) {
 
   return (
     <Page title='Checklists' under='home'>
-      { !!checklistList.length && <List>{checklistList}</List> }
+      { !!checklistList.length && <List className="checklists">{checklistList}</List> }
       { !!!checklistList.length &&
           <Typography align='center' variant='body2' className={classes.root}>
             Click on a template below to get started.
           </Typography>
       }
       <Divider />
-      <List>
+      <List className="templates">
         {templateList}
       </List>
     </Page>

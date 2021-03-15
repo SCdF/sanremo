@@ -29,7 +29,8 @@
     "start": "serve -s build",
     "dev": "react-scripts start",
     "build": "react-scripts build",
-    "test": "react-scripts test",
+    "test": "npm run test:unit -- --watchAll=false && npm run test:e2e",
+    "test:unit": "react-scripts test",
     "test:e2e": "jest -c jest.config.e2e.js",
     "eject": "react-scripts eject"
   },
