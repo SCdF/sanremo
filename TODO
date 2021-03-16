@@ -1,10 +1,6 @@
-Create DB init where index creation etc takes place (for now we are not using indexes AT ALL!)
-
 Spend a pomo looking into shorter and less ugly variations on raw uuids to clean up URLs etc.
 
 Spend a pomo looking into TypeScript with React: a good idea?
-
-Spend a pomo thinking about whether the URL structure for a checklist really needs its template ID as well. This is arguably right from a REST philosophy, but who cares? Why does a checklist need to know its template origins? Are we ever going to take knowledge from a template and apply it to an existing instance? That seems unlikely to me. OR MAYBE THIS IS RIGHT?? Maybe checklist instances should be just be templateId, then list of {_id: '<uuid>', value: 'xyz'} which are mapped onto templates. Upside is that the instance is smaller and so less network traffic, downside is it opens the question of whether updating templates changes instances (in progress and or historic).
 
 Most recently used checklist instance on front page.
 
@@ -23,5 +19,5 @@ Each repeatable has a "notes" section that supports markdown at the end
 
 Other input types:
  - Text, URL, Date: all can be linked to `key` which can be searched on (see above).
- - Counter with max. Starts at 0, hitting space stays on the same el until his max, then moves on.
+ - Counter with max. Starts at 0, hittecklistng space stays on the same el until his max, then moves on.
  - Sub lists, when moving into one the outer area dims and once you complete everything inside it, the main checkbox completes (or increments, see above) and collapses, moving on

@@ -12,6 +12,8 @@ import Page from '../components/Page';
 
 function Checklist(props) {
   const [checklist, setChecklist] = useState({});
+  const [initiallyOpen, setInitiallyOpen] = useState(false);
+  const [edited, setEdited] = useState(false);
 
   const location = useLocation();
 
@@ -33,7 +35,10 @@ function Checklist(props) {
         .then(({id}) => navigate(`/checklist/${id}`, {replace: true}));
     } else {
       db.get(checklistId)
-        .then(checklist => setChecklist(checklist));
+        .then(checklist => {
+          setChecklist(checklist);
+          setInitiallyOpen(!checklist.completed);
+        });
     }
   }, [db, checklistId, location]);
 
@@ -44,33 +49,46 @@ function Checklist(props) {
   }
 
   async function completeChecklist() {
-    checklist.completed = Date.now();
-    await db.put(checklist);
+    const copy = Object.assign({}, checklist);
 
-    navigate('/');
+    copy.completed = Date.now();
+    const { rev } = await db.put(copy);
+
+    if (edited || initiallyOpen) {
+      navigate('/');
+    } else {
+      copy._rev = rev;
+      setChecklist(copy);
+    }
   }
 
   async function uncompleteChecklist() {
-    delete checklist.completed;
-    await db.put(checklist);
+    const copy = Object.assign({}, checklist);
 
-    navigate('/');
+    delete copy.completed;
+    const { rev } = await db.put(copy);
+    copy._rev = rev;
+    setChecklist(copy);
   }
 
   function handleToggle(id) {
-    const item = checklist.items.find(i => i._id === id);
+    const idx = checklist.items.findIndex(i => i._id === id);
 
     return async () => {
+      setEdited(true);
+
       const now = Date.now();
-      const updatedChecklist = Object.assign({}, checklist);
+      const copy = Object.assign({}, checklist);
+      const item = Object.assign({}, checklist.items[idx]);
+      copy.items[idx] = item;
 
       item.checked = !item.checked;
-      updatedChecklist.updated = now;
+      copy.updated = now;
 
-      const { rev } = await db.put(updatedChecklist);
-      updatedChecklist._rev = rev;
+      const { rev } = await db.put(copy);
+      copy._rev = rev;
 
-      setChecklist(updatedChecklist);
+      setChecklist(copy);
     };
   }
 
@@ -104,7 +122,12 @@ function Checklist(props) {
 
       // if (!type || type === 'checkbox') {
       return (
-        <ListItem key={id} button onClick={handleToggle(id)} disableRipple autoFocus={item === initialFocus}>
+        <ListItem
+          key={id} button disableRipple
+          onClick={handleToggle(id)}
+          disabled={!!checklist.completed}
+          autoFocus={item === initialFocus}>
+
           <ListItemIcon>
             <Checkbox checked={!!checked} edge='start' tabIndex='-1'/>
           </ListItemIcon>

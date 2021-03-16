@@ -4,11 +4,6 @@ import Home from './Home';
 import db from '../db';
 jest.mock('../db');
 
-beforeAll(() => {
-});
-beforeEach(() => {
-});
-
 test('renders without crashing', async () => {
   db.find.mockImplementation(options => {
     if (options?.selector?._id?.$gt === 'checklist:instance:') {
