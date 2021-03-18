@@ -47,7 +47,7 @@ describe('Create a new checklist instance and complete it', () => {
       .toMatch(/Wrist Stretches\s*less than a minute ago/);
   });
 
-  test('With keyboard via focus', async () => {
+  test.skip('With keyboard via focus', async () => {
     await newChecklist('Wrist Stretches');
     await page.isVisible('header *:has-text("Wrist Stretches")');
     const { total, checked: initialChecked} = await status();
