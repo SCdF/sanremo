@@ -7,7 +7,7 @@
     "start": "node ./src/server",
     "dev": "react-scripts start",
     "build": "react-scripts build",
-    "test": "react-scripts test",
+    "test": "./scripts/test.sh",
     "test:unit": "react-scripts test",
     "test:e2e": "jest -c ./test/e2e/jest.config.e2e.js",
     "eject": "react-scripts eject"

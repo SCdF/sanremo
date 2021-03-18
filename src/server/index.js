@@ -26,4 +26,7 @@ app.get('/*', function (req, res) {
   res.sendFile(path.join(__dirname, '../..', 'build', 'index.html'));
 });
 
-app.listen(process.env.PORT || 80);
+const port = process.env.PORT || 80;
+app.listen(port);
+
+console.log(`Started server on port ${port}`);
