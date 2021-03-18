@@ -7,9 +7,10 @@
     "start": "node ./src/server",
     "dev": "react-scripts start",
     "build": "react-scripts build",
-    "test": "./scripts/test.sh",
+    "test": "npm run test:unit",
+    "test:all": "react-scripts test --watchAll=false \n npm run build && npm run test:e2e",
     "test:unit": "react-scripts test",
-    "test:e2e": "jest -c ./test/e2e/jest.config.e2e.js",
+    "test:e2e": "./scripts/e2e.sh",
     "eject": "react-scripts eject"
   },
   "eslintConfig": {

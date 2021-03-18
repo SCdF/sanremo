@@ -1,13 +1,22 @@
 import { newChecklist} from './po/home';
 import {check, isChecked, status} from './po/checklist';
 
+async function waitFor(fn, attempts=10) {
+  try {
+    fn();
+  } catch(error) {
+    await page.waitForTimeout(10);
+    waitFor(fn, attempts--);
+  }
+}
+
 beforeAll(async () => {
-  await page.goto('http://localhost:3000/');
+  await page.goto(`http://localhost:${process.env.PORT || 3000}/`);
   // page.on('console', msg => console.log(msg.text()))
 })
 
 beforeEach(async () => {
-  await page.goto('http://localhost:3000/');
+  await page.goto(`http://localhost:${process.env.PORT || 3000}/`);
 })
 
 describe('Create a new checklist instance and complete it', () => {
@@ -28,7 +37,6 @@ describe('Create a new checklist instance and complete it', () => {
     for (let i = 1; i <= total; i++) {
       await check(i);
     }
-    page.waitForTimeout(1000);
     expect((await status()).checked).toBe(total);
 
     // Clicking complete puts us back on the main page
@@ -47,7 +55,7 @@ describe('Create a new checklist instance and complete it', () => {
       .toMatch(/Wrist Stretches\s*less than a minute ago/);
   });
 
-  test.skip('With keyboard via focus', async () => {
+  test('With keyboard via focus', async () => {
     await newChecklist('Wrist Stretches');
     await page.isVisible('header *:has-text("Wrist Stretches")');
     const { total, checked: initialChecked} = await status();
@@ -65,8 +73,8 @@ describe('Create a new checklist instance and complete it', () => {
     // Check all
     for (let i = 1; i <= total; i++) {
       await page.keyboard.press(' ');
+      await page.waitForTimeout(10);
     }
-    page.waitForTimeout(1000);
     expect((await status()).checked).toBe(total);
 
     // Clicking complete puts us back on the main page
