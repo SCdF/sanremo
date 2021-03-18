@@ -28,6 +28,7 @@ describe('Create a new checklist instance and complete it', () => {
     for (let i = 1; i <= total; i++) {
       await check(i);
     }
+    page.waitForTimeout(1000);
     expect((await status()).checked).toBe(total);
 
     // Clicking complete puts us back on the main page
@@ -65,6 +66,7 @@ describe('Create a new checklist instance and complete it', () => {
     for (let i = 1; i <= total; i++) {
       await page.keyboard.press(' ');
     }
+    page.waitForTimeout(1000);
     expect((await status()).checked).toBe(total);
 
     // Clicking complete puts us back on the main page
