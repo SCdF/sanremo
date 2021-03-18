@@ -64,7 +64,6 @@ describe('Create a new checklist instance and complete it', () => {
     // Check all
     for (let i = 1; i <= total; i++) {
       await page.keyboard.press(' ');
-      expect(await isChecked(i)).toBeTruthy();
     }
     expect((await status()).checked).toBe(total);
 
