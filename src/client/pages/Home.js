@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
-import { Divider, List, ListItem, Typography } from "@material-ui/core";
+import { Button, Divider, List, ListItem, Typography } from "@material-ui/core";
 import { makeStyles } from '@material-ui/core/styles';
 
 import Page from "../components/Page";
 
-import ChecklistListItem from "../components/ChecklistListItem";
+import RepeatableListItem from "../components/RepeatableListItem";
 import TemplateListItem from "../components/TemplateListItem";
 
 const useStyles = makeStyles((theme) => ({
@@ -24,38 +24,66 @@ function Home(props) {
   const { db } = props;
 
   const [templates, setTemplates] = useState([]);
-  const [activeChecklists, setActiveChecklists] = useState([]);
+  const [repeatables, setRepeatables] = useState([]);
 
-  // FIXME: there is a bug / missing feature in PouchDB where you sort won't work in this
-  // situation because the query planner decides to use the default index, presumably because
-  // sort doesn't match the selector (as written below it uses a [_id, completed] index).
-  // We should see what CouchDB does in this situation and make sure it's the same
-  useEffect(() => db.find({
-      selector: {
-        _id: {$gt: 'checklist:instance:', $lte: 'checklist:instance:\uffff'},
-        completed: {$exists: false}
-      },
-      fields: ['_id', 'title', 'updated'],
-      // sort: [{updated: 'desc'}]
-    }).then(({docs}) => setActiveChecklists(docs.sort((d1, d2) => d2.updated - d1.updated ))), [db]);
+  useEffect(() => {
+    async function go() {
+      const {docs: repeatables} = db.find({
+        selector: {
+          _id: {$gt: 'repeatable:instance:', $lte: 'repeatable:instance:\uffff'},
+          completed: {$exists: false}
+        },
+        fields: ['_id', 'template', `updated`, 'slug'],
+        // FIXME: there is a bug / missing feature in PouchDB where you sort won't work in this
+        // situation because the query planner decides to use the default index, presumably because
+        // sort doesn't match the selector (as written here it uses a [_id, completed] index).
+        // We should see what CouchDB does in this situation and make sure it's the same
+        // sort: [{updated: 'desc'}]
+      });
 
+      // Replace template id with real thing
+      const templateIds = [...new Set(repeatables.map(d => d.template))];
+      const {docs: templates} = db.find({
+        selector: {
+          _id: {
+            $in: templateIds
+          }
+        },
+        fields: ['_id', 'title', 'slug.type']
+      });
+      const templateMap = new Map(templates.map(t => [t._id, t]));
+      repeatables.forEach(r => r.template = templateMap.get(r.template));
+
+      // As the FIXME: mentions above, sort manually
+      setRepeatables(repeatables.sort((d1, d2) => d2.updated - d1.updated));
+    };
+
+    // TODO: sort out logging / elevation for errors
+    go();
+  }, [db]);
+
+  // TODO: sort templates in some way
+  // Two options:
+  // - Frequency of use (with some kind of relevancy cutoff)
+  // - Date of last usage
   useEffect(() => db.find({
-    selector: {_id: {$gt: 'checklist:template:', $lte: 'checklist:template:\uffff'}},
+    selector: {_id: {$gt: 'repeatable:template:', $lte: 'repeatable:template:\uffff'}},
     fields: ['_id', 'title']
   })
   .then(({docs}) => setTemplates(docs)), [db]);
 
   const templateList = templates.map(template =>
-    <ListItem key={template._id} className={classes.horizontal}><TemplateListItem template={template} /></ListItem>);
+    <TemplateListItem key={template._id} className={classes.horizontal} {...template} />
+  );
 
-  const checklistList = activeChecklists.map(checklist =>
-    <ChecklistListItem key={checklist._id} checklistStub={checklist} />
+  const repeatableList = repeatables.map(repeatable =>
+    <RepeatableListItem key={repeatable._id} {...repeatable} />
   );
 
   return (
     <Page title='Checklists' under='home'>
-      { !!checklistList.length && <List className="checklists">{checklistList}</List> }
-      { !!!checklistList.length &&
+      { !!repeatableList.length && <List className="repeatables">{repeatableList}</List> }
+      { !!!repeatableList.length &&
           <Typography align='center' variant='body2' className={classes.root}>
             Click on a template below to get started.
           </Typography>
@@ -63,6 +91,9 @@ function Home(props) {
       <Divider />
       <List className="templates">
         {templateList}
+        <ListItem key="new">
+          <Button href="/template/new" component="button">New</Button>
+        </ListItem>
       </List>
     </Page>
   );

@@ -51,6 +51,13 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
+/**
+  * Wrapper for Pages. Manages headers, sidebar etc
+  *
+  * @param {string} title the title you want the window to have, as well as in the to toolbar
+  * @param {boolean} back whether you can go "back" in the browser sense
+  * @param {string} under identifier for the sidebar heading this page appears under
+ */
 function Page(props) {
   const classes = useStyles();
   const [mobileOpen, setMobileOpen] = useState(false);
