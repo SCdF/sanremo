@@ -33,3 +33,5 @@ test('renders without crashing', async () => {
   await waitFor(() => screen.getByText(/Template in template list/));
   await waitFor(() => screen.getByText(/Repeatable in repeatable list/));
 });
+
+// TODO: deciding what templates to show

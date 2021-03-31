@@ -37,10 +37,28 @@ function Template(props) {
     loadTemplate();
   }, [db, templateId]);
 
-  async function handleSubmit() {
-    // TODO: store metadata
+  async function handleSubmit(event) {
+    event.preventDefault();
 
-    await db.put(template);
+    const copy = Object.assign({}, template);
+    copy.updated = Date.now();
+
+    const used = await db.find({
+      selector: {
+        template: copy._id
+      }
+    });
+
+    if (used.docs.length) {
+      copy.versioned = copy.updated;
+
+      const splitId = copy._id.split(':');
+      splitId[3] = parseInt(splitId[3]) + 1;
+      copy._id = splitId.join(':');
+      delete copy._rev;
+    }
+
+    await db.put(copy);
 
     navigate(-1);
   }

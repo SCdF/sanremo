@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Button, Divider, List, ListItem, Typography } from "@material-ui/core";
+import { Divider, List, Typography } from "@material-ui/core";
 import { makeStyles } from '@material-ui/core/styles';
 
 import Page from "../components/Page";
@@ -8,11 +8,6 @@ import RepeatableListItem from "../components/RepeatableListItem";
 import TemplateListItem from "../components/TemplateListItem";
 
 const useStyles = makeStyles((theme) => ({
-  horizontal: {
-    display: 'inline-block',
-    'padding-right': 0,
-    width: 'auto'
-  },
   root: {
     padding: theme.spacing(1)
   }
@@ -28,7 +23,7 @@ function Home(props) {
 
   // NB: this code also exists in History.js using completed instead of updated
   useEffect(() => {
-    async function go() {
+    async function loadRepeatables() {
       const {docs: repeatables} = await db.find({
         selector: {
           _id: {$gt: 'repeatable:instance:', $lte: 'repeatable:instance:\uffff'},
@@ -64,21 +59,48 @@ function Home(props) {
     };
 
     // TODO: sort out logging / elevation for errors
-    go();
+    loadRepeatables();
   }, [db]);
 
-  // TODO: sort templates in some way
+  // TODO: sort templates in some better way
   // Two options:
   // - Frequency of use (with some kind of relevancy cutoff)
   // - Date of last usage
-  useEffect(() => db.find({
-    selector: {_id: {$gt: 'repeatable:template:', $lte: 'repeatable:template:\uffff'}},
-    fields: ['_id', 'title']
-  })
-  .then(({docs}) => setTemplates(docs)), [db]);
+  useEffect(() => {
+    async function loadTemplates() {
+      const {docs: allTemplates} = await db.find({
+        selector: {_id: {$gt: 'repeatable:template:', $lte: 'repeatable:template:\uffff'}},
+        fields: ['_id', 'title']
+      });
+
+      const latestTemplateByRoot = {};
+      allTemplates.forEach(t => {
+        const rootId = t._id.substring(0, t._id.lastIndexOf(':'));
+
+        const existing = latestTemplateByRoot[rootId];
+        if (existing) {
+          const eVersion = parseInt(existing._id.substring(existing._id.lastIndexOf(':') + 1));
+          const tVersion = parseInt(t._id.substring(t._id.lastIndexOf(':') + 1));
+
+          if (eVersion > tVersion) {
+            return;
+          }
+        }
+
+        latestTemplateByRoot[rootId] = t;
+      });
+
+      const latestTemplates = Object.values(latestTemplateByRoot);
+      latestTemplates.sort((l, r) => l > r);
+
+      setTemplates(latestTemplates);
+    }
+
+    loadTemplates();
+  }, [db]);
 
   const templateList = templates.map(template =>
-    <TemplateListItem key={template._id} className={classes.horizontal} {...template} />
+    <TemplateListItem key={template._id} {...template} />
   );
 
   const repeatableList = repeatables.map(repeatable =>
@@ -96,9 +118,7 @@ function Home(props) {
       <Divider />
       <List className="templates">
         {templateList}
-        <ListItem key="new">
-          <Button href="/template/new" component="button">New</Button>
-        </ListItem>
+        <TemplateListItem key="new" />
       </List>
     </Page>
   );

@@ -141,6 +141,18 @@ function Repeatable(props) {
     }
   });
 
+  const lastChunkIdx = chunks.length - 1;
+  if (lastInputIdx !== lastChunkIdx) {
+    const text = chunks.slice(lastInputIdx + 1, lastChunkIdx).join('\n');
+    items.push(
+      <ListItem key={`chunk-${lastInputIdx + 1}-${lastChunkIdx}`}>
+        <ListItemText>
+          <ReactMarkdown className='rich'>{text}</ReactMarkdown>
+        </ListItemText>
+      </ListItem>
+    );
+  }
+
   return (
     <Page title={repeatable?.title} back under='home'>
       <List dense>{items}</List>
