@@ -101,7 +101,7 @@ function Repeatable(props) {
   const items = [];
 
   const inputValues = repeatable.values;
-  const chunks = template.markdown.split('\n');
+  const chunks = template.markdown?.split('\n') || [];
   let lastInputIdx = -1;
   let valueIdx = -1;
   chunks.forEach((chunk, chunkIdx) => {
@@ -121,7 +121,7 @@ function Repeatable(props) {
       valueIdx++;
 
       const checked = inputValues[valueIdx];
-      const text = chunk.substring(4).trim();
+      const text = chunk.substring(5).trim();
 
       items.push(
         <ListItem

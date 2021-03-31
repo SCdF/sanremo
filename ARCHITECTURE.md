@@ -7,7 +7,7 @@
     "_id": "repeatable:template:<uuid>:<version>",
     "title": "Name of the template",
     "slug": {
-        "type": "URL|date|timestamp|string",
+        "type": "url|date|timestamp|string",
         "label": "What to title your slug",
         "placeholder": "for inputs, e.g. an example url"
     },

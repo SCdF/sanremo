@@ -3,15 +3,25 @@ import { render, screen } from '@testing-library/react';
 import RepeatableListItem from './RepeatableListItem';
 
 test('renders without crashing', async () => {
-  // TODO: test for slug
-  render(<RepeatableListItem checklistStub={{
+  const params = {
     _id: 'abc',
-    title: 'Checklist ListItem',
-    updated: Date.now(),
-  }}/>);
+    timestamp: Date.now(),
+    slug: 'http://example.com',
+    template: {
+      title: 'Checklist ListItem',
+      slug: {
+        type: 'url',
+        label: 'For'
+      }
+    }
+  };
+
+  render(<RepeatableListItem {...params} />);
 
   expect(screen.getByText('Checklist ListItem')).toBeInTheDocument();
   expect(screen.getByText('less than a minute ago')).toBeInTheDocument();
 
-  expect(screen.getByRole('link')).toHaveAttribute('href', '/checklist/abc');
+  expect(screen.getByRole('link')).toHaveAttribute('href', '/repeatable/abc');
+
+  // TODO: test for slug
 });

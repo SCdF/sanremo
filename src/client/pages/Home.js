@@ -26,9 +26,10 @@ function Home(props) {
   const [templates, setTemplates] = useState([]);
   const [repeatables, setRepeatables] = useState([]);
 
+  // NB: this code also exists in History.js using completed instead of updated
   useEffect(() => {
     async function go() {
-      const {docs: repeatables} = db.find({
+      const {docs: repeatables} = await db.find({
         selector: {
           _id: {$gt: 'repeatable:instance:', $lte: 'repeatable:instance:\uffff'},
           completed: {$exists: false}
@@ -43,7 +44,7 @@ function Home(props) {
 
       // Replace template id with real thing
       const templateIds = [...new Set(repeatables.map(d => d.template))];
-      const {docs: templates} = db.find({
+      const {docs: templates} = await db.find({
         selector: {
           _id: {
             $in: templateIds
@@ -52,10 +53,14 @@ function Home(props) {
         fields: ['_id', 'title', 'slug.type']
       });
       const templateMap = new Map(templates.map(t => [t._id, t]));
-      repeatables.forEach(r => r.template = templateMap.get(r.template));
+      repeatables.forEach(r => {
+        r.timestamp = r.updated;
+        delete r.updated;
+        r.template = templateMap.get(r.template);
+      });
 
       // As the FIXME: mentions above, sort manually
-      setRepeatables(repeatables.sort((d1, d2) => d2.updated - d1.updated));
+      setRepeatables(repeatables.sort((d1, d2) => d2.timestamp - d1.timestamp));
     };
 
     // TODO: sort out logging / elevation for errors
