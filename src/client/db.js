@@ -2,7 +2,9 @@ import PouchDB from "pouchdb-browser";
 import pdbFind from "pouchdb-find";
 PouchDB.plugin(pdbFind);
 
-const db = new PouchDB('sanremo-v2');
+const db = new PouchDB('sanremo-v2', {
+  auto_compaction: true
+});
 
 // TODO: probably drop this, or work out a more react way of accessing it from the console
 // NB: we at least need this for E2E tests right now

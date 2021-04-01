@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import ReactDOM from 'react-dom';
 import ReactMarkdown from 'react-markdown';
 import { navigate, useLocation } from "@reach/router";
 
@@ -9,6 +10,8 @@ import { v4 as uuid } from 'uuid';
 import qs from 'qs';
 
 import Page from '../components/Page';
+
+const debug = require('debug')('sanremo:repeatable');
 
 function Repeatable(props) {
   const [repeatable, setRepeatable] = useState({});
@@ -36,11 +39,17 @@ function Repeatable(props) {
         await db.put(repeatable);
         navigate(`/repeatable/${repeatable._id}`, {replace: true});
       } else {
+        debug('pre repeatable load');
         const repeatable = await db.get(repeatableId);
+        debug('post repeatable load, pre template load');
         const template = await db.get(repeatable.template);
-        setRepeatable(repeatable);
-        setTemplate(template);
-        setInitiallyOpen(!repeatable.completed);
+        debug('post template load');
+
+        ReactDOM.unstable_batchedUpdates(() => {
+          setRepeatable(repeatable);
+          setTemplate(template);
+          setInitiallyOpen(!repeatable.completed);
+        });
       }
     };
 
@@ -98,6 +107,8 @@ function Repeatable(props) {
     };
   }
 
+  debug(`Render: ${repeatable?._id} | ${template?._id} | ${initiallyOpen}`);
+
   const items = [];
 
   const inputValues = repeatable.values;
@@ -152,6 +163,8 @@ function Repeatable(props) {
       </ListItem>
     );
   }
+
+  debug('chunks computed, ready to render');
 
   return (
     <Page title={repeatable?.title} back under='home'>
