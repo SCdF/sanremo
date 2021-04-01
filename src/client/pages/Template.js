@@ -1,9 +1,25 @@
-import { navigate } from "@reach/router";
 import { useEffect, useState } from "react";
+import { navigate } from "@reach/router";
+import { Button, ButtonGroup, FormGroup, FormHelperText, makeStyles, MenuItem, TextField } from "@material-ui/core";
+import DeleteIcon from '@material-ui/icons/Delete';
+
 import { v4 as uuid } from 'uuid';
+
 import Page from "../components/Page";
 
+const useStyles = makeStyles((theme) => ({
+  root: {
+    '& .MuiTextField-root': {
+      margin: theme.spacing(1),
+    },
+  },
+  dropdown: {
+    width: '15ch'
+  }
+}));
+
 function Template(props) {
+  const classes = useStyles();
   const [template, setTemplate] = useState();
 
   const { db, templateId } = props;
@@ -37,8 +53,12 @@ function Template(props) {
     loadTemplate();
   }, [db, templateId]);
 
+  async function handleDelete() {
+    // TODO: implement this!
+  }
+
   async function handleSubmit(event) {
-    event.preventDefault();
+    event?.preventDefault();
 
     const copy = Object.assign({}, template);
     copy.updated = Date.now();
@@ -87,37 +107,42 @@ function Template(props) {
 
   return (
     <Page title={`${template.title || 'New Template'} | edit`} back under='home'>
-      <form onSubmit={handleSubmit}>
-        <label htmlFor="title">
-          Title:
-          <input type="text" name="title" value={template.title} onChange={handleChange}/>
-        </label>
-        <fieldset>
-          <legend>Slug</legend>
-          <label htmlFor="slugType">
-            Slug type:
-            <select name="slugType" value={template.slug.type} onChange={handleChange}>
-              <option value=""></option>
-              <option value="url">url</option>
-              <option value="date">date</option>
-              <option value="timestamp">datetime</option>
-              <option value="string">plain text</option>
-            </select>
-          </label>
-          <label htmlFor="slugLabel">
-            Slug label:
-            <input type="text" name="slugLabel" value={template.slug.label} onChange={handleChange}/>
-          </label>
-          <label htmlFor="slugPlaceholder">
-            Placeholder text:
-            <input type="text" name="slugPlaceholder" value={template.slug.placeholder} onChange={handleChange}/>
-          </label>
-        </fieldset>
-        <label htmlFor="markdown">
-          Markdown:
-          <textarea name="markdown" cols="75" rows="10" value={template.markdown} onChange={handleChange}/>
-        </label>
-        <input type="submit" value="Save" />
+      <form onSubmit={handleSubmit} noValidate autoComplete="off" className={classes.root}>
+        <TextField required variant="filled" fullWidth
+          label="Title" name="title"
+          value={template.title} onChange={handleChange} />
+
+        <FormGroup row>
+          <TextField required variant="filled" select
+            className={classes.dropdown}
+            label="Type" name="slugType"
+            value={template.slug.type} onChange={handleChange}>
+
+            <MenuItem key="url" value="url">url</MenuItem>
+            <MenuItem key="date" value="date">date</MenuItem>
+            <MenuItem key="timestamp" value="timestamp">datetime</MenuItem>
+            <MenuItem key="string" value="string">plain text</MenuItem>
+            {/* <option value="url">url</option>
+            <option value="date">date</option>
+            <option value="timestamp">datetime</option>
+            <option value="string">plain text</option> */}
+          </TextField>
+          <TextField required variant="filled"
+            label="Label" name="slugLabel"
+            value={template.slug.label} onChange={handleChange} />
+          <TextField variant="filled"
+            label="Placeholder text" name="slugPlaceholder"
+            value={template.slug.placeholder} onChange={handleChange} />
+        </FormGroup>
+        <TextField required variant="filled" fullWidth
+          multiline rows="10"
+          label="Markdown" name="markdown"
+          value={template.markdown} onChange={handleChange} />
+
+      <ButtonGroup>
+        <Button onClick={handleSubmit} color='primary' variant='contained'>Save</Button>
+        <Button onClick={handleDelete}><DeleteIcon /></Button>
+      </ButtonGroup>
       </form>
     </Page>
   );
