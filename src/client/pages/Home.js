@@ -108,7 +108,7 @@ function Home(props) {
   );
 
   return (
-    <Page title='Checklists' under='home'>
+    <Page title='Project Sanremo' under='home'>
       { !!repeatableList.length && <List className="repeatables">{repeatableList}</List> }
       { !!!repeatableList.length &&
           <Typography align='center' variant='body2' className={classes.root}>

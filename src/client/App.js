@@ -15,14 +15,14 @@ import About from './pages/About';
 import { createMuiTheme, ThemeProvider } from '@material-ui/core/styles';
 
 const theme = createMuiTheme({
-  palette: {
-    primary: {
-      main: '#f5df4d',
-    },
-    secondary: {
-      main: '#939597',
-    },
-  },
+  // palette: {
+  //   primary: {
+  //     main: '#f5df4d',
+  //   },
+  //   secondary: {
+  //     main: '#939597',
+  //   },
+  // },
 });
 
 function App() {
