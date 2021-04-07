@@ -12,9 +12,22 @@ import Template from './pages/Template';
 import History from './pages/History';
 import About from './pages/About';
 
+import { createMuiTheme, ThemeProvider } from '@material-ui/core/styles';
+
+const theme = createMuiTheme({
+  palette: {
+    primary: {
+      main: '#f5df4d',
+    },
+    secondary: {
+      main: '#939597',
+    },
+  },
+});
+
 function App() {
   return (
-    <React.Fragment>
+    <ThemeProvider theme={theme}>
       <CssBaseline />
       <Router>
         <Home db={db} path='/' />
@@ -23,7 +36,7 @@ function App() {
         <Template db={db} path='template/:templateId' />
         <History db={db} path='history' />
       </Router>
-    </React.Fragment>
+    </ThemeProvider>
   );
 }
 

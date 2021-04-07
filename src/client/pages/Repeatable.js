@@ -167,7 +167,7 @@ function Repeatable(props) {
   debug('chunks computed, ready to render');
 
   return (
-    <Page title={repeatable?.title} back under='home'>
+    <Page title={template?.title} back under='home'>
       <List dense>{items}</List>
       <ButtonGroup>
         {!repeatable.completed && <Button onClick={completeRepeatable} color='primary' variant='contained'>Complete</Button>}

@@ -25,7 +25,7 @@ function RepeatableListItem(props) {
   } = template;
 
   return (
-    <Link href={`/repeatable/${_id}`} underline="none">
+    <Link href={`/repeatable/${_id}`} underline="none" color="textPrimary">
       <ListItem button disableRipple>
         <ListItemText
           primary={title}
