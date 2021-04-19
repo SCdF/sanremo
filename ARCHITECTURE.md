@@ -51,6 +51,15 @@
 - Index on `template`, `updated`, `completed`
 - `values` align to editable data described in the specified template
 
+
+# Markdown support
+
+- Generic markdown supported
+
+## Checkboxes
+
+Expect `- [ ] blah`. The `blah` can also have generic markdown in it.
+
 # Future
 
 An ever evolving plan for how to move forward.

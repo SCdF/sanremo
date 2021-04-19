@@ -70,7 +70,7 @@ function Home(props) {
     async function loadTemplates() {
       const {docs: allTemplates} = await db.find({
         selector: {_id: {$gt: 'repeatable:template:', $lte: 'repeatable:template:\uffff'}},
-        fields: ['_id', 'title']
+        fields: ['_id', 'title', 'deleted']
       });
 
       const latestTemplateByRoot = {};
@@ -90,7 +90,12 @@ function Home(props) {
         latestTemplateByRoot[rootId] = t;
       });
 
-      const latestTemplates = Object.values(latestTemplateByRoot);
+      // We are using `deleted` (no underscore) as a soft delete, for when the user deletes a
+      // template but has instances against it already.
+      const latestTemplates = Object
+        .values(latestTemplateByRoot)
+        .filter(t => !t.deleted);
+
       latestTemplates.sort((l, r) => l > r);
 
       setTemplates(latestTemplates);

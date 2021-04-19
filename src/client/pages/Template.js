@@ -56,7 +56,18 @@ function Template(props) {
   async function handleDelete(event) {
     event?.preventDefault();
 
-    template._deleted = true;
+    // If we have used any version of this template we need to soft delete instead of hard delete
+    const unversionedId = template._id.substring(0, template._id.lastIndexOf(':'));
+    const used = await db.find({
+      selector: {template: {$gt: unversionedId, $lte: `${unversionedId}\uffff`}}
+    });
+    if (used.docs.length) {
+      // TODO: consider: should we also update datetimes, bump version?
+      template.deleted = true;
+    } else {
+      template._deleted = true;
+    }
+
     await db.put(template);
     navigate('/');
   }
