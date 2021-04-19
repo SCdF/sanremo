@@ -117,7 +117,7 @@ function Repeatable(props) {
   let valueIdx = -1;
   chunks.forEach((chunk, chunkIdx) => {
     if (chunk.trimStart().startsWith('- [ ]')) {
-      if (chunkIdx > 0) {
+      if (chunkIdx > 0 && lastInputIdx + 1 < chunkIdx) {
         const text = chunks.slice(lastInputIdx + 1, chunkIdx).join('\n');
         items.push(
           <ListItem key={`chunk-${lastInputIdx + 1}-${chunkIdx}`}>
@@ -166,9 +166,11 @@ function Repeatable(props) {
 
   debug('chunks computed, ready to render');
 
+  console.log(items)
+
   return (
     <Page title={template?.title} back under='home'>
-      <List dense>{items}</List>
+      <List>{items}</List>
       <ButtonGroup>
         {!repeatable.completed && <Button onClick={completeRepeatable} color='primary' variant='contained'>Complete</Button>}
         {repeatable.completed && <Button onClick={uncompleteRepeatable} color='primary' variant='contained'>Un-complete</Button>}

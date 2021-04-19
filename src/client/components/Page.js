@@ -12,6 +12,9 @@ import { useEffect, useState } from "react";
 const useStyles = makeStyles((theme) => ({
   grow: {
     flexGrow: 1
+  },
+  main: {
+    padding: theme.spacing(1)
   }
 }));
 
@@ -85,7 +88,7 @@ function Page(props) {
         </Toolbar>
       </AppBar>
       {menu}
-      <main>
+      <main className={classes.main}>
         {children}
       </main>
     </Container>
