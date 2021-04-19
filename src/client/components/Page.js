@@ -1,143 +1,94 @@
-import { AppBar, Container, Divider, Drawer, Hidden, IconButton, List, ListItem, ListItemIcon, ListItemText, makeStyles, Toolbar, Typography } from "@material-ui/core";
+import { AppBar, Container, Divider, IconButton, ListItemIcon, makeStyles, Menu, MenuItem, Toolbar, Typography } from "@material-ui/core";
 // TODO: configure babel properly so we can use { ArrowBack } etc instead
 // https://material-ui.com/guides/minimizing-bundle-size/#option-2
+import AccountCircle from '@material-ui/icons/AccountCircle';
 import ArrowBack from "@material-ui/icons/ArrowBack";
-import MenuIcon from "@material-ui/icons/Menu";
 import CheckBoxIcon from '@material-ui/icons/CheckBox';
 import HistoryIcon from '@material-ui/icons/History';
 import InfoIcon from '@material-ui/icons/Info';
 import { navigate } from "@reach/router";
-import { useState } from "react";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
-const drawerWidth = 240;
-
-// TODO: go through each param here and understand them, there is too much magic here!
-// Ripped whole cloth from: https://material-ui.com/components/drawers/#responsive-drawer
-// FIXME: I hate this it's awful
-// we should be able to have one copy of the side bar, display when wide enough, or
-// use JS to add / remove a 'sit above' CSS class when in mobile
-// We should NOT need to have the content twice
 const useStyles = makeStyles((theme) => ({
-  root: {
-    display: 'flex',
-  },
-  drawer: {
-    [theme.breakpoints.up('sm')]: {
-      width: drawerWidth,
-      flexShrink: 0,
-    },
-  },
-  appBar: {
-    [theme.breakpoints.up('sm')]: {
-      width: `calc(100% - ${drawerWidth}px)`,
-      marginLeft: drawerWidth,
-    },
-  },
-  menuButton: {
-    marginRight: theme.spacing(2),
-    [theme.breakpoints.up('sm')]: {
-      display: 'none',
-    },
-  },
-  // necessary for content to be below app bar
-  toolbar: theme.mixins.toolbar,
-  drawerPaper: {
-    width: drawerWidth,
-  },
-  content: {
-    flexGrow: 1,
-    padding: theme.spacing(1),
-  },
+  grow: {
+    flexGrow: 1
+  }
 }));
 
+/**
+  * Wrapper for Pages. Manages headers, sidebar etc
+  *
+  * @param {string} title the title you want the window to have, as well as in the to toolbar
+  * @param {boolean} back whether you can go "back" in the browser sense
+  * @param {string} under identifier for the sidebar heading this page appears under
+ */
 function Page(props) {
+  const { children, back, title, under } = props;
+  const [ anchorEl, setAnchorEl ] = useState(null);
   const classes = useStyles();
-  const [mobileOpen, setMobileOpen] = useState(false);
 
-  const { window, children, back, title, under } = props;
-
-  const container = window !== undefined ? () => window().document.body : undefined;
+  const isMenuOpen = !!anchorEl;
 
   useEffect(() => document.title = title ? `${title} | Sanremo` : 'Sanremo');
 
-  function handleDrawerToggle() {
-    setMobileOpen(!mobileOpen);
+  function handleMenuOpen(event) {
+    setAnchorEl(event.currentTarget);
+  }
+  function handleMenuClose() {
+    setAnchorEl(null);
   }
 
-  const drawerContent = (
+  const menu = (
     <div>
-      <div className={classes.toolbar} />
-      <Divider />
-      <List>
-        <ListItem button key='home' selected={under === 'home'} onClick={() => navigate('/')}>
+      <Menu
+        anchorEl={anchorEl}
+        anchorOrigin={{ vertical: 'top', horizontal: 'right'}}
+        transformOrigin={{ vertical: 'top', horizontal: 'right'}}
+        open={isMenuOpen}
+        onClose={handleMenuClose}
+      >
+        <MenuItem>
+          <ListItemIcon><AccountCircle /></ListItemIcon>
+          <Typography>SCdF</Typography>
+        </MenuItem>
+        <Divider />
+        <MenuItem button key='home' selected={under === 'home'} onClick={() => navigate('/')}>
           <ListItemIcon><CheckBoxIcon /></ListItemIcon>
-          <ListItemText primary='Checklists' />
-        </ListItem>
-        <ListItem button key='history' selected={under === 'history'} onClick={() => navigate('/history')}>
+          <Typography>Active</Typography>
+        </MenuItem>
+        <MenuItem button key='history' selected={under === 'history'} onClick={() => navigate('/history')}>
           <ListItemIcon><HistoryIcon /></ListItemIcon>
-          <ListItemText primary='History' />
-        </ListItem>
-        <ListItem button key='about' selected={under === 'about'} onClick={() => navigate('/about')}>
+          <Typography>History</Typography>
+        </MenuItem>
+        <MenuItem button key='about' selected={under === 'about'} onClick={() => navigate('/about')}>
           <ListItemIcon><InfoIcon /></ListItemIcon>
-          <ListItemText primary='About' />
-        </ListItem>
-      </List>
+          <Typography>About</Typography>
+        </MenuItem>
+      </Menu>
     </div>
   );
 
   return (
-    <Container disableGutters className={classes.root}>
-      <AppBar position="fixed" className={classes.appBar}>
+    <Container disableGutters>
+      <AppBar position="static">
         <Toolbar>
           {back &&
             // TODO: we should probably rethink this back button logic
             // If we know our own URL we can work this one out? Anything but '/' should mean going back?
-            <IconButton edge='start' color='inherit' onClick={() => navigate(-1)} className={classes.menuButton}><ArrowBack /></IconButton>
-          }
-          {!back &&
-            <IconButton edge='start' color='inherit' onClick={handleDrawerToggle} className={classes.menuButton}><MenuIcon /></IconButton>
+            <IconButton edge='start' color='inherit' onClick={() => navigate(-1)}><ArrowBack /></IconButton>
           }
           <Typography variant='h6'>
             {title}
           </Typography>
+          <div className={classes.grow} />
+          <IconButton edge='end' color='inherit' onClick={handleMenuOpen}><AccountCircle /></IconButton>
         </Toolbar>
       </AppBar>
-      <nav className={classes.drawer} aria-label="mailbox folders">
-      {/* The implementation can be swapped with js to avoid SEO duplication of links. */}
-      <Hidden smUp implementation="css">
-        <Drawer
-          container={container}
-          variant="temporary"
-          open={mobileOpen}
-          onClose={handleDrawerToggle}
-          classes={{
-            paper: classes.drawerPaper,
-          }}
-          ModalProps={{
-            keepMounted: true, // Better open performance on mobile.
-          }}
-        >
-          {drawerContent}
-        </Drawer>
-      </Hidden>
-      <Hidden xsDown implementation="css">
-        <Drawer
-          classes={{
-            paper: classes.drawerPaper,
-          }}
-          variant="permanent"
-          open
-        >
-          {drawerContent}
-        </Drawer>
-      </Hidden>
-    </nav>
-    <main className={classes.content}>
-      <div className={classes.toolbar} />
-      {children}
-    </main>
-  </Container>
+      {menu}
+      <main>
+        {children}
+      </main>
+    </Container>
   );
 }
 

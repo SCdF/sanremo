@@ -1,6 +1,6 @@
 {
   "name": "sanremo",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "scripts": {
     "analyze": "source-map-explorer 'build/static/js/*.js' --html result.html",
@@ -43,6 +43,7 @@
     "@testing-library/user-event": "^12.6.3",
     "axios": "^0.21.1",
     "date-fns": "^2.17.0",
+    "debug": "^4.3.1",
     "dotenv": "^8.2.0",
     "eslint-plugin-jest-playwright": "^0.2.1",
     "jest": "^26.6.0",
