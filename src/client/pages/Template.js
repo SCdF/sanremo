@@ -53,8 +53,12 @@ function Template(props) {
     loadTemplate();
   }, [db, templateId]);
 
-  async function handleDelete() {
-    // TODO: implement this!
+  async function handleDelete(event) {
+    event?.preventDefault();
+
+    template._deleted = true;
+    await db.put(template);
+    navigate('/');
   }
 
   async function handleSubmit(event) {
