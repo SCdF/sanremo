@@ -20,8 +20,6 @@ function RepeatableListItem(props) {
   } = props;
   const {
     title,
-    'slug.type': slugType,
-    'slug.label': slugLabel
   } = template;
 
   return (
@@ -30,8 +28,6 @@ function RepeatableListItem(props) {
         <ListItemText
           primary={title}
           secondary={<RelativeTime date={timestamp} />} />
-          {/* TODO: actually deploy slug info usefully */}
-          {slugLabel}: {slugType}
           {slug}
       </ListItem>
     </Link>

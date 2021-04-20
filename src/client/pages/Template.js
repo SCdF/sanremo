@@ -32,7 +32,7 @@ function Template(props) {
           title: '',
           slug: {
             type: 'date',
-            label: '',
+            label: 'Date',
             placeholder: ''
           },
           markdown: '',
@@ -130,24 +130,22 @@ function Template(props) {
         <FormGroup row>
           <TextField required variant="filled" select
             className={classes.dropdown}
-            label="Type" name="slugType"
+            label="Type of slug" name="slugType"
             value={template.slug.type} onChange={handleChange}>
 
             <MenuItem key="url" value="url">url</MenuItem>
             <MenuItem key="date" value="date">date</MenuItem>
             <MenuItem key="timestamp" value="timestamp">datetime</MenuItem>
-            <MenuItem key="string" value="string">plain text</MenuItem>
-            {/* <option value="url">url</option>
-            <option value="date">date</option>
-            <option value="timestamp">datetime</option>
-            <option value="string">plain text</option> */}
+            <MenuItem key="string" value="string">string (plain text)</MenuItem>
           </TextField>
           <TextField required variant="filled"
-            label="Label" name="slugLabel"
+            label="Display label for slug" name="slugLabel"
             value={template.slug.label} onChange={handleChange} />
+          {['string', 'url'].includes(template.slug.type) &&
           <TextField variant="filled"
-            label="Placeholder text" name="slugPlaceholder"
+            label={`Placeholder text for ${template.slug.type}`} name="slugPlaceholder"
             value={template.slug.placeholder} onChange={handleChange} />
+          }
         </FormGroup>
         <TextField required variant="filled" fullWidth
           multiline rows="10"

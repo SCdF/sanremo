@@ -3,7 +3,7 @@ import ReactDOM from 'react-dom';
 import ReactMarkdown from 'react-markdown';
 import { navigate, useLocation } from "@reach/router";
 
-import { Button, ButtonGroup, Checkbox, List, ListItem, ListItemIcon, ListItemText } from '@material-ui/core';
+import { Button, ButtonGroup, Checkbox, Input, List, ListItem, ListItemIcon, ListItemText, TextField } from '@material-ui/core';
 import DeleteIcon from '@material-ui/icons/Delete';
 
 import { v4 as uuid } from 'uuid';
@@ -32,9 +32,14 @@ function Repeatable(props) {
         const repeatable = {
           _id: `repeatable:instance:${uuid()}`,
           template: templateId,
-          values: template.values
+          values: template.values,
         };
         repeatable.created = repeatable.updated = Date.now();
+        if (['url', 'string'].includes(template.slug.type)) {
+          repeatable.slug = '';
+        } else if (['date', 'timestamp'].includes(template.slug.type)) {
+          repeatable.slug = Date.now();
+        }
 
         await db.put(repeatable);
         navigate(`/repeatable/${repeatable._id}`, {replace: true});
@@ -166,10 +171,58 @@ function Repeatable(props) {
 
   debug('chunks computed, ready to render');
 
-  console.log(items)
+  function changeSlug({target}) {
+    const copy = Object.assign({}, repeatable);
+    const value = target.type === 'checkbox' ? target.checked : target.value;
+
+    copy.slug = value;
+
+    setRepeatable(copy);
+  }
+
+  async function storeSlugChange() {
+    const copy = Object.assign({}, repeatable);
+
+    const {rev} = await db.put(copy);
+    copy._rev = rev;
+    setRepeatable(copy);
+  }
+
+  let slug;
+  if (['url', 'string'].includes(template?.slug?.type)) {
+    slug = <Input
+      type="text"
+      label={template.slug.label}
+      placeholder={template.slug.placeholder}
+      value={repeatable.slug}
+      onChange={changeSlug}
+      onBlur={storeSlugChange}/>
+  } else if ('date' === template?.slug?.type) {
+    slug = <Input
+      type="date"
+      label={template.slug.label}
+      value={repeatable.slug}
+      onChange={changeSlug}
+      onBlur={storeSlugChange}/>
+  } else if ('timestamp' === template?.slug?.type) {
+    slug = <Input
+      type="datetime-local"
+      label={template.slug.label}
+      value={repeatable.slug}
+      onChange={changeSlug}
+      onBlur={storeSlugChange}/>
+  }
+
+  const header = (
+     <div>
+        {template?.title}
+        <i> for</i>
+        {slug}
+     </div>
+  );
 
   return (
-    <Page title={template?.title} back under='home'>
+    <Page title={template?.title} header={header} back under='home'>
       <List>{items}</List>
       <ButtonGroup>
         {!repeatable.completed && <Button onClick={completeRepeatable} color='primary' variant='contained'>Complete</Button>}

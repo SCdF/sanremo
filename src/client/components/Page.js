@@ -21,12 +21,13 @@ const useStyles = makeStyles((theme) => ({
 /**
   * Wrapper for Pages. Manages headers, sidebar etc
   *
-  * @param {string} title the title you want the window to have, as well as in the to toolbar
+  * @param {string} title the title you want the window to have
+  * @param {JSX} header optional. Components to display in the toolbar header. Otherwise the title is used
   * @param {boolean} back whether you can go "back" in the browser sense
   * @param {string} under identifier for the sidebar heading this page appears under
  */
 function Page(props) {
-  const { children, back, title, under } = props;
+  const { children, back, title, under, header } = props;
   const [ anchorEl, setAnchorEl ] = useState(null);
   const classes = useStyles();
 
@@ -73,7 +74,7 @@ function Page(props) {
 
   return (
     <Container disableGutters>
-      <AppBar position="static">
+      <AppBar position="sticky">
         <Toolbar>
           {back &&
             // TODO: we should probably rethink this back button logic
@@ -81,7 +82,7 @@ function Page(props) {
             <IconButton edge='start' color='inherit' onClick={() => navigate(-1)}><ArrowBack /></IconButton>
           }
           <Typography variant='h6'>
-            {title}
+            {header || title}
           </Typography>
           <div className={classes.grow} />
           <IconButton edge='end' color='inherit' onClick={handleMenuOpen}><AccountCircle /></IconButton>
