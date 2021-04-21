@@ -37,6 +37,11 @@ function Home(props) {
         // sort: [{updated: 'desc'}]
       });
 
+      if (repeatables.length === 0) {
+        setRepeatables([]);
+        return;
+      }
+
       // Replace template id with real thing
       const templateIds = [...new Set(repeatables.map(d => d.template))];
       const {docs: templates} = await db.find({
