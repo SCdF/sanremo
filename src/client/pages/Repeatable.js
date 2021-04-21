@@ -136,7 +136,7 @@ function Repeatable(props) {
         items.push(
           <ListItem key={`chunk-${lastInputIdx + 1}-${chunkIdx}`}>
             <ListItemText>
-              <ReactMarkdown className='rich'>{text}</ReactMarkdown>
+              <ReactMarkdown>{text}</ReactMarkdown>
             </ListItemText>
           </ListItem>
         );
@@ -159,7 +159,7 @@ function Repeatable(props) {
             <Checkbox checked={!!checked} edge='start' tabIndex='-1'/>
           </ListItemIcon>
           <ListItemText>
-            <ReactMarkdown className='rich'>{text}</ReactMarkdown>
+            <ReactMarkdown renderers={{paragraph: 'span'}}>{text}</ReactMarkdown>
           </ListItemText>
         </ListItem>
       );
@@ -172,7 +172,7 @@ function Repeatable(props) {
     items.push(
       <ListItem key={`chunk-${lastInputIdx + 1}-${lastChunkIdx}`}>
         <ListItemText>
-          <ReactMarkdown className='rich'>{text}</ReactMarkdown>
+          <ReactMarkdown>{text}</ReactMarkdown>
         </ListItemText>
       </ListItem>
     );
