@@ -51,7 +51,7 @@ function Page(props) {
         open={isMenuOpen}
         onClose={handleMenuClose}
       >
-        <MenuItem>
+        <MenuItem onClick={() => alert('todo!')}>
           <ListItemIcon><AccountCircle /></ListItemIcon>
           <Typography>SCdF</Typography>
         </MenuItem>

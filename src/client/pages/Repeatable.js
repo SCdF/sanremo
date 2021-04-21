@@ -3,7 +3,7 @@ import ReactDOM from 'react-dom';
 import ReactMarkdown from 'react-markdown';
 import { navigate, useLocation } from "@reach/router";
 
-import { Button, ButtonGroup, Checkbox, Input, List, ListItem, ListItemIcon, ListItemText, TextField } from '@material-ui/core';
+import { Button, ButtonGroup, Checkbox, Input, List, ListItem, ListItemIcon, ListItemText, makeStyles, TextField } from '@material-ui/core';
 import DeleteIcon from '@material-ui/icons/Delete';
 
 import { v4 as uuid } from 'uuid';
@@ -13,7 +13,16 @@ import Page from '../components/Page';
 
 const debug = require('debug')('sanremo:repeatable');
 
+const useStyles = makeStyles((theme) => ({
+  inputRoot: {
+    paddingLeft: '0.5em',
+    color: 'inherit'
+  }
+}));
+
 function Repeatable(props) {
+  const classes = useStyles();
+
   const [repeatable, setRepeatable] = useState({});
   const [template, setTemplate] = useState({});
   const [initiallyOpen, setInitiallyOpen] = useState(false);
@@ -173,7 +182,10 @@ function Repeatable(props) {
 
   function changeSlug({target}) {
     const copy = Object.assign({}, repeatable);
-    const value = target.type === 'checkbox' ? target.checked : target.value;
+    const value =
+      ['date', 'timestamp'].includes(template.slug.type) ?
+        new Date(target.value).getTime() :
+        target.value;
 
     copy.slug = value;
 
@@ -192,23 +204,49 @@ function Repeatable(props) {
   if (['url', 'string'].includes(template?.slug?.type)) {
     slug = <Input
       type="text"
+      classes={{ root: classes.inputRoot }}
       label={template.slug.label}
       placeholder={template.slug.placeholder}
       value={repeatable.slug}
       onChange={changeSlug}
       onBlur={storeSlugChange}/>
   } else if ('date' === template?.slug?.type) {
+    // FIXME: Clean This Up! The format required for the native date input type cannot
+    // be manufactured from the native JavaScript date type. If we were in raw HTML
+    // we could post-set it with Javascript by using valueAsNumber, but not in situ
+    const slugDate = new Date(repeatable.slug);
+    const awkwardlyFormattedSlug = [
+      slugDate.getFullYear(),
+      ((slugDate.getMonth() + 1) + '').padStart(2, '0'),
+      ((slugDate.getDate() + 1) + '').padStart(2, '0'),
+    ].join('-');
+
     slug = <Input
       type="date"
+      classes={{ root: classes.inputRoot }}
       label={template.slug.label}
-      value={repeatable.slug}
+      value={awkwardlyFormattedSlug}
       onChange={changeSlug}
       onBlur={storeSlugChange}/>
   } else if ('timestamp' === template?.slug?.type) {
+    // FIXME: Clean This Up! The format required for the native date input type cannot
+    // be manufactured from the native JavaScript date type. If we were in raw HTML
+    // we could post-set it with Javascript by using valueAsNumber, but not in situ
+    const slugDate = new Date(repeatable.slug);
+    const awkwardlyFormattedSlug = [
+      slugDate.getFullYear(),
+      ((slugDate.getMonth() + 1) + '').padStart(2, '0'),
+      ((slugDate.getDate() + 1) + '').padStart(2, '0'),
+    ].join('-') + 'T' + [
+      (slugDate.getHours()+'').padStart(2, '0'),
+      (slugDate.getMinutes()+'').padStart(2, '0'),
+    ].join(':');
+
     slug = <Input
       type="datetime-local"
+      classes={{ root: classes.inputRoot }}
       label={template.slug.label}
-      value={repeatable.slug}
+      value={awkwardlyFormattedSlug}
       onChange={changeSlug}
       onBlur={storeSlugChange}/>
   }
@@ -216,7 +254,7 @@ function Repeatable(props) {
   const header = (
      <div>
         {template?.title}
-        <i> for</i>
+        <i> for </i>
         {slug}
      </div>
   );
