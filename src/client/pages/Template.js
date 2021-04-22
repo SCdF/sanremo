@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { navigate } from "@reach/router";
-import { Button, ButtonGroup, FormGroup, makeStyles, MenuItem, TextField } from "@material-ui/core";
+import { Button, ButtonGroup, Grid, makeStyles, MenuItem, TextField } from "@material-ui/core";
 import DeleteIcon from '@material-ui/icons/Delete';
 
 import { v4 as uuid } from 'uuid';
@@ -8,14 +8,6 @@ import { v4 as uuid } from 'uuid';
 import Page from "../components/Page";
 
 const useStyles = makeStyles((theme) => ({
-  root: {
-    '& .MuiTextField-root': {
-      margin: theme.spacing(1),
-    },
-  },
-  dropdown: {
-    width: '15ch'
-  }
 }));
 
 function Template(props) {
@@ -32,7 +24,6 @@ function Template(props) {
           title: '',
           slug: {
             type: 'date',
-            label: 'Date',
             placeholder: ''
           },
           markdown: '',
@@ -105,8 +96,6 @@ function Template(props) {
 
     if (name === 'slugType') {
       copy.slug.type = value;
-    } else if (name === 'slugLabel') {
-      copy.slug.label = value;
     } else if (name === 'slugPlaceholder') {
       copy.slug.placeholder = value;
     } else {
@@ -122,40 +111,46 @@ function Template(props) {
 
   return (
     <Page title={`${template.title || 'New Template'} | edit`} back under='home'>
-      <form onSubmit={handleSubmit} noValidate autoComplete="off" className={classes.root}>
-        <TextField required variant="filled" fullWidth
-          label="Title" name="title"
-          value={template.title} onChange={handleChange} />
+      <form onSubmit={handleSubmit} noValidate autoComplete="off">
+        <Grid container spacing={2}>
+          <Grid item xs={12}>
+            <TextField required variant="filled" fullWidth
+              label="Title" name="title"
+              value={template.title} onChange={handleChange} />
+          </Grid>
+          <Grid item xs={2}>
+            <TextField required variant="filled" select
+              size="small" fullWidth
+              label="Type of slug" name="slugType"
+              value={template.slug.type} onChange={handleChange}>
 
-        <FormGroup row>
-          <TextField required variant="filled" select
-            className={classes.dropdown}
-            label="Type of slug" name="slugType"
-            value={template.slug.type} onChange={handleChange}>
-
-            <MenuItem key="url" value="url">url</MenuItem>
-            <MenuItem key="date" value="date">date</MenuItem>
-            <MenuItem key="timestamp" value="timestamp">datetime</MenuItem>
-            <MenuItem key="string" value="string">string (plain text)</MenuItem>
-          </TextField>
-          <TextField required variant="filled"
-            label="Display label for slug" name="slugLabel"
-            value={template.slug.label} onChange={handleChange} />
-          {['string', 'url'].includes(template.slug.type) &&
-          <TextField variant="filled"
-            label={`Placeholder text for ${template.slug.type}`} name="slugPlaceholder"
-            value={template.slug.placeholder} onChange={handleChange} />
-          }
-        </FormGroup>
-        <TextField required variant="filled" fullWidth
-          multiline rows="10"
-          label="Markdown" name="markdown"
-          value={template.markdown} onChange={handleChange} />
-
-      <ButtonGroup>
-        <Button onClick={handleSubmit} color='primary' variant='contained'>Save</Button>
-        <Button onClick={handleDelete}><DeleteIcon /></Button>
-      </ButtonGroup>
+              <MenuItem key="url" value="url">url</MenuItem>
+              <MenuItem key="date" value="date">date</MenuItem>
+              <MenuItem key="timestamp" value="timestamp">datetime</MenuItem>
+              <MenuItem key="string" value="string">string (plain text)</MenuItem>
+            </TextField>
+          </Grid>
+          <Grid item xs={10}>
+            {['string', 'url'].includes(template.slug.type) &&
+            <TextField variant="filled" fullWidth
+              size="small"
+              label={`Placeholder text for ${template.slug.type}`} name="slugPlaceholder"
+              value={template.slug.placeholder} onChange={handleChange} />
+            }
+          </Grid>
+          <Grid item xs={12}>
+            <TextField required variant="filled" fullWidth
+              multiline rows="10"
+              label="Markdown" name="markdown"
+              value={template.markdown} onChange={handleChange} />
+          </Grid>
+          <Grid item xs={12}>
+            <ButtonGroup>
+              <Button onClick={handleSubmit} color='primary' variant='contained'>Save</Button>
+              <Button onClick={handleDelete}><DeleteIcon /></Button>
+            </ButtonGroup>
+          </Grid>
+        </Grid>
       </form>
     </Page>
   );

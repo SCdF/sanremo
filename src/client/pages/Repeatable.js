@@ -205,7 +205,6 @@ function Repeatable(props) {
     slug = <Input
       type="text"
       classes={{ root: classes.inputRoot }}
-      label={template.slug.label}
       placeholder={template.slug.placeholder}
       value={repeatable.slug}
       onChange={changeSlug}
@@ -224,7 +223,6 @@ function Repeatable(props) {
     slug = <Input
       type="date"
       classes={{ root: classes.inputRoot }}
-      label={template.slug.label}
       value={awkwardlyFormattedSlug}
       onChange={changeSlug}
       onBlur={storeSlugChange}/>
@@ -245,7 +243,6 @@ function Repeatable(props) {
     slug = <Input
       type="datetime-local"
       classes={{ root: classes.inputRoot }}
-      label={template.slug.label}
       value={awkwardlyFormattedSlug}
       onChange={changeSlug}
       onBlur={storeSlugChange}/>

@@ -8,7 +8,6 @@
     "title": "Name of the template",
     "slug": {
         "type": "url|date|timestamp|string",
-        "label": "What to title your slug",
         "placeholder": "for inputs, e.g. an example url"
     },
     "markdown": "a massive string of markdown",
