@@ -1,17 +1,14 @@
 import { useEffect, useState } from "react";
 import { navigate } from "@reach/router";
-import { Button, ButtonGroup, Grid, makeStyles, MenuItem, TextField } from "@material-ui/core";
+import { Button, ButtonGroup, Grid, Hidden, MenuItem, TextField, Typography } from "@material-ui/core";
 import DeleteIcon from '@material-ui/icons/Delete';
 
 import { v4 as uuid } from 'uuid';
 
 import Page from "../components/Page";
-
-const useStyles = makeStyles((theme) => ({
-}));
+import ReactMarkdown from "react-markdown";
 
 function Template(props) {
-  const classes = useStyles();
   const [template, setTemplate] = useState();
 
   const { db, templateId } = props;
@@ -138,11 +135,15 @@ function Template(props) {
               value={template.slug.placeholder} onChange={handleChange} />
             }
           </Grid>
-          <Grid item xs={12}>
+          <Grid item md={6} sm={12}>
             <TextField required variant="filled" fullWidth
               multiline rows="10"
               label="Markdown" name="markdown"
               value={template.markdown} onChange={handleChange} />
+          </Grid>
+          <Grid item md={6} sm={12}>
+            {/* TODO: correctly render markdown with checkboxes etc */}
+            <ReactMarkdown>{template.markdown}</ReactMarkdown>
           </Grid>
           <Grid item xs={12}>
             <ButtonGroup>

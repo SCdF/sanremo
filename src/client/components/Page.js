@@ -73,7 +73,7 @@ function Page(props) {
   );
 
   return (
-    <Container disableGutters>
+    <Container disableGutters maxWidth="xl">
       <AppBar position="sticky">
         <Toolbar>
           {back &&

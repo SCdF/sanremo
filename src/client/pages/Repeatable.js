@@ -3,7 +3,7 @@ import ReactDOM from 'react-dom';
 import ReactMarkdown from 'react-markdown';
 import { navigate, useLocation } from "@reach/router";
 
-import { Button, ButtonGroup, Checkbox, Input, List, ListItem, ListItemIcon, ListItemText, makeStyles, TextField } from '@material-ui/core';
+import { Button, ButtonGroup, Checkbox, Input, List, ListItem, ListItemIcon, ListItemText, makeStyles } from '@material-ui/core';
 import DeleteIcon from '@material-ui/icons/Delete';
 
 import { v4 as uuid } from 'uuid';
