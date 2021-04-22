@@ -218,7 +218,7 @@ function Repeatable(props) {
     const awkwardlyFormattedSlug = [
       slugDate.getFullYear(),
       ((slugDate.getMonth() + 1) + '').padStart(2, '0'),
-      ((slugDate.getDate() + 1) + '').padStart(2, '0'),
+      ((slugDate.getDate()) + '').padStart(2, '0'),
     ].join('-');
 
     slug = <Input
@@ -236,7 +236,7 @@ function Repeatable(props) {
     const awkwardlyFormattedSlug = [
       slugDate.getFullYear(),
       ((slugDate.getMonth() + 1) + '').padStart(2, '0'),
-      ((slugDate.getDate() + 1) + '').padStart(2, '0'),
+      ((slugDate.getDate()) + '').padStart(2, '0'),
     ].join('-') + 'T' + [
       (slugDate.getHours()+'').padStart(2, '0'),
       (slugDate.getMinutes()+'').padStart(2, '0'),
