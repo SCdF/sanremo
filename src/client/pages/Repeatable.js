@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import React from 'react';
 import ReactDOM from 'react-dom';
 import ReactMarkdown from 'react-markdown';
 import { navigate, useLocation } from "@reach/router";
@@ -25,8 +26,14 @@ function Repeatable(props) {
 
   const [repeatable, setRepeatable] = useState({});
   const [template, setTemplate] = useState({});
-  const [initiallyOpen, setInitiallyOpen] = useState(false);
-  const [edited, setEdited] = useState(false);
+
+  // Used for determining how complete / uncomplete function
+  const [initiallyOpen, setInitiallyOpen] = useState(false); // On first load, was the repeatable uncompleted?
+  const [edited, setEdited] = useState(false); // Have we made changes to the repeatable
+
+  // Used for auto-focus (hammer spacebar to tick everything and close)
+  const [nextIdx, setNextIdx] = useState(); // the next index that the user should focus on
+  const [maxIdx, setMaxIdx] = useState(); // the maximum index of fields the user can focus on
 
   const location = useLocation();
 
@@ -55,6 +62,10 @@ function Repeatable(props) {
       } else {
         debug('pre repeatable load');
         const repeatable = await db.get(repeatableId);
+
+        let nextIdx = repeatable.values.findIndex(v => !v);
+        if (nextIdx === -1) nextIdx = repeatable.values.length;
+
         debug('post repeatable load, pre template load');
         const template = await db.get(repeatable.template);
         debug('post template load');
@@ -63,6 +74,7 @@ function Repeatable(props) {
           setRepeatable(repeatable);
           setTemplate(template);
           setInitiallyOpen(!repeatable.completed);
+          setNextIdx(nextIdx);
         });
       }
     };
@@ -79,7 +91,7 @@ function Repeatable(props) {
     navigate('/');
   }
 
-  async function completeRepeatable() {
+  async function complete() {
     const copy = Object.assign({}, repeatable);
 
     copy.completed = Date.now();
@@ -93,7 +105,7 @@ function Repeatable(props) {
     }
   }
 
-  async function uncompleteRepeatable() {
+  async function uncomplete() {
     const copy = Object.assign({}, repeatable);
 
     delete copy.completed;
@@ -104,8 +116,6 @@ function Repeatable(props) {
 
   function handleToggle(idx) {
     return async () => {
-      setEdited(true);
-
       const now = Date.now();
       const copy = Object.assign({}, repeatable);
       copy.values = Array.from(copy.values);
@@ -117,7 +127,11 @@ function Repeatable(props) {
       const { rev } = await db.put(copy);
       copy._rev = rev;
 
-      setRepeatable(copy);
+      ReactDOM.unstable_batchedUpdates(() => {
+        setEdited(true);
+        setRepeatable(copy);
+        setNextIdx(copy.values[idx] ? idx + 1: idx);
+      });
     };
   }
 
@@ -153,7 +167,7 @@ function Repeatable(props) {
           key={`value-${valueIdx}`} button disableRipple
           onClick={handleToggle(valueIdx)}
           disabled={!!repeatable.completed}
-          autoFocus={false}>
+          autoFocus={valueIdx === nextIdx}>
 
           <ListItemIcon>
             <Checkbox checked={!!checked} edge='start' tabIndex='-1'/>
@@ -176,6 +190,10 @@ function Repeatable(props) {
         </ListItemText>
       </ListItem>
     );
+  }
+
+  if (lastInputIdx !== maxIdx) {
+    setMaxIdx(lastInputIdx);
   }
 
   debug('chunks computed, ready to render');
@@ -256,12 +274,27 @@ function Repeatable(props) {
      </div>
   );
 
+  // There is actually an autoFocus property on button, but it doesn't work.
+  // Instead, this is the current workaround. See the following workaround:
+  // https://github.com/mui-org/material-ui/issues/3008#issuecomment-284223777
+  class CompleteButton extends React.Component {
+    componentDidMount() {
+      if (nextIdx === maxIdx) {
+        ReactDOM.findDOMNode(this.button).focus();
+      }
+    }
+
+    render() {
+      return <Button onClick={complete} color='primary' variant='contained' ref={node => this.button = node}>Complete</Button>;
+    }
+  }
+
   return (
     <Page title={template?.title} header={header} back under='home'>
       <List>{items}</List>
       <ButtonGroup>
-        {!repeatable.completed && <Button onClick={completeRepeatable} color='primary' variant='contained'>Complete</Button>}
-        {repeatable.completed && <Button onClick={uncompleteRepeatable} color='primary' variant='contained'>Un-complete</Button>}
+        {!repeatable.completed && <CompleteButton />}
+        {repeatable.completed && <Button onClick={uncomplete} color='primary' variant='contained'>Un-complete</Button>}
         <Button onClick={deleteRepeatable}><DeleteIcon /></Button>
       </ButtonGroup>
     </Page>
