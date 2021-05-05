@@ -192,8 +192,8 @@ function Repeatable(props) {
     );
   }
 
-  if (lastInputIdx !== maxIdx) {
-    setMaxIdx(lastInputIdx);
+  if (valueIdx + 1 !== maxIdx) {
+    setMaxIdx(valueIdx + 1);
   }
 
   debug('chunks computed, ready to render');
