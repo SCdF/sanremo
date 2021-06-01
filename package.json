@@ -8,10 +8,7 @@
     "local_prod": "DATABASE_URL=postgres://scdf@localhost PORT=5000 npm start",
     "dev": "react-scripts start",
     "build": "react-scripts build",
-    "test": "npm run test:unit",
-    "test:all": "react-scripts test --watchAll=false \n npm run build && npm run test:e2e",
-    "test:unit": "react-scripts test",
-    "test:e2e": "./scripts/e2e.sh",
+    "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
   "eslintConfig": {
@@ -50,10 +47,6 @@
     "date-fns": "^2.17.0",
     "debug": "^4.3.1",
     "dotenv": "^8.2.0",
-    "eslint-plugin-jest-playwright": "^0.2.1",
-    "jest": "^26.6.0",
-    "jest-playwright-preset": "^1.5.0",
-    "playwright": "^1.9.1",
     "pouchdb-adapter-idb": "^7.2.2",
     "pouchdb-browser": "^7.2.2",
     "pouchdb-find": "^7.2.2",
