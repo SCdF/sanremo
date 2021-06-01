@@ -3,6 +3,7 @@ const path = require('path');
 const app = express();
 const bcrypt = require('bcryptjs');
 const session = require('express-session');
+const pgSession = require('connect-pg-simple');
 const { Pool } = require('pg');
 
 const db = new Pool({
@@ -33,8 +34,7 @@ if (process.env.NODE_ENV === 'production') {
 }
 
 if (process.env.DATABASE_URL) {
-  // On Heroku the credentials are in the DATABASE_URL env var, which this store uses by default
-  sess.store = new (require('connect-pg-simple')(session))();
+  sess.store = new pgSession({pool: db});
 }
 
 app.use(session(sess));
