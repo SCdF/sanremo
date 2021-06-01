@@ -5,6 +5,7 @@
   "scripts": {
     "analyze": "source-map-explorer 'build/static/js/*.js' --html result.html",
     "start": "node ./src/server",
+    "local_prod": "DATABASE_URL=postgres://scdf@localhost PORT=5000 npm start",
     "dev": "react-scripts start",
     "build": "react-scripts build",
     "test": "npm run test:unit",
@@ -32,7 +33,11 @@
     ]
   },
   "dependencies": {
-    "express": "^4.17.1"
+    "bcryptjs": "^2.4.3",
+    "connect-pg-simple": "^6.2.1",
+    "express": "^4.17.1",
+    "express-session": "^1.17.1",
+    "pg": "^8.6.0"
   },
   "devDependencies": {
     "@material-ui/core": "^4.11.3",

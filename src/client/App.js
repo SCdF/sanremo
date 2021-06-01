@@ -1,16 +1,17 @@
 import './App.scss';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Router } from "@reach/router"
 
 import CssBaseline from '@material-ui/core/CssBaseline';
 
 import db from './db';
 
+import About from './pages/About';
+import History from './pages/History';
 import Home from './pages/Home';
+import Login from './pages/Login';
 import Repeatable from './pages/Repeatable';
 import Template from './pages/Template';
-import History from './pages/History';
-import About from './pages/About';
 
 import { createMuiTheme, ThemeProvider } from '@material-ui/core/styles';
 
@@ -26,15 +27,49 @@ const theme = createMuiTheme({
 });
 
 function App() {
+  const [loggedInUser, setLoggedInUser] = useState();
+
+  // FIXME: we don't want to actually do this. Instead, either:
+  // - remap this URL to an /api/ok or something that doesn't involve anything except validating the session,
+  // - rely entirely on actual remote calls to fail as they fail to trigger a login request
+  // And with either option know the difference between being offline and not authed
+  // FIXME: check a client-side cookie for this. Without this check we can't support offline first!
+  async function authCheck() {
+    const response = await fetch('/api/auth');
+    if (response.ok) {
+      const data = await response.json();
+      setLoggedInUser(data.user)
+    }
+  }
+
+  useEffect(() => {
+    if (process.env.NODE_ENV === 'development') {
+      setLoggedInUser('dev');
+    } else if (loggedInUser === undefined) {
+      authCheck();
+    }
+  }, [loggedInUser]);
+
+  if (!loggedInUser) {
+    return (
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
+        <Login setLoggedInUser={setLoggedInUser}/>
+      </ThemeProvider>
+    );
+  }
+
+  const handle = db(loggedInUser);
+
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <Router>
-        <Home db={db} path='/' />
-        <About db={db} path='/about' />
-        <Repeatable db={db} path='repeatable/:repeatableId' />
-        <Template db={db} path='template/:templateId' />
-        <History db={db} path='history' />
+        <Home db={handle} path='/' />
+        <About db={handle} path='/about' />
+        <Repeatable db={handle} path='repeatable/:repeatableId' />
+        <Template db={handle} path='template/:templateId' />
+        <History db={handle} path='history' />
       </Router>
     </ThemeProvider>
   );
