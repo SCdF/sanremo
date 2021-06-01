@@ -3,7 +3,7 @@ const path = require('path');
 const app = express();
 const bcrypt = require('bcryptjs');
 const session = require('express-session');
-const pgSession = require('connect-pg-simple');
+const pgSession = require('connect-pg-simple')(session);
 const { Pool } = require('pg');
 
 const db = new Pool({
