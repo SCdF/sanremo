@@ -14,6 +14,7 @@ import Repeatable from './pages/Repeatable';
 import Template from './pages/Template';
 
 import { createMuiTheme, ThemeProvider } from '@material-ui/core/styles';
+import { CircularProgress } from '@material-ui/core';
 
 const theme = createMuiTheme({
   // palette: {
@@ -39,6 +40,8 @@ function App() {
     if (response.ok) {
       const data = await response.json();
       setLoggedInUser(data.user)
+    } else {
+      setLoggedInUser(false);
     }
   }
 
@@ -49,6 +52,15 @@ function App() {
       authCheck();
     }
   }, [loggedInUser]);
+
+  if (loggedInUser === undefined) {
+    return (
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
+        <CircularProgress />
+      </ThemeProvider>
+    );
+  }
 
   if (!loggedInUser) {
     return (
