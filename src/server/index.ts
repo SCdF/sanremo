@@ -1,12 +1,13 @@
 import { readFileSync } from 'fs';
 import express from 'express';
 import session from 'express-session';
+import { SessionOptions } from 'express-session';
 import bcrypt from 'bcryptjs';
 
-import pg from 'pg';
 import pgConnect from 'connect-pg-simple';
 
 import syncRoutes from './sync/routes.js';
+import { db } from './db';
 
 const app = express();
 
@@ -14,17 +15,17 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(express.static('build'));
 
-const pgSession = pgConnect(session);
-const db = new pg.Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: {
-    rejectUnauthorized: false,
-  },
-});
+if (process.env.NODE_ENV === 'production' && !process.env.SECRET) {
+  console.error('Production deployment but no SECRET defined!');
+  process.exit(-1);
+}
+const secret = (
+  process.env.NODE_ENV === 'production' ? process.env.SECRET : 'devsecret'
+) as string;
 
-const sess = {
-  secret:
-    process.env.NODE_ENV === 'production' ? process.env.SECRET : 'devsecret',
+const pgSession = pgConnect(session);
+const sess: SessionOptions = {
+  secret: secret,
   name: 'sanremo',
   saveUninitialized: false,
   resave: true, // TODO: work out what we want this to be
@@ -36,7 +37,7 @@ const sess = {
 
 if (process.env.NODE_ENV === 'production') {
   app.set('trust proxy', 1);
-  sess.cookie.secure = true;
+  sess.cookie!.secure = true;
 }
 
 if (process.env.DATABASE_URL) {
@@ -80,6 +81,7 @@ app.get('/api/auth', function (req, res) {
 
 app.get('/api/deployment', function (req, res) {
   const releaseVersion = JSON.parse(
+    // @ts-ignore for some reason this binds to expecting a Buffer
     readFileSync(new URL('../../package.json', import.meta.url))
   ).version;
 
@@ -100,7 +102,7 @@ app.get('/api/deployment', function (req, res) {
   });
 });
 
-syncRoutes(app, db);
+syncRoutes(app);
 
 const port = process.env.PORT || 80;
 app.listen(port);

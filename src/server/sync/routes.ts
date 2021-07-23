@@ -1,3 +1,5 @@
+import { Router } from 'express';
+import { User } from '../types';
 import sync from './sync';
 
 /**
@@ -18,10 +20,10 @@ import sync from './sync';
  *  - No intelligence in regard to conflicts. We are picking the biggest rev
  * as the winner, which can obviously be deeply wrong
  */
-export default function routes(app, db) {
+export default function routes(app: Router) {
   app.post('/api/sync/declare', async function (req, res) {
     const docs = req.body.docs;
-    const results = await sync.declare(db, req.session.user, docs);
+    const results = await sync.declare(req.session.user as User, docs);
     res.json(results);
   });
   app.post('/api/sync/request', async function (req, res) {});

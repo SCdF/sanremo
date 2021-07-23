@@ -1,41 +1,14 @@
-import { Client } from 'pg';
+import { matchStubsToUser } from './db';
+import { DocStub, Requests, Doc } from './types';
+import { User } from '../types';
 
-interface User {
-  id: number;
-  name: string;
-}
-
-interface Doc {
-  _id: string;
-  _rev: string;
-  _deleted?: boolean;
-}
-type DocStub = Doc;
-
-// List of docs that the SERVER needs and the CLIENT needs
-// So, the client should request the documents declared under 'client',
-// and send the documents to the server declared under 'server'
-interface Requests {
-  server: DocStub[];
-  client: DocStub[];
-}
-
-async function declare(
-  db: Client,
-  user: User,
-  stubs: DocStub[]
-): Promise<Requests> {
-  const result = await db.query(
-    'select _id, _rev, _deleted from raw_client_documents where user_id = $1::number and _id in $2',
-    [user.id, stubs.map((s) => s._id)]
-  );
-
+async function declare(user: User, stubs: DocStub[]): Promise<Requests> {
   const toReturn: Requests = {
     server: [],
     client: [],
   };
 
-  const serverDocs: DocStub[] = result.rows;
+  const serverDocs: DocStub[] = await matchStubsToUser(user, stubs);
 
   const serverDocsById = new Map(serverDocs.map((d) => [d._id, d]));
   const userDocsById = new Map(stubs.map((d) => [d._id, d]));
@@ -54,7 +27,7 @@ async function declare(
     if (serverDocRev > userDocRev) {
       toReturn.client.push(doc);
     } else if (userDocRev > serverDocRev) {
-      toReturn.server.push(doc);
+      toReturn.server.push(userDoc);
     } // TODO: deal with rev numbers being the same but hash being different (ie, conflict)
   }
 
@@ -67,16 +40,18 @@ async function declare(
   return toReturn;
 }
 
-async function request(db: Client, stubs: DocStub[]): Promise<Doc[]> {
+async function request(user: User, stubs: DocStub[]): Promise<Doc[]> {
   return [];
 }
 
-async function update(db: Client, docs: Doc[]): Promise<DocStub[]> {
+async function update(user: User, docs: Doc[]): Promise<DocStub[]> {
   return [];
 }
 
-export default {
+const sync = {
   declare,
   request,
   update,
 };
+
+export default sync;
