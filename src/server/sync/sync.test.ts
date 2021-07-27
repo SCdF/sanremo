@@ -1,11 +1,14 @@
 import sync from './sync';
-import { matchStubsToUser } from './db';
+import { getDocs, matchStubsToUser, putDocs } from './db';
 
 jest.mock('./db');
 
 const mockMatchStubsToUser = matchStubsToUser as jest.MockedFunction<
   typeof matchStubsToUser
 >;
+
+const mockGetDocs = getDocs as jest.MockedFunction<typeof getDocs>;
+const mockPutDocs = putDocs as jest.MockedFunction<typeof putDocs>;
 
 describe('declare', () => {
   it('works correctly', async () => {
@@ -53,9 +56,44 @@ describe('declare', () => {
     const result = await sync.declare({ name: 'test', id: 1 }, userDocs);
 
     expect(mockMatchStubsToUser).toBeCalledTimes(1);
+    expect(mockMatchStubsToUser).lastCalledWith(
+      { name: 'test', id: 1 },
+      userDocs.map((d) => d._id)
+    );
     expect(result).toEqual({
       server: [userDocNewerThanServerFromClient, newToServer],
       client: [newToClient, serverDocNewerThanUserFromServer],
     });
+  });
+});
+
+describe('request', () => {
+  it('works correctly', async () => {
+    const clientStubs = [
+      { _id: '123', _rev: '1-123' },
+      { _id: '456', _rev: '1-456' },
+    ];
+    const serverDocs = [
+      { _id: '123', _rev: '1-123', more: 'data' },
+      { _id: '456', _rev: '1-456', more: 'data' },
+    ];
+    mockGetDocs.mockResolvedValue(serverDocs);
+    const result = await sync.request({ name: 'test', id: 1 }, clientStubs);
+    expect(mockGetDocs).toBeCalledTimes(1);
+    expect(mockGetDocs).lastCalledWith(['123', '456']);
+    expect(result).toEqual(serverDocs);
+  });
+});
+
+describe('update', () => {
+  it('works correctly', async () => {
+    const clientDocs = [
+      { _id: '123', _rev: '1-123' },
+      { _id: '456', _rev: '1-456' },
+    ];
+
+    await sync.update({ name: 'test', id: 1 }, clientDocs);
+    expect(mockPutDocs).toBeCalledTimes(1);
+    expect(mockPutDocs).lastCalledWith(clientDocs);
   });
 });

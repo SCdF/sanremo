@@ -6,7 +6,7 @@ import bcrypt from 'bcryptjs';
 
 import pgConnect from 'connect-pg-simple';
 
-import syncRoutes from './sync/routes.js';
+import syncRoutes from './sync/routes';
 import { db } from './db';
 
 const app = express();
@@ -47,16 +47,17 @@ if (process.env.DATABASE_URL) {
 app.use(session(sess));
 
 app.post('/api/auth', async function (req, res) {
+  const { username, password } = req.body;
   const result = await db.query(
     'select id, password from users where username = $1::text',
-    [req.body.username]
+    [username]
   );
 
   if (result?.rows.length === 1) {
     const id = result.rows[0].id;
     const hash = result.rows[0].password;
-    if (bcrypt.compareSync(req.body.password, hash)) {
-      req.session.user = { id: id, name: req.body.username };
+    if (bcrypt.compareSync(password, hash)) {
+      req.session.user = { id: id, name: username };
       return res.json(req.session);
     }
   }
@@ -81,8 +82,10 @@ app.get('/api/auth', function (req, res) {
 
 app.get('/api/deployment', function (req, res) {
   const releaseVersion = JSON.parse(
-    // @ts-ignore for some reason this binds to expecting a Buffer
-    readFileSync(new URL('../../package.json', import.meta.url))
+    readFileSync(
+      new URL('../../package.json', import.meta.url).pathname,
+      'utf-8'
+    )
   ).version;
 
   if (process.env.NODE_ENV === 'production') {
@@ -103,6 +106,11 @@ app.get('/api/deployment', function (req, res) {
 });
 
 syncRoutes(app);
+
+app.get('/*', function (req, res) {
+  const index = new URL('../../build/index.html', import.meta.url).pathname;
+  res.sendFile(index);
+});
 
 const port = process.env.PORT || 80;
 app.listen(port);

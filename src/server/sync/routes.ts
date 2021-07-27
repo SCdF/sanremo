@@ -22,10 +22,36 @@ import sync from './sync';
  */
 export default function routes(app: Router) {
   app.post('/api/sync/declare', async function (req, res) {
-    const docs = req.body.docs;
-    const results = await sync.declare(req.session.user as User, docs);
-    res.json(results);
+    try {
+      const stubs = req.body.docs || [];
+      const results = await sync.declare(req.session.user as User, stubs);
+      res.json(results);
+    } catch (error) {
+      console.log('Unexpected error on /api/sync/declare', error);
+      res.status(500);
+      res.end();
+    }
   });
-  app.post('/api/sync/request', async function (req, res) {});
-  app.post('/api/sync/update', async function (res, req) {});
+  app.post('/api/sync/request', async function (req, res) {
+    try {
+      const stubs = req.body.docs || [];
+      const results = await sync.request(req.session.user as User, stubs);
+      res.json(results);
+    } catch (error) {
+      console.log('Unexpected error on /api/sync/request', error);
+      res.status(500);
+      res.end();
+    }
+  });
+  app.post('/api/sync/update', async function (req, res) {
+    try {
+      const docs = req.body.docs || [];
+      await sync.update(req.session.user as User, docs);
+      res.end();
+    } catch (error) {
+      console.log('Unexpected error on /api/sync/update', error);
+      res.status(500);
+      res.end();
+    }
+  });
 }

@@ -1,6 +1,6 @@
-import { matchStubsToUser } from './db';
-import { DocStub, Requests, Doc } from './types';
-import { User } from '../types';
+import { getDocs, matchStubsToUser, putDocs } from './db';
+import { Requests } from './types';
+import { DocStub, Doc, User } from '../types';
 
 async function declare(user: User, stubs: DocStub[]): Promise<Requests> {
   const toReturn: Requests = {
@@ -8,7 +8,10 @@ async function declare(user: User, stubs: DocStub[]): Promise<Requests> {
     client: [],
   };
 
-  const serverDocs: DocStub[] = await matchStubsToUser(user, stubs);
+  const serverDocs: DocStub[] = await matchStubsToUser(
+    user,
+    stubs.map((s) => s._id)
+  );
 
   const serverDocsById = new Map(serverDocs.map((d) => [d._id, d]));
   const userDocsById = new Map(stubs.map((d) => [d._id, d]));
@@ -41,11 +44,17 @@ async function declare(user: User, stubs: DocStub[]): Promise<Requests> {
 }
 
 async function request(user: User, stubs: DocStub[]): Promise<Doc[]> {
-  return [];
+  const serverDocs = await getDocs(stubs.map((s) => s._id));
+  // TODO: care about the user being passed in for security
+  // TODO: make sure that the revision matches
+  // TODO: consider throwing some kind of error when the document doesn't exist on the server
+  return serverDocs;
 }
 
-async function update(user: User, docs: Doc[]): Promise<DocStub[]> {
-  return [];
+async function update(user: User, docs: Doc[]): Promise<void> {
+  // TODO: care about the user being passed in for security
+  // TODO: consider also caring about the revision here
+  await putDocs(user, docs);
 }
 
 const sync = {

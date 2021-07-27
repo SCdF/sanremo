@@ -6,9 +6,10 @@
   "scripts": {
     "analyze": "source-map-explorer 'build/static/js/*.js' --html result.html",
     "server": "DATABASE_URL=postgres://scdf@localhost PORT=5000 npm start",
-    "start": "node ./server-build",
+    "start": "node --es-module-specifier-resolution=node ./server-build/src",
+    "dev": "react-scripts start",
     "build": "react-scripts build",
-    "buildServer": "tsc",
+    "buildServer": "rm -r ./server-build; tsc --build tsconfig.server.json",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
