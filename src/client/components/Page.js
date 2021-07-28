@@ -8,6 +8,7 @@ import HistoryIcon from '@material-ui/icons/History';
 import InfoIcon from '@material-ui/icons/Info';
 import { navigate } from "@reach/router";
 import { useEffect, useState } from "react";
+import Sync from "./Sync";
 
 const useStyles = makeStyles((theme) => ({
   grow: {
@@ -85,6 +86,7 @@ function Page(props) {
             {header || title}
           </Typography>
           <div className={classes.grow} />
+          <Sync />            
           <IconButton edge='end' color='inherit' onClick={handleMenuOpen}><AccountCircle /></IconButton>
         </Toolbar>
       </AppBar>
