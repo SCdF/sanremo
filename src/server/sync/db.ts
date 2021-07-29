@@ -8,7 +8,7 @@ export async function getStubsForUser(user: User): Promise<DocStub[]> {
 
 export async function getDocs(user: User, ids: DocId[]): Promise<Doc[]> {
   const result = await db.query('SELECT data FROM raw_client_documents WHERE user_id = $1 AND _id = ANY($2)', [
-    user,
+    user.id,
     ids,
   ]);
   return result.rows.map(({ data }) => JSON.parse(data));
@@ -21,7 +21,7 @@ export async function putDocs(user: User, docs: Doc[]): Promise<void> {
 
     // TODO: also get rid of attachments
     await client.query('DELETE FROM raw_client_documents WHERE user_id = $1 AND _id = ANY($2)', [
-      user,
+      user.id,
       docs.map((d) => d._id),
     ]);
 
