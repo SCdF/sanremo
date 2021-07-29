@@ -3,7 +3,7 @@ import pdbFind from 'pouchdb-find';
 PouchDB.plugin(pdbFind);
 
 export default function db(loggedInUser) {
-  const db = new PouchDB(`sanremo-${loggedInUser}`, {
+  const db = new PouchDB(`sanremo-${loggedInUser.id}-${loggedInUser.name}`, {
     auto_compaction: true,
   });
 
