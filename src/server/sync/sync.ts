@@ -24,14 +24,12 @@ async function declare(user: User, stubs: DocStub[]): Promise<Requests> {
     }
     const userDoc: Doc = userDocsById.get(doc._id)!;
 
-    // TODO: move this number extraction into an abstraction
     const serverDocRev = Number(doc._rev.split('-')[0]);
     const userDocRev = Number(userDoc._rev.split('-')[0]);
 
     if (serverDocRev > userDocRev) {
       toReturn.client.push(doc);
     } else if (userDocRev > serverDocRev) {
-      // TODO: if the server needs to get a doc that is deleted, just delete it
       toReturn.server.push(userDoc);
     } // TODO: deal with rev numbers being the same but hash being different (ie, conflict)
   }
@@ -46,15 +44,17 @@ async function declare(user: User, stubs: DocStub[]): Promise<Requests> {
 }
 
 async function request(user: User, stubs: DocStub[]): Promise<Doc[]> {
-  const serverDocs = await getDocs(stubs.map((s) => s._id));
-  // TODO: care about the user being passed in for security
+  const serverDocs = await getDocs(
+    user,
+    stubs.map((s) => s._id)
+  );
+
   // TODO: make sure that the revision matches
   // TODO: consider throwing some kind of error when the document doesn't exist on the server
   return serverDocs;
 }
 
 async function update(user: User, docs: Doc[]): Promise<void> {
-  // TODO: care about the user being passed in for security
   // TODO: consider also caring about the revision here
   await putDocs(user, docs);
 }

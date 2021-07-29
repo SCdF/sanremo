@@ -147,4 +147,6 @@ describe('completion redirection semantics', () => {
 });
 
 // TODO: parsing tests
-describe('parsing', () => {});
+describe('parsing', () => {
+  it.todo('detect checkboxes');
+});

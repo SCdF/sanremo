@@ -19,6 +19,9 @@ import sync from './sync';
  *  - Very heavy. Is essentially a dumb "full sync" every time.
  *  - No intelligence in regard to conflicts. We are picking the biggest rev
  * as the winner, which can obviously be deeply wrong
+ *  - We are potentially non optimal around deletes, as we just store them like
+ * normal
+ *  - Does not support attachments
  */
 export default function routes(app: Router) {
   app.post('/api/sync/declare', async function (req, res) {

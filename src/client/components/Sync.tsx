@@ -29,7 +29,7 @@ function Sync(props: { db: PouchDB.Database }) {
         debug('starting sync');
         setState(State.syncing);
 
-        //get the docs we have locally
+        // Get the docs we have locally
         const docs = await db.allDocs();
         const stubs: DocStub[] = docs.rows
           .filter((row) => !row.id.startsWith('_design/'))
@@ -42,7 +42,7 @@ function Sync(props: { db: PouchDB.Database }) {
           });
         debug(`locally we have ${stubs.length} docs`);
 
-        //work out the difference between us and the server
+        // Work out the difference between us and the server
         debug('checking with the server');
         const serverState: Requests = await axios
           .post('/api/sync/declare', {
@@ -57,7 +57,7 @@ function Sync(props: { db: PouchDB.Database }) {
         debug('starting transfers');
         setProgress(0);
 
-        //give the server what they need
+        // Give the server what they need
         while (serverState.server.length > 0) {
           const batch = serverState.server.splice(0, BATCH_SIZE);
           debug(`-> preparing ${batch.length}`);
@@ -79,7 +79,7 @@ function Sync(props: { db: PouchDB.Database }) {
           setProgress(docTotal / docCount);
         }
 
-        //get what we need from the server
+        // Get what we need from the server
         while (serverState.client.length > 0) {
           const batch = serverState.client.splice(0, BATCH_SIZE);
           debug(`<- preparing ${batch.length}`);

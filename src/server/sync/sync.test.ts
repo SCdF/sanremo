@@ -77,7 +77,7 @@ describe('request', () => {
     mockGetDocs.mockResolvedValue(serverDocs);
     const result = await sync.request(user, clientStubs);
     expect(mockGetDocs).toBeCalledTimes(1);
-    expect(mockGetDocs).lastCalledWith(['123', '456']);
+    expect(mockGetDocs).lastCalledWith(user, ['123', '456']);
     expect(result).toEqual(serverDocs);
   });
 });

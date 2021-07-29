@@ -6,20 +6,24 @@ export async function getStubsForUser(user: User): Promise<DocStub[]> {
   return result.rows;
 }
 
-export async function getDocs(ids: DocId[]): Promise<Doc[]> {
-  // TODO: care about the user for security
-  const result = await db.query('SELECT data FROM raw_client_documents WHERE _id = ANY($1)', [ids]);
+export async function getDocs(user: User, ids: DocId[]): Promise<Doc[]> {
+  const result = await db.query('SELECT data FROM raw_client_documents WHERE user_id = $1 AND _id = ANY($2)', [
+    user,
+    ids,
+  ]);
   return result.rows.map(({ data }) => JSON.parse(data));
 }
 
 export async function putDocs(user: User, docs: Doc[]): Promise<void> {
-  // TODO: care about the user for security
   const client = await db.connect();
   try {
     await client.query('BEGIN');
 
     // TODO: also get rid of attachments
-    await client.query('DELETE FROM raw_client_documents WHERE _id = ANY($1)', [docs.map((d) => d._id)]);
+    await client.query('DELETE FROM raw_client_documents WHERE user_id = $1 AND _id = ANY($2)', [
+      user,
+      docs.map((d) => d._id),
+    ]);
 
     // TODO: also deal with attachments
     // FIXME: for performance collapse this into one insert somehow
