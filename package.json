@@ -4,13 +4,14 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "analyze": "source-map-explorer 'build/static/js/*.js' --html result.html",
-    "server": "DATABASE_URL=postgres://scdf@localhost PORT=5000 npm start",
     "start": "node --es-module-specifier-resolution=node ./server-build/src",
-    "dev": "react-scripts start",
-    "build": "react-scripts build",
+    "serverLocal": "DATABASE_URL=postgres://scdf@localhost PORT=5000 npm start",
+    "build": "npm run buildClient && npm run buildServer",
+    "buildClient": "react-scripts build",
     "buildServer": "rm -r ./server-build; tsc --build tsconfig.server.json",
+    "dev": "react-scripts start",
     "test": "react-scripts test",
+    "analyze": "source-map-explorer 'build/static/js/*.js' --html result.html",
     "eject": "react-scripts eject"
   },
   "eslintConfig": {
