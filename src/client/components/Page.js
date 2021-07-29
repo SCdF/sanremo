@@ -9,17 +9,17 @@ import {
   MenuItem,
   Toolbar,
   Typography,
-} from "@material-ui/core";
+} from '@material-ui/core';
 // TODO: configure babel properly so we can use { ArrowBack } etc instead
 // https://material-ui.com/guides/minimizing-bundle-size/#option-2
-import AccountCircle from "@material-ui/icons/AccountCircle";
-import ArrowBack from "@material-ui/icons/ArrowBack";
-import CheckBoxIcon from "@material-ui/icons/CheckBox";
-import HistoryIcon from "@material-ui/icons/History";
-import InfoIcon from "@material-ui/icons/Info";
-import { navigate } from "@reach/router";
-import { useEffect, useState } from "react";
-import Sync from "./Sync";
+import AccountCircle from '@material-ui/icons/AccountCircle';
+import ArrowBack from '@material-ui/icons/ArrowBack';
+import CheckBoxIcon from '@material-ui/icons/CheckBox';
+import HistoryIcon from '@material-ui/icons/History';
+import InfoIcon from '@material-ui/icons/Info';
+import { navigate } from '@reach/router';
+import { useEffect, useState } from 'react';
+import Sync from './Sync';
 
 const useStyles = makeStyles((theme) => ({
   grow: {
@@ -45,7 +45,7 @@ function Page(props) {
 
   const isMenuOpen = !!anchorEl;
 
-  useEffect(() => (document.title = title ? `${title} | Sanremo` : "Sanremo"));
+  useEffect(() => (document.title = title ? `${title} | Sanremo` : 'Sanremo'));
 
   function handleMenuOpen(event) {
     setAnchorEl(event.currentTarget);
@@ -58,31 +58,31 @@ function Page(props) {
     <div>
       <Menu
         anchorEl={anchorEl}
-        anchorOrigin={{ vertical: "top", horizontal: "right" }}
-        transformOrigin={{ vertical: "top", horizontal: "right" }}
+        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+        transformOrigin={{ vertical: 'top', horizontal: 'right' }}
         open={isMenuOpen}
         onClose={handleMenuClose}
       >
-        <MenuItem onClick={() => alert("todo!")}>
+        <MenuItem onClick={() => alert('todo!')}>
           <ListItemIcon>
             <AccountCircle />
           </ListItemIcon>
           <Typography>SCdF</Typography>
         </MenuItem>
         <Divider />
-        <MenuItem button key="home" selected={under === "home"} onClick={() => navigate("/")}>
+        <MenuItem button key="home" selected={under === 'home'} onClick={() => navigate('/')}>
           <ListItemIcon>
             <CheckBoxIcon />
           </ListItemIcon>
           <Typography>Active</Typography>
         </MenuItem>
-        <MenuItem button key="history" selected={under === "history"} onClick={() => navigate("/history")}>
+        <MenuItem button key="history" selected={under === 'history'} onClick={() => navigate('/history')}>
           <ListItemIcon>
             <HistoryIcon />
           </ListItemIcon>
           <Typography>History</Typography>
         </MenuItem>
-        <MenuItem button key="about" selected={under === "about"} onClick={() => navigate("/about")}>
+        <MenuItem button key="about" selected={under === 'about'} onClick={() => navigate('/about')}>
           <ListItemIcon>
             <InfoIcon />
           </ListItemIcon>

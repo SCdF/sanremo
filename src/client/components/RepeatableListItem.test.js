@@ -15,9 +15,9 @@ test('renders without crashing', async () => {
       title: 'Checklist ListItem',
       slug: {
         type: 'url',
-        label: 'For'
-      }
-    }
+        label: 'For',
+      },
+    },
   };
 
   render(<RepeatableListItem {...params} />);
@@ -35,8 +35,8 @@ test('url slug renders (and does not effect slug click)', async () => {
       title: 'URL Test',
       slug: {
         type: 'url',
-      }
-    }
+      },
+    },
   };
 
   render(<RepeatableListItem {...params} />);
@@ -54,9 +54,9 @@ test('date slug', async () => {
     template: {
       title: 'Date test',
       slug: {
-        type: 'date'
-      }
-    }
+        type: 'date',
+      },
+    },
   };
 
   render(<RepeatableListItem {...params} />);
@@ -71,9 +71,9 @@ test('timestamp slug', async () => {
     template: {
       title: 'Timestamp test',
       slug: {
-        type: 'timestamp'
-      }
-    }
+        type: 'timestamp',
+      },
+    },
   };
 
   render(<RepeatableListItem {...params} />);
@@ -87,9 +87,9 @@ test('plain text slug', async () => {
     template: {
       title: 'Plain Text test',
       slug: {
-        type: 'string'
-      }
-    }
+        type: 'string',
+      },
+    },
   };
 
   render(<RepeatableListItem {...params} />);

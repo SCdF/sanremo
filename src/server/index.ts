@@ -19,9 +19,7 @@ if (process.env.NODE_ENV === 'production' && !process.env.SECRET) {
   console.error('Production deployment but no SECRET defined!');
   process.exit(-1);
 }
-const secret = (
-  process.env.NODE_ENV === 'production' ? process.env.SECRET : 'devsecret'
-) as string;
+const secret = (process.env.NODE_ENV === 'production' ? process.env.SECRET : 'devsecret') as string;
 
 const pgSession = pgConnect(session);
 const sess: SessionOptions = {
@@ -48,10 +46,7 @@ app.use(session(sess));
 
 app.post('/api/auth', async function (req, res) {
   const { username, password } = req.body;
-  const result = await db.query(
-    'select id, password from users where username = $1::text',
-    [username]
-  );
+  const result = await db.query('select id, password from users where username = $1::text', [username]);
 
   if (result?.rows.length === 1) {
     const id = result.rows[0].id;
@@ -82,10 +77,7 @@ app.get('/api/auth', function (req, res) {
 
 app.get('/api/deployment', function (req, res) {
   const releaseVersion = JSON.parse(
-    readFileSync(
-      new URL('../../package.json', import.meta.url).pathname,
-      'utf-8'
-    )
+    readFileSync(new URL('../../package.json', import.meta.url).pathname, 'utf-8')
   ).version;
 
   if (process.env.NODE_ENV === 'production') {

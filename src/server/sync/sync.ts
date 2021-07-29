@@ -1,6 +1,6 @@
-import { getDocs, getStubsForUser, putDocs } from "./db";
-import { Requests } from "./types";
-import { DocStub, Doc, User } from "../types";
+import { getDocs, getStubsForUser, putDocs } from './db';
+import { Requests } from './types';
+import { DocStub, Doc, User } from '../types';
 
 // import * as debugLib from "debug";
 
@@ -25,8 +25,8 @@ async function declare(user: User, stubs: DocStub[]): Promise<Requests> {
     const userDoc: Doc = userDocsById.get(doc._id)!;
 
     // TODO: move this number extraction into an abstraction
-    const serverDocRev = Number(doc._rev.split("-")[0]);
-    const userDocRev = Number(userDoc._rev.split("-")[0]);
+    const serverDocRev = Number(doc._rev.split('-')[0]);
+    const userDocRev = Number(userDoc._rev.split('-')[0]);
 
     if (serverDocRev > userDocRev) {
       toReturn.client.push(doc);

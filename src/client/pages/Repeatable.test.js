@@ -1,5 +1,5 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
-import Checklist from './Checklist';
+import Repeatable from './Repeatable';
 
 import { navigate, useLocation } from '@reach/router';
 import db from '../db';
@@ -9,69 +9,75 @@ jest.mock('../db');
 
 test('renders without crashing', async () => {
   db.get.mockResolvedValue({
-    title: 'A Checklist',
-    items: []
+    title: 'A Repeatable',
+    values: [],
   });
-  useLocation.mockReturnValue('http://test/checklist');
+  useLocation.mockReturnValue();
 
-  render(<Checklist db={db} checklistId='1234'/>);
+  render(<Repeatable db={db} repeatableId="1234" />);
 
-  await waitFor(() => screen.getByText(/A Checklist/));
+  await waitFor(() => screen.getByText(/A Repeatable/));
 });
 
 test('creates new instance and redirects if "new"', async () => {
   db.get.mockResolvedValue({
-    _id: 'checklist:template:1234',
+    _id: 'repeatable:template:1234',
     _rev: '42-abc',
-    items: ['an item']
+    slug: {
+      type: 'string',
+    },
   });
-  db.put.mockResolvedValue({id: '4321'});
-  useLocation.mockReturnValue('http://test/checklist/new?templateId=1234');
+  db.put.mockResolvedValue({ id: '4321' });
+  useLocation.mockReturnValue({
+    search: '?template=repeatable:template:1234',
+  });
 
-  render(<Checklist db={db} checklistId='new' />);
+  render(<Repeatable db={db} repeatableId="new" />);
+
+  expect(db.get).toBeCalled();
+  expect(db.get.mock.calls[0][0]).toBe('repeatable:template:1234');
+  // expect(db.put).toBeCalled();
 
   await waitFor(() => expect(navigate.mock.calls.length).toBe(1));
-  expect(navigate.mock.calls[0][0]).toBe('/checklist/4321')
+  expect(navigate.mock.calls[0][0]).toMatch(/\/repeatable\/repeatable:instance:/);
 
-  const storedChecklist = db.put.mock.calls[0][0];
-  expect(storedChecklist).toBeTruthy();
-  expect(storedChecklist._id).toMatch(/^checklist:instance:/);
-  expect(storedChecklist._rev).not.toBeTruthy();
-  expect(storedChecklist.created).toBeLessThan(Date.now());
-  expect(storedChecklist.updated).toBe(storedChecklist.created);
-  expect(storedChecklist).toMatchObject({
-    template: 'checklist:template:1234',
-    items: ['an item'],
+  const storedRepeatable = db.put.mock.calls[0][0];
+  expect(storedRepeatable).toBeTruthy();
+  expect(storedRepeatable._id).toMatch(/^repeatable:instance:/);
+  expect(storedRepeatable._rev).not.toBeTruthy();
+  expect(storedRepeatable.created).toBeLessThan(Date.now());
+  expect(storedRepeatable.updated).toBe(storedRepeatable.created);
+  expect(storedRepeatable).toMatchObject({
+    template: 'repeatable:template:1234',
   });
-})
+});
 
 describe('completion redirection semantics', () => {
-  it('redirects when completing a fresh checklist', async () => {
+  it('redirects when completing a fresh repeatable', async () => {
     db.get.mockResolvedValue({
-      title: 'A Checklist',
-      items: []
+      title: 'A Repeatable',
+      values: [],
     });
-    useLocation.mockReturnValue('http://test/checklist');
-    db.put.mockResolvedValue({rev: '2-abc'});
+    useLocation.mockReturnValue();
+    db.put.mockResolvedValue({ rev: '2-abc' });
 
-    render(<Checklist db={db} checklistId='1234'/>);
-    await waitFor(() => screen.getByText(/A Checklist/));
+    render(<Repeatable db={db} repeatableId="1234" />);
+    await waitFor(() => screen.getByText(/A Repeatable/));
 
     fireEvent.click(screen.getByText(/Complete/));
-    await waitFor(() =>
-      expect(navigate.mock.calls[0][0]).toBe('/'));
+    await waitFor(() => expect(navigate.mock.calls[0][0]).toBe('/'));
   });
-  it('doesnt redirect when uncompleting a checklist', async () => {
+  it('doesnt redirect when uncompleting a repeatable', async () => {
     db.get.mockResolvedValue({
-      title: 'A Checklist',
+      title: 'A Repeatable',
       completed: 123456789,
-      items: []
+      values: [],
     });
-    useLocation.mockReturnValue('http://test/checklist');
-    db.put.mockResolvedValue({rev: '2-abc'});
+    useLocation.mockReturnValue();
+    db.put.mockResolvedValue({ rev: '2-abc' });
 
-    render(<Checklist db={db} checklistId='1234'/>);
-    await waitFor(() => screen.getByText(/A Checklist/));
+    render(<Repeatable db={db} repeatableId="1234" />);
+    await waitFor(() => screen.getByText(/A Repeatable/));
 
     fireEvent.click(screen.getByText(/Un-complete/));
     await waitFor(() => expect(db.put.mock.calls.length).toBe(1));
@@ -79,17 +85,17 @@ describe('completion redirection semantics', () => {
     expect(navigate.mock.calls.length).toBe(0);
     expect(db.put.mock.calls[0][0].completed).not.toBeTruthy();
   });
-  it('doesnt redirect when completing a just uncompleted checklist', async () => {
+  it('doesnt redirect when completing a just uncompleted repeatable', async () => {
     db.get.mockResolvedValue({
-      title: 'A Checklist',
+      title: 'A Repeatable',
       completed: 123456789,
-      items: []
+      values: [],
     });
-    useLocation.mockReturnValue('http://test/checklist');
-    db.put.mockResolvedValue({rev: '2-abc'});
+    useLocation.mockReturnValue();
+    db.put.mockResolvedValue({ rev: '2-abc' });
 
-    render(<Checklist db={db} checklistId='1234'/>);
-    await waitFor(() => screen.getByText(/A Checklist/));
+    render(<Repeatable db={db} repeatableId="1234" />);
+    await waitFor(() => screen.getByText(/A Repeatable/));
 
     fireEvent.click(screen.getByText(/Un-complete/));
     await waitFor(() => expect(db.put.mock.calls.length).toBe(1));
@@ -101,17 +107,28 @@ describe('completion redirection semantics', () => {
     expect(navigate.mock.calls.length).toBe(0);
     expect(db.put.mock.calls[1][0].completed).toBeTruthy();
   });
-  it('does redirect when completing a just uncompleted checklist if you change something', async () => {
-    db.get.mockResolvedValue({
-      title: 'A Checklist',
-      completed: 123456789,
-      items: [{_id: '1234', text: 'Something to change'}]
+  it('does redirect when completing a just uncompleted repeatable if you change something', async () => {
+    db.get.mockImplementation((docId) => {
+      if (docId === '1234') {
+        return Promise.resolve({
+          template: '5678',
+          completed: 123456789,
+          values: [false],
+        });
+      }
+      if (docId === '5678') {
+        return Promise.resolve({
+          title: 'A Repeatable',
+          markdown: '- [ ] Something to change',
+          values: [false],
+        });
+      }
     });
-    useLocation.mockReturnValue('http://test/checklist');
-    db.put.mockResolvedValue({rev: '2-abc'});
+    useLocation.mockReturnValue();
+    db.put.mockResolvedValue({ rev: '2-abc' });
 
-    render(<Checklist db={db} checklistId='1234'/>);
-    await waitFor(() => screen.getByText(/A Checklist/));
+    render(<Repeatable db={db} repeatableId="1234" />);
+    await waitFor(() => screen.getByText(/A Repeatable/));
 
     fireEvent.click(screen.getByText(/Un-complete/));
     await waitFor(() => expect(db.put.mock.calls.length).toBe(1));
@@ -127,9 +144,7 @@ describe('completion redirection semantics', () => {
     expect(db.put.mock.calls[2][0].completed).toBeTruthy();
     expect(navigate.mock.calls[0][0]).toBe('/');
   });
-})
+});
 
 // TODO: parsing tests
-describe('parsing', () => {
-
-});
+describe('parsing', () => {});
