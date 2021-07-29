@@ -2,8 +2,9 @@ import PouchDB from 'pouchdb-browser';
 import pdbFind from 'pouchdb-find';
 PouchDB.plugin(pdbFind);
 
+// TODO: typescript so we can type loggedInUser as User
 export default function db(loggedInUser) {
-  const db = new PouchDB(`sanremo-${loggedInUser.id}-${loggedInUser.name}`, {
+  const db = new PouchDB(`sanremo-${loggedInUser.name}`, {
     auto_compaction: true,
   });
 
