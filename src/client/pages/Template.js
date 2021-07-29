@@ -107,7 +107,7 @@ function Template(props) {
   }
 
   return (
-    <Page title={`${template.title || 'New Template'} | edit`} back under='home'>
+    <Page title={`${template.title || 'New Template'} | edit`} back under='home' db={db}>
       <form onSubmit={handleSubmit} noValidate autoComplete="off">
         <Grid container spacing={2}>
           <Grid item xs={12}>

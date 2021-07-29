@@ -118,7 +118,7 @@ function Home(props) {
   );
 
   return (
-    <Page title='Project Sanremo' under='home'>
+    <Page title='Project Sanremo' under='home' db={db}>
       { !!repeatableList.length && <List className="repeatables">{repeatableList}</List> }
       { !!!repeatableList.length &&
           <Typography align='center' variant='body2' className={classes.root}>

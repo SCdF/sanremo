@@ -1,6 +1,10 @@
-import { getDocs, matchStubsToUser, putDocs } from './db';
-import { Requests } from './types';
-import { DocStub, Doc, User } from '../types';
+import { getDocs, getStubsForUser, putDocs } from "./db";
+import { Requests } from "./types";
+import { DocStub, Doc, User } from "../types";
+
+// import * as debugLib from "debug";
+
+// const debug = debugLib.debug("sanremo:server:sync");
 
 async function declare(user: User, stubs: DocStub[]): Promise<Requests> {
   const toReturn: Requests = {
@@ -8,10 +12,7 @@ async function declare(user: User, stubs: DocStub[]): Promise<Requests> {
     client: [],
   };
 
-  const serverDocs: DocStub[] = await matchStubsToUser(
-    user,
-    stubs.map((s) => s._id)
-  );
+  const serverDocs: DocStub[] = await getStubsForUser(user);
 
   const serverDocsById = new Map(serverDocs.map((d) => [d._id, d]));
   const userDocsById = new Map(stubs.map((d) => [d._id, d]));
@@ -24,12 +25,13 @@ async function declare(user: User, stubs: DocStub[]): Promise<Requests> {
     const userDoc: Doc = userDocsById.get(doc._id)!;
 
     // TODO: move this number extraction into an abstraction
-    const serverDocRev = Number(doc._rev.split('-')[0]);
-    const userDocRev = Number(userDoc._rev.split('-')[0]);
+    const serverDocRev = Number(doc._rev.split("-")[0]);
+    const userDocRev = Number(userDoc._rev.split("-")[0]);
 
     if (serverDocRev > userDocRev) {
       toReturn.client.push(doc);
     } else if (userDocRev > serverDocRev) {
+      // TODO: if the server needs to get a doc that is deleted, just delete it
       toReturn.server.push(userDoc);
     } // TODO: deal with rev numbers being the same but hash being different (ie, conflict)
   }

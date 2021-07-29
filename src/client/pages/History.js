@@ -56,7 +56,7 @@ function History(props) {
   );
 
   return (
-    <Page title='History' under='history'>
+    <Page title='History' under='history' db={db}>
       <List>
         {repeatableList}
       </List>
