@@ -1,9 +1,9 @@
-import { Button, Container, FormHelperText, TextField } from "@material-ui/core";
+import { Button, Container, FormHelperText, TextField } from '@material-ui/core';
 // import { navigate } from "@reach/router";
-import { useState } from "react";
+import { useState } from 'react';
 
 function Login(props) {
-  const {setLoggedInUser} = props;
+  const { setLoggedInUser } = props;
 
   const [username, setUsername] = useState();
   const [password, setPassword] = useState();
@@ -22,10 +22,10 @@ function Login(props) {
     const response = await fetch('/api/auth', {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
       },
-      body: JSON.stringify({username, password})
-    }).catch(err => ({status: 404}));
+      body: JSON.stringify({ username, password }),
+    }).catch((err) => ({ status: 404 }));
 
     console.log(JSON.stringify(response));
 
@@ -51,20 +51,30 @@ function Login(props) {
       <h1>Project Sanremo</h1>
       <p>Create a new account or log in with an existing one.</p>
       <TextField
-        variant="filled" fullWidth
-        onChange={e => setUsername(e.target.value)}
-        label="Username" name="username" />
+        variant="filled"
+        fullWidth
+        onChange={(e) => setUsername(e.target.value)}
+        label="Username"
+        name="username"
+      />
       <TextField
-        variant="filled" fullWidth
+        variant="filled"
+        fullWidth
         type="password"
-        onChange={e => setPassword(e.target.value)}
-        label="Password" name="password" />
-      {error &&
-        <FormHelperText error fullWidth>{error}</FormHelperText>
-      }
-      <Button variant="contained" color="primary" onClick={submit}>Submit</Button>
+        onChange={(e) => setPassword(e.target.value)}
+        label="Password"
+        name="password"
+      />
+      {error && (
+        <FormHelperText error fullWidth>
+          {error}
+        </FormHelperText>
+      )}
+      <Button variant="contained" color="primary" onClick={submit}>
+        Submit
+      </Button>
     </Container>
-  )
+  );
 }
 
 export default Login;

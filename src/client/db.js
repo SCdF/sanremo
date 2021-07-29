@@ -1,10 +1,10 @@
-import PouchDB from "pouchdb-browser";
-import pdbFind from "pouchdb-find";
+import PouchDB from 'pouchdb-browser';
+import pdbFind from 'pouchdb-find';
 PouchDB.plugin(pdbFind);
 
 export default function db(loggedInUser) {
   const db = new PouchDB(`sanremo-${loggedInUser}`, {
-    auto_compaction: true
+    auto_compaction: true,
   });
 
   // TODO: probably drop this, or work out a more react way of accessing it from the console
@@ -14,18 +14,18 @@ export default function db(loggedInUser) {
   // FIXME: move this somewhere less stupid (this will be stupid once we're syncing with a remote server probably)
   db.createIndex({
     index: {
-      fields: ['updated']
-    }
+      fields: ['updated'],
+    },
   });
   db.createIndex({
     index: {
-      fields: ['completed']
-    }
+      fields: ['completed'],
+    },
   });
   db.createIndex({
     index: {
-      fields: ['template']
-    }
+      fields: ['template'],
+    },
   });
   // TODO: add index for finding via slug
   return db;

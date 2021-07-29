@@ -1,6 +1,6 @@
 import './App.scss';
 import React, { useEffect, useState } from 'react';
-import { Router } from "@reach/router"
+import { Router } from '@reach/router';
 
 import CssBaseline from '@material-ui/core/CssBaseline';
 
@@ -39,7 +39,7 @@ function App() {
     const response = await fetch('/api/auth');
     if (response.ok) {
       const data = await response.json();
-      setLoggedInUser(data.user)
+      setLoggedInUser(data.user);
     } else {
       setLoggedInUser(false);
     }
@@ -66,7 +66,7 @@ function App() {
     return (
       <ThemeProvider theme={theme}>
         <CssBaseline />
-        <Login setLoggedInUser={setLoggedInUser}/>
+        <Login setLoggedInUser={setLoggedInUser} />
       </ThemeProvider>
     );
   }
@@ -77,11 +77,11 @@ function App() {
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <Router>
-        <Home db={handle} path='/' />
-        <About db={handle} path='/about' />
-        <Repeatable db={handle} path='repeatable/:repeatableId' />
-        <Template db={handle} path='template/:templateId' />
-        <History db={handle} path='history' />
+        <Home db={handle} path="/" />
+        <About db={handle} path="/about" />
+        <Repeatable db={handle} path="repeatable/:repeatableId" />
+        <Template db={handle} path="template/:templateId" />
+        <History db={handle} path="history" />
       </Router>
     </ThemeProvider>
   );

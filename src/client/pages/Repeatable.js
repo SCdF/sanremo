@@ -2,9 +2,19 @@ import { useEffect, useState } from 'react';
 import React from 'react';
 import ReactDOM from 'react-dom';
 import ReactMarkdown from 'react-markdown';
-import { navigate, useLocation } from "@reach/router";
+import { navigate, useLocation } from '@reach/router';
 
-import { Button, ButtonGroup, Checkbox, Input, List, ListItem, ListItemIcon, ListItemText, makeStyles } from '@material-ui/core';
+import {
+  Button,
+  ButtonGroup,
+  Checkbox,
+  Input,
+  List,
+  ListItem,
+  ListItemIcon,
+  ListItemText,
+  makeStyles,
+} from '@material-ui/core';
 import DeleteIcon from '@material-ui/icons/Delete';
 
 import { v4 as uuid } from 'uuid';
@@ -12,13 +22,13 @@ import qs from 'qs';
 
 import Page from '../components/Page';
 
-const debug = require('debug')('sanremo:repeatable');
+const debug = require('debug')('sanremo:client:repeatable');
 
 const useStyles = makeStyles((theme) => ({
   inputRoot: {
     paddingLeft: '0.5em',
-    color: 'inherit'
-  }
+    color: 'inherit',
+  },
 }));
 
 function Repeatable(props) {
@@ -58,12 +68,12 @@ function Repeatable(props) {
         }
 
         await db.put(repeatable);
-        navigate(`/repeatable/${repeatable._id}`, {replace: true});
+        navigate(`/repeatable/${repeatable._id}`, { replace: true });
       } else {
         debug('pre repeatable load');
         const repeatable = await db.get(repeatableId);
 
-        let nextIdx = repeatable.values.findIndex(v => !v);
+        let nextIdx = repeatable.values.findIndex((v) => !v);
         if (nextIdx === -1) nextIdx = repeatable.values.length;
 
         debug('post repeatable load, pre template load');
@@ -77,7 +87,7 @@ function Repeatable(props) {
           setNextIdx(nextIdx);
         });
       }
-    };
+    }
 
     loadRepeatable();
   }, [db, repeatableId, location]);
@@ -130,7 +140,7 @@ function Repeatable(props) {
       ReactDOM.unstable_batchedUpdates(() => {
         setEdited(true);
         setRepeatable(copy);
-        setNextIdx(copy.values[idx] ? idx + 1: idx);
+        setNextIdx(copy.values[idx] ? idx + 1 : idx);
       });
     };
   }
@@ -164,16 +174,18 @@ function Repeatable(props) {
 
       items.push(
         <ListItem
-          key={`value-${valueIdx}`} button disableRipple
+          key={`value-${valueIdx}`}
+          button
+          disableRipple
           onClick={handleToggle(valueIdx)}
           disabled={!!repeatable.completed}
-          autoFocus={valueIdx === nextIdx}>
-
+          autoFocus={valueIdx === nextIdx}
+        >
           <ListItemIcon>
-            <Checkbox checked={!!checked} edge='start' tabIndex='-1'/>
+            <Checkbox checked={!!checked} edge="start" tabIndex="-1" />
           </ListItemIcon>
           <ListItemText>
-            <ReactMarkdown renderers={{paragraph: 'span'}}>{text}</ReactMarkdown>
+            <ReactMarkdown renderers={{ paragraph: 'span' }}>{text}</ReactMarkdown>
           </ListItemText>
         </ListItem>
       );
@@ -198,12 +210,9 @@ function Repeatable(props) {
 
   debug('chunks computed, ready to render');
 
-  function changeSlug({target}) {
+  function changeSlug({ target }) {
     const copy = Object.assign({}, repeatable);
-    const value =
-      ['date', 'timestamp'].includes(template.slug.type) ?
-        new Date(target.value).getTime() :
-        target.value;
+    const value = ['date', 'timestamp'].includes(template.slug.type) ? new Date(target.value).getTime() : target.value;
 
     copy.slug = value;
 
@@ -213,20 +222,23 @@ function Repeatable(props) {
   async function storeSlugChange() {
     const copy = Object.assign({}, repeatable);
 
-    const {rev} = await db.put(copy);
+    const { rev } = await db.put(copy);
     copy._rev = rev;
     setRepeatable(copy);
   }
 
   let slug;
   if (['url', 'string'].includes(template?.slug?.type)) {
-    slug = <Input
-      type="text"
-      classes={{ root: classes.inputRoot }}
-      placeholder={template.slug.placeholder}
-      value={repeatable.slug}
-      onChange={changeSlug}
-      onBlur={storeSlugChange}/>
+    slug = (
+      <Input
+        type="text"
+        classes={{ root: classes.inputRoot }}
+        placeholder={template.slug.placeholder}
+        value={repeatable.slug}
+        onChange={changeSlug}
+        onBlur={storeSlugChange}
+      />
+    );
   } else if ('date' === template?.slug?.type) {
     // FIXME: Clean This Up! The format required for the native date input type cannot
     // be manufactured from the native JavaScript date type. If we were in raw HTML
@@ -234,44 +246,50 @@ function Repeatable(props) {
     const slugDate = new Date(repeatable.slug);
     const awkwardlyFormattedSlug = [
       slugDate.getFullYear(),
-      ((slugDate.getMonth() + 1) + '').padStart(2, '0'),
-      ((slugDate.getDate()) + '').padStart(2, '0'),
+      (slugDate.getMonth() + 1 + '').padStart(2, '0'),
+      (slugDate.getDate() + '').padStart(2, '0'),
     ].join('-');
 
-    slug = <Input
-      type="date"
-      classes={{ root: classes.inputRoot }}
-      value={awkwardlyFormattedSlug}
-      onChange={changeSlug}
-      onBlur={storeSlugChange}/>
+    slug = (
+      <Input
+        type="date"
+        classes={{ root: classes.inputRoot }}
+        value={awkwardlyFormattedSlug}
+        onChange={changeSlug}
+        onBlur={storeSlugChange}
+      />
+    );
   } else if ('timestamp' === template?.slug?.type) {
     // FIXME: Clean This Up! The format required for the native date input type cannot
     // be manufactured from the native JavaScript date type. If we were in raw HTML
     // we could post-set it with Javascript by using valueAsNumber, but not in situ
     const slugDate = new Date(repeatable.slug);
-    const awkwardlyFormattedSlug = [
-      slugDate.getFullYear(),
-      ((slugDate.getMonth() + 1) + '').padStart(2, '0'),
-      ((slugDate.getDate()) + '').padStart(2, '0'),
-    ].join('-') + 'T' + [
-      (slugDate.getHours()+'').padStart(2, '0'),
-      (slugDate.getMinutes()+'').padStart(2, '0'),
-    ].join(':');
+    const awkwardlyFormattedSlug =
+      [
+        slugDate.getFullYear(),
+        (slugDate.getMonth() + 1 + '').padStart(2, '0'),
+        (slugDate.getDate() + '').padStart(2, '0'),
+      ].join('-') +
+      'T' +
+      [(slugDate.getHours() + '').padStart(2, '0'), (slugDate.getMinutes() + '').padStart(2, '0')].join(':');
 
-    slug = <Input
-      type="datetime-local"
-      classes={{ root: classes.inputRoot }}
-      value={awkwardlyFormattedSlug}
-      onChange={changeSlug}
-      onBlur={storeSlugChange}/>
+    slug = (
+      <Input
+        type="datetime-local"
+        classes={{ root: classes.inputRoot }}
+        value={awkwardlyFormattedSlug}
+        onChange={changeSlug}
+        onBlur={storeSlugChange}
+      />
+    );
   }
 
   const header = (
-     <div>
-        {template?.title}
-        <i> for </i>
-        {slug}
-     </div>
+    <div>
+      {template?.title}
+      <i> for </i>
+      {slug}
+    </div>
   );
 
   // There is actually an autoFocus property on button, but it doesn't work.
@@ -285,17 +303,27 @@ function Repeatable(props) {
     }
 
     render() {
-      return <Button onClick={complete} color='primary' variant='contained' ref={node => this.button = node}>Complete</Button>;
+      return (
+        <Button onClick={complete} color="primary" variant="contained" ref={(node) => (this.button = node)}>
+          Complete
+        </Button>
+      );
     }
   }
 
   return (
-    <Page title={template?.title} header={header} back under='home'>
+    <Page title={template?.title} header={header} back under="home" db={db}>
       <List>{items}</List>
       <ButtonGroup>
         {!repeatable.completed && <CompleteButton />}
-        {repeatable.completed && <Button onClick={uncomplete} color='primary' variant='contained'>Un-complete</Button>}
-        <Button onClick={deleteRepeatable}><DeleteIcon /></Button>
+        {repeatable.completed && (
+          <Button onClick={uncomplete} color="primary" variant="contained">
+            Un-complete
+          </Button>
+        )}
+        <Button onClick={deleteRepeatable}>
+          <DeleteIcon />
+        </Button>
       </ButtonGroup>
     </Page>
   );

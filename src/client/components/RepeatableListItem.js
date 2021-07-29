@@ -1,6 +1,6 @@
-import { Link, ListItem, ListItemText } from "@material-ui/core";
-import { navigate } from "@reach/router";
-import RelativeTime from "./RelativeTime";
+import { Link, ListItem, ListItemText } from '@material-ui/core';
+import { navigate } from '@reach/router';
+import RelativeTime from './RelativeTime';
 
 /**
  * Display an instance of a repeatable in a list
@@ -13,22 +13,21 @@ import RelativeTime from "./RelativeTime";
  * @param {string} template.slug.type datatype of the slug
  */
 function RepeatableListItem(props) {
-  const {
-    _id,
-    slug,
-    timestamp,
-    template
-  } = props;
+  const { _id, slug, timestamp, template } = props;
   const {
     title,
-    slug: {type}
+    slug: { type },
   } = template;
 
   let displaySlug;
   if (type === 'string') {
     displaySlug = slug;
   } else if (type === 'url') {
-    displaySlug = <Link href={slug} target='_blank'>{slug}</Link>;
+    displaySlug = (
+      <Link href={slug} target="_blank">
+        {slug}
+      </Link>
+    );
   } else if (type === 'date') {
     displaySlug = new Date(slug).toLocaleDateString();
   } else if (type === 'timestamp') {
@@ -36,18 +35,19 @@ function RepeatableListItem(props) {
   }
 
   return (
-    <ListItem button disableRipple
-      onClick={e => {
+    <ListItem
+      button
+      disableRipple
+      onClick={(e) => {
         // To let URL slugs (displayed inside this "button") have links that don't also trigger
         // this navigation
         if (e.target.nodeName !== 'A') {
           navigate(`/repeatable/${_id}`);
         }
-      }}>
-      <ListItemText
-        primary={title}
-        secondary={<RelativeTime date={timestamp} />} />
-        {displaySlug}
+      }}
+    >
+      <ListItemText primary={title} secondary={<RelativeTime date={timestamp} />} />
+      {displaySlug}
     </ListItem>
   );
 }
