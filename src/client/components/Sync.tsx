@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-import { CircularProgress, IconButton } from '@material-ui/core';
+import { CircularProgress, IconButton, makeStyles } from '@material-ui/core';
 import SyncIcon from '@material-ui/icons/Sync';
 import { useState } from 'react';
 
@@ -17,9 +17,16 @@ enum State {
   syncing,
 }
 
+const useStyles = makeStyles((theme) => ({
+  progress: {
+    position: 'absolute',
+  },
+}));
+
 function Sync(props: { db: PouchDB.Database }) {
+  const classes = useStyles();
   const [state, setState] = useState(State.idle);
-  const [progress, setProgress] = useState(null as unknown as number);
+  const [progress, setProgress] = useState(0);
 
   const { db } = props;
 
@@ -28,6 +35,7 @@ function Sync(props: { db: PouchDB.Database }) {
       try {
         debug('starting sync');
         setState(State.syncing);
+        setProgress(0);
 
         // Get the docs we have locally
         const docs = await db.allDocs();
@@ -52,52 +60,60 @@ function Sync(props: { db: PouchDB.Database }) {
         debug(`the server needs ${serverState.server.length}, we need ${serverState.client.length}`);
 
         const docTotal = serverState.client.length + serverState.server.length;
-        let docCount = 0;
+        if (docTotal > 0) {
+          let docCount = 0;
 
-        debug('starting transfers');
-        setProgress(0);
+          const updateProgress = () => {
+            const percent = (docCount / docTotal) * 100;
+            debug(`> ${percent} <`);
+            setProgress(percent);
+          };
 
-        // Give the server what they need
-        while (serverState.server.length > 0) {
-          const batch = serverState.server.splice(0, BATCH_SIZE);
-          debug(`-> preparing ${batch.length}`);
+          debug('starting transfers');
+          updateProgress();
 
-          const result = await db.allDocs({
-            include_docs: true,
-            keys: batch.map((d) => d._id),
-          });
-          debug('-> got local');
+          // Give the server what they need
+          while (serverState.server.length > 0) {
+            const batch = serverState.server.splice(0, BATCH_SIZE);
+            debug(`-> preparing ${batch.length}`);
 
-          await axios
-            .post('/api/sync/update', {
-              docs: result.rows.map((r) => r.doc),
-            })
-            .then(({ data }) => data);
-          debug('-> sent');
+            const result = await db.allDocs({
+              include_docs: true,
+              keys: batch.map((d) => d._id),
+            });
+            debug('-> got local');
 
-          docCount += batch.length;
-          setProgress(docTotal / docCount);
-        }
+            await axios
+              .post('/api/sync/update', {
+                docs: result.rows.map((r) => r.doc),
+              })
+              .then(({ data }) => data);
+            debug('-> sent');
 
-        // Get what we need from the server
-        while (serverState.client.length > 0) {
-          const batch = serverState.client.splice(0, BATCH_SIZE);
-          debug(`<- preparing ${batch.length}`);
+            docCount += batch.length;
+            updateProgress();
+          }
 
-          const result: Doc[] = await axios
-            .post('/api/sync/request', {
-              docs: batch,
-            })
-            .then(({ data }) => data);
-          debug('<- got server');
+          // Get what we need from the server
+          while (serverState.client.length > 0) {
+            const batch = serverState.client.splice(0, BATCH_SIZE);
+            debug(`<- preparing ${batch.length}`);
 
-          await db.bulkDocs(result, {
-            new_edits: false,
-          });
-          debug('<- stored');
+            const result: Doc[] = await axios
+              .post('/api/sync/request', {
+                docs: batch,
+              })
+              .then(({ data }) => data);
+            debug('<- got server');
 
-          docCount += batch.length;
-          setProgress(docTotal / docCount);
+            await db.bulkDocs(result, {
+              new_edits: false,
+            });
+            debug('<- stored');
+
+            docCount += batch.length;
+            updateProgress();
+          }
         }
       } catch (e) {
         console.error('Failed to sync', e);
@@ -113,10 +129,10 @@ function Sync(props: { db: PouchDB.Database }) {
 
   return (
     <IconButton color="inherit" onClick={handleSync}>
-      {state === State.idle && <SyncIcon />}
-      {state === State.syncing && progress === null && <CircularProgress color="secondary" />}
-      {state === State.syncing && progress !== null && (
-        <CircularProgress color="secondary" variant="determinate" value={progress} />
+      <SyncIcon />
+      {state === State.syncing && <CircularProgress color="secondary" className={classes.progress} size="30px" />}
+      {state === State.syncing && (
+        <CircularProgress color="secondary" variant="determinate" value={progress} className={classes.progress} />
       )}
     </IconButton>
   );

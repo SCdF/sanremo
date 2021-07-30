@@ -25,8 +25,6 @@ import sync from './sync';
  */
 export default function routes(app: Router) {
   app.post('/api/sync/declare', async function (req, res) {
-    console.log('<>declare<>');
-
     try {
       const stubs = req.body.docs || [];
       const results = await sync.declare(req.session.user as User, stubs);
@@ -38,8 +36,6 @@ export default function routes(app: Router) {
     }
   });
   app.post('/api/sync/request', async function (req, res) {
-    console.log('<>request<>');
-
     try {
       const stubs = req.body.docs || [];
       const results = await sync.request(req.session.user as User, stubs);
@@ -51,8 +47,6 @@ export default function routes(app: Router) {
     }
   });
   app.post('/api/sync/update', async function (req, res) {
-    console.log('<>update<>');
-
     try {
       const docs = req.body.docs || [];
       await sync.update(req.session.user as User, docs);

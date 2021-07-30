@@ -64,7 +64,7 @@ app.post('/api/auth', async function (req, res) {
 // API access (bar logging in) requires a valid cookie, but accessing anything else (see /* below) does not
 app.all('/api/*', function (req, res, next) {
   // FIXME: work out production appropriate ways of logging this (debug?)
-  console.log(`${req.method}: ${req.url} with ${req.session.user}`);
+  console.log(`${req.method}: ${req.url} with ${JSON.stringify(req.session.user)}`);
   if (!req.session.user) {
     res.status(403);
     return res.json({ error: 'no authentication provided' });
