@@ -41,7 +41,7 @@ function Template(props) {
     }
 
     loadTemplate();
-  }, [db, templateId]);
+  }, [db, templateId, navigate]);
 
   async function handleDelete(event) {
     event?.preventDefault();

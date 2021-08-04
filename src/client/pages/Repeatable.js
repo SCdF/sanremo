@@ -93,7 +93,7 @@ function Repeatable(props) {
     }
 
     loadRepeatable();
-  }, [db, repeatableId, location]);
+  }, [db, repeatableId, location, navigate]);
 
   async function deleteRepeatable() {
     const copy = Object.assign({}, repeatable);
