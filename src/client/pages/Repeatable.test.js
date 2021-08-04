@@ -1,7 +1,7 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import Repeatable from './Repeatable';
 
-import { navigate, useLocation } from '@reach/router';
+import { navigate, useLocation, useParams } from '@reach/router';
 import db from '../db';
 
 jest.mock('@reach/router');
@@ -13,29 +13,42 @@ test('renders without crashing', async () => {
     values: [],
   });
   useLocation.mockReturnValue();
+  useParams.mockReturnValue({ repeatableId: '1234' });
 
-  render(<Repeatable db={db} repeatableId="1234" />);
+  render(<Repeatable db={db} />);
 
   await waitFor(() => screen.getByText(/A Repeatable/));
 });
 
 test('creates new instance and redirects if "new"', async () => {
-  db.get.mockResolvedValue({
-    _id: 'repeatable:template:1234',
-    _rev: '42-abc',
-    slug: {
-      type: 'string',
-    },
-  });
+  db.get
+    .mockResolvedValueOnce({
+      _id: 'repeatable:template:1234',
+      _rev: '42-abc',
+      slug: {
+        type: 'string',
+      },
+    })
+    .mockResolvedValueOnce({
+      _id: 'repeatable:instance:1234',
+      _rev: '42-abc',
+      slug: 'test',
+      values: [],
+    });
   db.put.mockResolvedValue({ id: '4321' });
   useLocation.mockReturnValue({
     search: '?template=repeatable:template:1234',
   });
-
-  render(<Repeatable db={db} repeatableId="new" />);
+  useParams
+    // FIXME: I have no idea why I need to do this twice
+    .mockReturnValueOnce({ repeatableId: 'new' })
+    .mockReturnValueOnce({ repeatableId: 'new' })
+    .mockReturnValue({ repeatableId: '5678' });
+  render(<Repeatable db={db} />);
 
   expect(db.get).toBeCalled();
   expect(db.get.mock.calls[0][0]).toBe('repeatable:template:1234');
+  // FIXME: I have no idea why this doesn't work, it is obviously called, see below
   // expect(db.put).toBeCalled();
 
   await waitFor(() => expect(navigate.mock.calls.length).toBe(1));
@@ -60,8 +73,9 @@ describe('completion redirection semantics', () => {
     });
     useLocation.mockReturnValue();
     db.put.mockResolvedValue({ rev: '2-abc' });
+    useParams.mockReturnValue({ repeatableId: '1234' });
 
-    render(<Repeatable db={db} repeatableId="1234" />);
+    render(<Repeatable db={db} />);
     await waitFor(() => screen.getByText(/A Repeatable/));
 
     fireEvent.click(screen.getByText(/Complete/));
@@ -75,8 +89,9 @@ describe('completion redirection semantics', () => {
     });
     useLocation.mockReturnValue();
     db.put.mockResolvedValue({ rev: '2-abc' });
+    useParams.mockReturnValue({ repeatableId: '1234' });
 
-    render(<Repeatable db={db} repeatableId="1234" />);
+    render(<Repeatable db={db} />);
     await waitFor(() => screen.getByText(/A Repeatable/));
 
     fireEvent.click(screen.getByText(/Un-complete/));
@@ -93,8 +108,9 @@ describe('completion redirection semantics', () => {
     });
     useLocation.mockReturnValue();
     db.put.mockResolvedValue({ rev: '2-abc' });
+    useParams.mockReturnValue({ repeatableId: '1234' });
 
-    render(<Repeatable db={db} repeatableId="1234" />);
+    render(<Repeatable db={db} />);
     await waitFor(() => screen.getByText(/A Repeatable/));
 
     fireEvent.click(screen.getByText(/Un-complete/));
@@ -126,8 +142,9 @@ describe('completion redirection semantics', () => {
     });
     useLocation.mockReturnValue();
     db.put.mockResolvedValue({ rev: '2-abc' });
+    useParams.mockReturnValue({ repeatableId: '1234' });
 
-    render(<Repeatable db={db} repeatableId="1234" />);
+    render(<Repeatable db={db} />);
     await waitFor(() => screen.getByText(/A Repeatable/));
 
     fireEvent.click(screen.getByText(/Un-complete/));

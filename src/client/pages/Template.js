@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { navigate } from '@reach/router';
+import { useParams, navigate } from '@reach/router';
 import { Button, ButtonGroup, Grid, MenuItem, TextField } from '@material-ui/core';
 import DeleteIcon from '@material-ui/icons/Delete';
 
@@ -11,7 +11,8 @@ import ReactMarkdown from 'react-markdown';
 function Template(props) {
   const [template, setTemplate] = useState();
 
-  const { db, templateId } = props;
+  const { db } = props;
+  const { templateId } = useParams();
 
   useEffect(() => {
     async function loadTemplate() {

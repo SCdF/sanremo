@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import React from 'react';
 import ReactDOM from 'react-dom';
 import ReactMarkdown from 'react-markdown';
-import { navigate, useLocation } from '@reach/router';
+import { useParams, navigate, useLocation } from '@reach/router';
 
 import {
   Button,
@@ -47,7 +47,8 @@ function Repeatable(props) {
 
   const location = useLocation();
 
-  const { repeatableId, db } = props;
+  const { repeatableId } = useParams();
+  const { db } = props;
 
   useEffect(() => {
     async function loadRepeatable() {
@@ -72,6 +73,7 @@ function Repeatable(props) {
       } else {
         debug('pre repeatable load');
         const repeatable = await db.get(repeatableId);
+        repeatable.values ??= [];
 
         let nextIdx = repeatable.values.findIndex((v) => !v);
         if (nextIdx === -1) nextIdx = repeatable.values.length;
