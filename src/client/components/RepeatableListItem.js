@@ -1,5 +1,5 @@
 import { Link, ListItem, ListItemText } from '@material-ui/core';
-import { navigate } from '@reach/router';
+import { useNavigate } from 'react-router-dom';
 import RelativeTime from './RelativeTime';
 
 /**
@@ -13,6 +13,7 @@ import RelativeTime from './RelativeTime';
  * @param {string} template.slug.type datatype of the slug
  */
 function RepeatableListItem(props) {
+  const navigate = useNavigate();
   const { _id, slug, timestamp, template } = props;
   const {
     title,

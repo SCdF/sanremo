@@ -17,7 +17,7 @@ import ArrowBack from '@material-ui/icons/ArrowBack';
 import CheckBoxIcon from '@material-ui/icons/CheckBox';
 import HistoryIcon from '@material-ui/icons/History';
 import InfoIcon from '@material-ui/icons/Info';
-import { navigate } from '@reach/router';
+import { useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import Sync from './Sync';
 
@@ -42,6 +42,7 @@ function Page(props) {
   const { db, children, back, title, under, header } = props;
   const [anchorEl, setAnchorEl] = useState(null);
   const classes = useStyles();
+  const navigate = useNavigate();
 
   const isMenuOpen = !!anchorEl;
 

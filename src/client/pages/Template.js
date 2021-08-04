@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useParams, navigate } from '@reach/router';
+import { useParams, useNavigate } from 'react-router-dom';
 import { Button, ButtonGroup, Grid, MenuItem, TextField } from '@material-ui/core';
 import DeleteIcon from '@material-ui/icons/Delete';
 
@@ -10,6 +10,7 @@ import ReactMarkdown from 'react-markdown';
 
 function Template(props) {
   const [template, setTemplate] = useState();
+  const navigate = useNavigate();
 
   const { db } = props;
   const { templateId } = useParams();

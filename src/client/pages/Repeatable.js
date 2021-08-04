@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import React from 'react';
 import ReactDOM from 'react-dom';
 import ReactMarkdown from 'react-markdown';
-import { useParams, navigate, useLocation } from '@reach/router';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 
 import {
   Button,
@@ -33,6 +33,7 @@ const useStyles = makeStyles((theme) => ({
 
 function Repeatable(props) {
   const classes = useStyles();
+  const navigate = useNavigate();
 
   const [repeatable, setRepeatable] = useState({});
   const [template, setTemplate] = useState({});

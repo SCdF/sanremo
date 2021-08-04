@@ -1,6 +1,6 @@
 import './App.scss';
 import React, { useEffect, useState } from 'react';
-import { Router } from '@reach/router';
+import { Routes } from 'react-router-dom';
 
 import CssBaseline from '@material-ui/core/CssBaseline';
 
@@ -76,13 +76,13 @@ function App() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <Router>
+      <Routes>
         <Home db={handle} path="/" />
         <About db={handle} path="/about" />
         <Repeatable db={handle} path="repeatable/:repeatableId" />
         <Template db={handle} path="template/:templateId" />
         <History db={handle} path="history" />
-      </Router>
+      </Routes>
     </ThemeProvider>
   );
 }
