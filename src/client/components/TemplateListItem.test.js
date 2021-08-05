@@ -1,11 +1,16 @@
 import { render, screen } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
 
 import TemplateListItem from './TemplateListItem';
 
 test('renders without crashing', async () => {
-  render(<TemplateListItem _id="abc" title="Template ListItem" />);
+  render(
+    <MemoryRouter>
+      <TemplateListItem _id="abc" title="Template ListItem" />
+    </MemoryRouter>
+  );
 
-  const [create, edit] = screen.getAllByRole('link');
+  const [create, edit] = screen.getAllByRole('button');
 
   expect(create).toHaveTextContent('Template ListItem');
   expect(create).toHaveAttribute('href', '/repeatable/new?template=abc');

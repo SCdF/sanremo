@@ -1,18 +1,11 @@
-import { useNavigate } from 'react-router-dom';
+import { MemoryRouter } from 'react-router-dom';
 import { render, screen, waitFor } from '@testing-library/react';
 import Home from './Home';
 
 import db from '../db';
-jest.mock('react-router-dom');
 jest.mock('../db');
 
 describe('Home', () => {
-  let navigate;
-  beforeEach(() => {
-    navigate = jest.fn();
-    useNavigate.mockReturnValue(navigate);
-  });
-
   it('renders without crashing', async () => {
     db.find.mockImplementation((options) => {
       // Repeatable list needs
@@ -41,7 +34,11 @@ describe('Home', () => {
       throw Error('noimplementation');
     });
 
-    render(<Home db={db} />);
+    render(
+      <MemoryRouter>
+        <Home db={db} />
+      </MemoryRouter>
+    );
 
     await waitFor(() => screen.getByText(/Template in template list/));
     await waitFor(() => screen.getByText(/Repeatable in repeatable list/));
@@ -69,7 +66,11 @@ describe('Home', () => {
         throw Error('noimplementation');
       });
 
-      render(<Home db={db} />);
+      render(
+        <MemoryRouter>
+          <Home db={db} />
+        </MemoryRouter>
+      );
 
       await waitFor(() => screen.getByText(/New template version/));
       await waitFor(() => screen.getByText(/Another template/));
@@ -97,7 +98,11 @@ describe('Home', () => {
         throw Error('noimplementation');
       });
 
-      render(<Home db={db} />);
+      render(
+        <MemoryRouter>
+          <Home db={db} />
+        </MemoryRouter>
+      );
 
       await waitFor(() => screen.getByText(/Another template/));
       expect(() => screen.getByText(/New template version/)).toThrowError(/Unable to find an element/);
