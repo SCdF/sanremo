@@ -74,7 +74,8 @@ function Repeatable(props) {
       } else {
         debug('pre repeatable load');
         const repeatable = await db.get(repeatableId);
-        repeatable.values ??= [];
+        // repeatable.values ??= [];
+        repeatable.values = repeatable.values || [];
 
         let nextIdx = repeatable.values.findIndex((v) => !v);
         if (nextIdx === -1) nextIdx = repeatable.values.length;

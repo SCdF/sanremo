@@ -1,6 +1,7 @@
 import { Button, ButtonGroup, ListItem } from '@material-ui/core';
 import EditIcon from '@material-ui/icons/Edit';
 import { makeStyles } from '@material-ui/core/styles';
+import { Link } from 'react-router-dom';
 
 const useStyles = makeStyles((theme) => ({
   horizontal: {
@@ -18,7 +19,7 @@ export default function TemplateListItem(props) {
   if (!_id) {
     return (
       <ListItem key="new" className={classes.horizontal}>
-        <Button href="/template/new" component="button" variant="contained" color="secondary">
+        <Button component={Link} to="/template/new" variant="contained" color="secondary">
           New
         </Button>
       </ListItem>
@@ -28,10 +29,10 @@ export default function TemplateListItem(props) {
   return (
     <ListItem className={classes.horizontal}>
       <ButtonGroup>
-        <Button href={`/repeatable/new?template=${_id}`} component="button" color="primary" variant="contained">
+        <Button to={`/repeatable/new?template=${_id}`} component={Link} color="primary" variant="contained">
           {title}
         </Button>
-        <Button href={`/template/${_id}`} aria-label="edit">
+        <Button to={`/template/${_id}`} component={Link} aria-label="edit">
           <EditIcon />
         </Button>
       </ButtonGroup>
