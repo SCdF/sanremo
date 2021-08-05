@@ -1,10 +1,12 @@
 import './App.scss';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { Routes } from 'react-router-dom';
+import { useSelector, useDispatch } from 'react-redux';
 
 import CssBaseline from '@material-ui/core/CssBaseline';
 
 import db from './db';
+import { set as setLoggedInUser } from './state/userSlice';
 
 import About from './pages/About';
 import History from './pages/History';
@@ -28,30 +30,31 @@ const theme = createMuiTheme({
 });
 
 function App() {
-  const [loggedInUser, setLoggedInUser] = useState();
-
-  // FIXME: we don't want to actually do this. Instead, either:
-  // - remap this URL to an /api/ok or something that doesn't involve anything except validating the session,
-  // - rely entirely on actual remote calls to fail as they fail to trigger a login request
-  // And with either option know the difference between being offline and not authed
-  // FIXME: check a client-side cookie for this. Without this check we can't support offline first!
-  async function authCheck() {
-    const response = await fetch('/api/auth');
-    if (response.ok) {
-      const data = await response.json();
-      setLoggedInUser(data.user);
-    } else {
-      setLoggedInUser(false);
-    }
-  }
+  const loggedInUser = useSelector((state) => state.user.value);
+  const dispatch = useDispatch();
 
   useEffect(() => {
+    // FIXME: we don't want to actually do this. Instead, either:
+    // - remap this URL to an /api/ok or something that doesn't involve anything except validating the session,
+    // - rely entirely on actual remote calls to fail as they fail to trigger a login request
+    // And with either option know the difference between being offline and not authed
+    // FIXME: check a client-side cookie for this. Without this check we can't support offline first!
+    async function authCheck() {
+      const response = await fetch('/api/auth');
+      if (response.ok) {
+        const data = await response.json();
+        dispatch(setLoggedInUser(data.user));
+      } else {
+        dispatch(setLoggedInUser(false));
+      }
+    }
+
     if (process.env.NODE_ENV === 'development') {
-      setLoggedInUser('dev');
+      dispatch(setLoggedInUser('dev'));
     } else if (loggedInUser === undefined) {
       authCheck();
     }
-  }, [loggedInUser]);
+  }, [dispatch, loggedInUser]);
 
   if (loggedInUser === undefined) {
     return (
