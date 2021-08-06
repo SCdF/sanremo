@@ -180,7 +180,6 @@ function Repeatable(props) {
         <ListItem
           key={`value-${valueIdx}`}
           button
-          disableRipple
           onClick={handleToggle(valueIdx)}
           disabled={!!repeatable.completed}
           autoFocus={valueIdx === nextIdx}
