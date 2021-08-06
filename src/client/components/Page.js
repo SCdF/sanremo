@@ -17,8 +17,11 @@ import ArrowBack from '@material-ui/icons/ArrowBack';
 import CheckBoxIcon from '@material-ui/icons/CheckBox';
 import HistoryIcon from '@material-ui/icons/History';
 import InfoIcon from '@material-ui/icons/Info';
+
 import { useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
+import { useSelector } from 'react-redux';
+
 import Sync from './Sync';
 
 const useStyles = makeStyles((theme) => ({
@@ -41,6 +44,7 @@ const useStyles = makeStyles((theme) => ({
 function Page(props) {
   const { db, children, back, title, under, header } = props;
   const [anchorEl, setAnchorEl] = useState(null);
+  const loggedInUser = useSelector((state) => state.user.value);
   const classes = useStyles();
   const navigate = useNavigate();
 
@@ -64,11 +68,11 @@ function Page(props) {
         open={isMenuOpen}
         onClose={handleMenuClose}
       >
-        <MenuItem onClick={() => alert('todo!')}>
+        <MenuItem onClick={() => alert(`TODO! ${JSON.stringify(loggedInUser)}`)}>
           <ListItemIcon>
             <AccountCircle />
           </ListItemIcon>
-          <Typography>SCdF</Typography>
+          <Typography>{loggedInUser.name}</Typography>
         </MenuItem>
         <Divider />
         <MenuItem button key="home" selected={under === 'home'} onClick={() => navigate('/')}>

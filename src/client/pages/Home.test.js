@@ -1,11 +1,26 @@
 import { MemoryRouter } from 'react-router-dom';
-import { render, screen, waitFor } from '@testing-library/react';
+import { Provider } from 'react-redux';
+import { render as renderRtl, screen, waitFor } from '@testing-library/react';
+
 import Home from './Home';
+import { createStore } from '../store';
+import { set as setLoggedInUser } from '../state/userSlice';
 
 import db from '../db';
+
 jest.mock('../db');
 
 describe('Home', () => {
+  let store;
+  beforeEach(() => {
+    store = createStore();
+    store.dispatch(setLoggedInUser({ id: 1, name: 'Tester Test' }));
+  });
+
+  function render(children) {
+    renderRtl(<Provider store={store}>{children}</Provider>);
+  }
+
   it('renders without crashing', async () => {
     db.find.mockImplementation((options) => {
       // Repeatable list needs

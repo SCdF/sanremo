@@ -1,6 +1,10 @@
 import { useNavigate } from 'react-router-dom';
-import { render, screen } from '@testing-library/react';
+import { render as renderRtl, screen } from '@testing-library/react';
+import { Provider } from 'react-redux';
+
 import Page from './Page';
+import { createStore } from '../store';
+import { set as setLoggedInUser } from '../state/userSlice';
 
 jest.mock('react-router-dom');
 
@@ -10,6 +14,16 @@ describe('Page', () => {
     navigate = jest.fn();
     useNavigate.mockReturnValue(navigate);
   });
+
+  let store;
+  beforeEach(() => {
+    store = createStore();
+    store.dispatch(setLoggedInUser({ id: 1, name: 'Tester Test' }));
+  });
+
+  function render(children) {
+    renderRtl(<Provider store={store}>{children}</Provider>);
+  }
 
   it('renders without crashing', async () => {
     render(<Page />);

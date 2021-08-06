@@ -1,8 +1,12 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
-import Repeatable from './Repeatable';
-
+import { fireEvent, render as renderRtl, screen, waitFor } from '@testing-library/react';
 import { useNavigate, useLocation, useParams } from 'react-router-dom';
+import { Provider } from 'react-redux';
+
 import db from '../db';
+
+import Repeatable from './Repeatable';
+import { createStore } from '../store';
+import { set as setLoggedInUser } from '../state/userSlice';
 
 jest.mock('react-router-dom');
 jest.mock('../db');
@@ -13,6 +17,16 @@ describe('Repeatable', () => {
     navigate = jest.fn();
     useNavigate.mockReturnValue(navigate);
   });
+
+  let store;
+  beforeEach(() => {
+    store = createStore();
+    store.dispatch(setLoggedInUser({ id: 1, name: 'Tester Test' }));
+  });
+
+  function render(children) {
+    renderRtl(<Provider store={store}>{children}</Provider>);
+  }
 
   it('renders without crashing', async () => {
     db.get.mockResolvedValue({
