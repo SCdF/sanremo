@@ -29,16 +29,23 @@ describe('Repeatable', () => {
   }
 
   it('renders without crashing', async () => {
-    db.get.mockResolvedValue({
-      title: 'A Repeatable',
-      values: [],
-    });
+    db.get
+      .mockResolvedValueOnce({
+        _id: 'repeatable:instance:1234',
+        template: 'repeatable:template:5678',
+        values: [],
+      })
+      .mockResolvedValueOnce({
+        _id: 'repeatable:template:5678',
+        title: 'A Repeatable',
+        markdown: 'Some text',
+      });
     useLocation.mockReturnValue();
     useParams.mockReturnValue({ repeatableId: '1234' });
 
     render(<Repeatable db={db} />);
 
-    await waitFor(() => screen.getByText(/A Repeatable/));
+    await waitFor(() => screen.getByText(/Some text/));
   });
 
   it('creates new instance and redirects if "new"', async () => {
@@ -88,33 +95,45 @@ describe('Repeatable', () => {
   });
 
   describe('completion redirection semantics', () => {
-    it('redirects when completing a fresh repeatable', async () => {
-      db.get.mockResolvedValue({
-        title: 'A Repeatable',
-        values: [],
+    let repeatable, template;
+    beforeEach(() => {
+      repeatable = {
+        _id: 'repeatable:instance:1234',
+        template: 'repeatable:template:5678',
+        values: [false],
+      };
+      template = {
+        _id: 'repeatable:template:5678',
+        markdown: 'Some text\n- [ ] Something to change',
+        values: [false],
+      };
+
+      db.get.mockImplementation((docId) => {
+        if (docId === 'repeatable:instance:1234') {
+          return Promise.resolve(repeatable);
+        }
+        if (docId === 'repeatable:template:5678') {
+          return Promise.resolve(template);
+        }
+        return Promise.reject(`Bad ${docId}`);
       });
       useLocation.mockReturnValue();
+      useParams.mockReturnValue({ repeatableId: 'repeatable:instance:1234' });
       db.put.mockResolvedValue({ rev: '2-abc' });
-      useParams.mockReturnValue({ repeatableId: '1234' });
+    });
 
+    it('redirects when completing a fresh repeatable', async () => {
       render(<Repeatable db={db} />);
-      await waitFor(() => screen.getByText(/A Repeatable/));
+      await waitFor(() => screen.getByText(/Some text/));
 
       fireEvent.click(screen.getByText(/Complete/));
       await waitFor(() => expect(navigate.mock.calls[0][0]).toBe('/'));
     });
     it('doesnt redirect when uncompleting a repeatable', async () => {
-      db.get.mockResolvedValue({
-        title: 'A Repeatable',
-        completed: 123456789,
-        values: [],
-      });
-      useLocation.mockReturnValue();
-      db.put.mockResolvedValue({ rev: '2-abc' });
-      useParams.mockReturnValue({ repeatableId: '1234' });
+      repeatable.completed = 123456789;
 
       render(<Repeatable db={db} />);
-      await waitFor(() => screen.getByText(/A Repeatable/));
+      await waitFor(() => screen.getByText(/Some text/));
 
       fireEvent.click(screen.getByText(/Un-complete/));
       await waitFor(() => expect(db.put.mock.calls.length).toBe(1));
@@ -123,17 +142,10 @@ describe('Repeatable', () => {
       expect(db.put.mock.calls[0][0].completed).not.toBeTruthy();
     });
     it('doesnt redirect when completing a just uncompleted repeatable', async () => {
-      db.get.mockResolvedValue({
-        title: 'A Repeatable',
-        completed: 123456789,
-        values: [],
-      });
-      useLocation.mockReturnValue();
-      db.put.mockResolvedValue({ rev: '2-abc' });
-      useParams.mockReturnValue({ repeatableId: '1234' });
+      repeatable.completed = 123456789;
 
       render(<Repeatable db={db} />);
-      await waitFor(() => screen.getByText(/A Repeatable/));
+      await waitFor(() => screen.getByText(/Some text/));
 
       fireEvent.click(screen.getByText(/Un-complete/));
       await waitFor(() => expect(db.put.mock.calls.length).toBe(1));
@@ -146,28 +158,10 @@ describe('Repeatable', () => {
       expect(db.put.mock.calls[1][0].completed).toBeTruthy();
     });
     it('does redirect when completing a just uncompleted repeatable if you change something', async () => {
-      db.get.mockImplementation((docId) => {
-        if (docId === '1234') {
-          return Promise.resolve({
-            template: '5678',
-            completed: 123456789,
-            values: [false],
-          });
-        }
-        if (docId === '5678') {
-          return Promise.resolve({
-            title: 'A Repeatable',
-            markdown: '- [ ] Something to change',
-            values: [false],
-          });
-        }
-      });
-      useLocation.mockReturnValue();
-      db.put.mockResolvedValue({ rev: '2-abc' });
-      useParams.mockReturnValue({ repeatableId: '1234' });
+      repeatable.completed = 123456789;
 
       render(<Repeatable db={db} />);
-      await waitFor(() => screen.getByText(/A Repeatable/));
+      await waitFor(() => screen.getByText(/Something to change/));
 
       fireEvent.click(screen.getByText(/Un-complete/));
       await waitFor(() => expect(db.put.mock.calls.length).toBe(1));

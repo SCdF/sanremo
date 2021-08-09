@@ -5,6 +5,7 @@ import { Provider } from 'react-redux';
 import Page from './Page';
 import { createStore } from '../store';
 import { set as setLoggedInUser } from '../state/userSlice';
+import { set as setPageContext } from '../state/pageSlice';
 
 jest.mock('react-router-dom');
 
@@ -30,7 +31,8 @@ describe('Page', () => {
   });
 
   it('sets the title on page and on window', async () => {
-    render(<Page title="Test Title" />);
+    store.dispatch(setPageContext({ title: 'Test Title' }));
+    render(<Page />);
 
     expect(screen.getByText('Test Title')).toBeInTheDocument();
     expect(global.window.document.title).toBe('Test Title | Sanremo');

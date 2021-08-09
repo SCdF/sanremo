@@ -19,10 +19,13 @@ import HistoryIcon from '@material-ui/icons/History';
 import InfoIcon from '@material-ui/icons/Info';
 
 import { useNavigate } from 'react-router-dom';
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 
 import Sync from './Sync';
+import store, { RootState } from '../store';
+import { PageContext } from '../state/pageSlice';
+import { RepeatableSlug } from '../pages/Repeatable';
 
 const useStyles = makeStyles((theme) => ({
   grow: {
@@ -35,23 +38,25 @@ const useStyles = makeStyles((theme) => ({
 
 /**
  * Wrapper for Pages. Manages headers, sidebar etc
- *
- * @param {string} title the title you want the window to have
- * @param {JSX} header optional. Components to display in the toolbar header. Otherwise the title is used
- * @param {boolean} back whether you can go "back" in the browser sense
- * @param {string} under identifier for the sidebar heading this page appears under
  */
-function Page(props) {
-  const { db, children, back, title, under, header } = props;
-  const [anchorEl, setAnchorEl] = useState(null);
-  const loggedInUser = useSelector((state) => state.user.value);
+function Page(props: { db: PouchDB.Database; children: React.ReactNode }) {
   const classes = useStyles();
   const navigate = useNavigate();
 
+  const { db, children } = props;
+
+  const [anchorEl, setAnchorEl] = useState(null);
+
+  const loggedInUser = useSelector((state: RootState) => state.user.value);
+  const context: PageContext = useSelector((state: RootState) => state.page.value);
+
   const isMenuOpen = !!anchorEl;
 
-  useEffect(() => (document.title = title ? `${title} | Sanremo` : 'Sanremo'));
+  useEffect(() => {
+    document.title = context.title ? `${context.title} | Sanremo` : 'Sanremo';
+  });
 
+  // @ts-ignore TODO: work out types for this
   function handleMenuOpen(event) {
     setAnchorEl(event.currentTarget);
   }
@@ -72,22 +77,37 @@ function Page(props) {
           <ListItemIcon>
             <AccountCircle />
           </ListItemIcon>
-          <Typography>{loggedInUser.name}</Typography>
+          <Typography>{loggedInUser?.name}</Typography>
         </MenuItem>
         <Divider />
-        <MenuItem button key="home" selected={under === 'home'} onClick={() => navigate('/')}>
+        <MenuItem
+          button
+          key="home"
+          selected={context.under === 'home'}
+          onClick={() => navigate('/')}
+        >
           <ListItemIcon>
             <CheckBoxIcon />
           </ListItemIcon>
           <Typography>Active</Typography>
         </MenuItem>
-        <MenuItem button key="history" selected={under === 'history'} onClick={() => navigate('/history')}>
+        <MenuItem
+          button
+          key="history"
+          selected={context.under === 'history'}
+          onClick={() => navigate('/history')}
+        >
           <ListItemIcon>
             <HistoryIcon />
           </ListItemIcon>
           <Typography>History</Typography>
         </MenuItem>
-        <MenuItem button key="about" selected={under === 'about'} onClick={() => navigate('/about')}>
+        <MenuItem
+          button
+          key="about"
+          selected={context.under === 'about'}
+          onClick={() => navigate('/about')}
+        >
           <ListItemIcon>
             <InfoIcon />
           </ListItemIcon>
@@ -97,18 +117,25 @@ function Page(props) {
     </div>
   );
 
+  let title;
+  if (RepeatableSlug.relevant(store.getState())) {
+    title = <RepeatableSlug db={db} />;
+  } else {
+    title = context.title;
+  }
+
   return (
     <Container disableGutters maxWidth="xl">
       <AppBar position="sticky">
         <Toolbar>
-          {back && (
+          {context.back && (
             // TODO: we should probably rethink this back button logic
             // If we know our own URL we can work this one out? Anything but '/' should mean going back?
             <IconButton edge="start" color="inherit" onClick={() => navigate(-1)}>
               <ArrowBack />
             </IconButton>
           )}
-          <Typography variant="h6">{header || title}</Typography>
+          <Typography variant="h6">{title}</Typography>
           <div className={classes.grow} />
           <Sync db={db} />
           <IconButton edge="end" color="inherit" onClick={handleMenuOpen}>

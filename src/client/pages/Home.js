@@ -1,8 +1,9 @@
-import { useEffect, useState } from 'react';
+import { Fragment, useEffect, useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import { Divider, List, Typography } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
 
-import Page from '../components/Page';
+import { set as setContext } from '../state/pageSlice';
 
 import RepeatableListItem from '../components/RepeatableListItem';
 import TemplateListItem from '../components/TemplateListItem';
@@ -15,11 +16,24 @@ const useStyles = makeStyles((theme) => ({
 
 function Home(props) {
   const classes = useStyles();
+  const dispatch = useDispatch();
 
   const { db } = props;
 
+  // we don't actually care about this value, we just use it to trigger list reloading
+  const lastSynced = useSelector((state) => state.docs.lastSynced);
+
   const [templates, setTemplates] = useState([]);
   const [repeatables, setRepeatables] = useState([]);
+
+  useEffect(() => {
+    dispatch(
+      setContext({
+        title: 'Project Sanremo',
+        under: 'home',
+      })
+    );
+  }, [dispatch]);
 
   // NB: this code also exists in History.js using completed instead of updated
   useEffect(() => {
@@ -65,7 +79,7 @@ function Home(props) {
 
     // TODO: sort out logging / elevation for errors
     loadRepeatables();
-  }, [db]);
+  }, [db, lastSynced]);
 
   // TODO: sort templates in some better way
   // Two options:
@@ -105,14 +119,18 @@ function Home(props) {
     }
 
     loadTemplates();
-  }, [db]);
+  }, [db, lastSynced]);
 
-  const templateList = templates.map((template) => <TemplateListItem key={template._id} {...template} />);
+  const templateList = templates.map((template) => (
+    <TemplateListItem key={template._id} {...template} />
+  ));
 
-  const repeatableList = repeatables.map((repeatable) => <RepeatableListItem key={repeatable._id} {...repeatable} />);
+  const repeatableList = repeatables.map((repeatable) => (
+    <RepeatableListItem key={repeatable._id} {...repeatable} />
+  ));
 
   return (
-    <Page title="Project Sanremo" under="home" db={db}>
+    <Fragment>
       {!!repeatableList.length && <List className="repeatables">{repeatableList}</List>}
       {!!!repeatableList.length && (
         <Typography align="center" variant="body2" className={classes.root}>
@@ -124,7 +142,7 @@ function Home(props) {
         {templateList}
         <TemplateListItem key="new" />
       </List>
-    </Page>
+    </Fragment>
   );
 }
 

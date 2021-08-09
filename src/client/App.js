@@ -17,6 +17,7 @@ import Template from './pages/Template';
 
 import { createMuiTheme, ThemeProvider } from '@material-ui/core/styles';
 import { CircularProgress } from '@material-ui/core';
+import Page from './components/Page';
 
 const theme = createMuiTheme({
   // palette: {
@@ -79,13 +80,15 @@ function App() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <Routes>
-        <Home db={handle} path="/" />
-        <About db={handle} path="/about" />
-        <Repeatable db={handle} path="repeatable/:repeatableId" />
-        <Template db={handle} path="template/:templateId" />
-        <History db={handle} path="history" />
-      </Routes>
+      <Page>
+        <Routes>
+          <Home db={handle} path="/" />
+          <About db={handle} path="/about" />
+          <Repeatable db={handle} path="repeatable/:repeatableId" />
+          <Template db={handle} path="template/:templateId" />
+          <History db={handle} path="history" />
+        </Routes>
+      </Page>
     </ThemeProvider>
   );
 }

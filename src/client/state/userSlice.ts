@@ -1,8 +1,9 @@
 import { createSlice } from '@reduxjs/toolkit';
+import { User } from '../../server/types';
 
 export const userSlice = createSlice({
   name: 'user',
-  initialState: { value: undefined },
+  initialState: { value: undefined as unknown as User },
   reducers: {
     set: (state, action) => {
       state.value = action.payload;

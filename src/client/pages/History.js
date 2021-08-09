@@ -1,12 +1,15 @@
 import { useEffect, useState } from 'react';
+import { useDispatch } from 'react-redux';
+
 import { List } from '@material-ui/core';
 
-import Page from '../components/Page';
+import { set as setContext } from '../state/pageSlice';
 
 import RepeatableListItem from '../components/RepeatableListItem';
 
 function History(props) {
   const [repeatables, setRepeatables] = useState([]);
+  const dispatch = useDispatch();
 
   const { db } = props;
 
@@ -51,13 +54,17 @@ function History(props) {
     go();
   }, [db]);
 
-  const repeatableList = repeatables.map((repeatable) => <RepeatableListItem key={repeatable._id} {...repeatable} />);
+  const repeatableList = repeatables.map((repeatable) => (
+    <RepeatableListItem key={repeatable._id} {...repeatable} />
+  ));
 
-  return (
-    <Page title="History" under="history" db={db}>
-      <List>{repeatableList}</List>
-    </Page>
+  dispatch(
+    setContext({
+      title: 'History',
+      under: 'history',
+    })
   );
+  return <List>{repeatableList}</List>;
 }
 
 export default History;

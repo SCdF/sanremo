@@ -1,15 +1,20 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
+
+import ReactMarkdown from 'react-markdown';
+
 import { Button, ButtonGroup, Grid, MenuItem, TextField } from '@material-ui/core';
 import DeleteIcon from '@material-ui/icons/Delete';
 
 import { v4 as uuid } from 'uuid';
 
-import Page from '../components/Page';
-import ReactMarkdown from 'react-markdown';
+import { set as setContext } from '../state/pageSlice';
+import { setTemplate } from '../state/docsSlice';
 
 function Template(props) {
-  const [template, setTemplate] = useState();
+  const template = useSelector((state) => state.docs.template);
+  const dispatch = useDispatch();
   const navigate = useNavigate();
 
   const { db } = props;
@@ -36,29 +41,43 @@ function Template(props) {
       } else {
         const template = await db.get(templateId);
 
-        setTemplate(template);
+        dispatch(setTemplate(template));
       }
     }
 
     loadTemplate();
-  }, [db, templateId, navigate]);
+    return () => {
+      dispatch(setTemplate());
+    };
+  }, [db, templateId, navigate, dispatch]);
+  useEffect(() => {
+    dispatch(
+      setContext({
+        title: `${template?.title || 'New Template'} | edit`,
+        back: true,
+        under: 'home',
+      })
+    );
+  });
 
   async function handleDelete(event) {
     event?.preventDefault();
 
+    const copy = Object.assign({}, template);
+
     // If we have used any version of this template we need to soft delete instead of hard delete
-    const unversionedId = template._id.substring(0, template._id.lastIndexOf(':'));
+    const unversionedId = copy._id.substring(0, copy._id.lastIndexOf(':'));
     const used = await db.find({
       selector: { template: { $gt: unversionedId, $lte: `${unversionedId}\uffff` } },
     });
     if (used.docs.length) {
       // TODO: consider: should we also update datetimes, bump version?
-      template.deleted = true;
+      copy.deleted = true;
     } else {
-      template._deleted = true;
+      copy._deleted = true;
     }
 
-    await db.put(template);
+    await db.put(copy);
     navigate('/');
   }
 
@@ -101,7 +120,7 @@ function Template(props) {
       copy[name] = value;
     }
 
-    setTemplate(copy);
+    dispatch(setTemplate(copy));
   }
 
   if (!template) {
@@ -109,89 +128,87 @@ function Template(props) {
   }
 
   return (
-    <Page title={`${template.title || 'New Template'} | edit`} back under="home" db={db}>
-      <form onSubmit={handleSubmit} noValidate autoComplete="off">
-        <Grid container spacing={2}>
-          <Grid item xs={12}>
-            <TextField
-              required
-              variant="filled"
-              fullWidth
-              label="Title"
-              name="title"
-              value={template.title}
-              onChange={handleChange}
-            />
-          </Grid>
-          <Grid item xs={2}>
-            <TextField
-              required
-              variant="filled"
-              select
-              size="small"
-              fullWidth
-              label="Type of slug"
-              name="slugType"
-              value={template.slug.type}
-              onChange={handleChange}
-            >
-              <MenuItem key="url" value="url">
-                url
-              </MenuItem>
-              <MenuItem key="date" value="date">
-                date
-              </MenuItem>
-              <MenuItem key="timestamp" value="timestamp">
-                datetime
-              </MenuItem>
-              <MenuItem key="string" value="string">
-                string (plain text)
-              </MenuItem>
-            </TextField>
-          </Grid>
-          <Grid item xs={10}>
-            {['string', 'url'].includes(template.slug.type) && (
-              <TextField
-                variant="filled"
-                fullWidth
-                size="small"
-                label={`Placeholder text for ${template.slug.type}`}
-                name="slugPlaceholder"
-                value={template.slug.placeholder}
-                onChange={handleChange}
-              />
-            )}
-          </Grid>
-          <Grid item md={6} sm={12}>
-            <TextField
-              required
-              variant="filled"
-              fullWidth
-              multiline
-              rows="10"
-              label="Markdown"
-              name="markdown"
-              value={template.markdown}
-              onChange={handleChange}
-            />
-          </Grid>
-          <Grid item md={6} sm={12}>
-            {/* TODO: correctly render markdown with checkboxes etc */}
-            <ReactMarkdown>{template.markdown}</ReactMarkdown>
-          </Grid>
-          <Grid item xs={12}>
-            <ButtonGroup>
-              <Button onClick={handleSubmit} color="primary" variant="contained">
-                Save
-              </Button>
-              <Button onClick={handleDelete}>
-                <DeleteIcon />
-              </Button>
-            </ButtonGroup>
-          </Grid>
+    <form onSubmit={handleSubmit} noValidate autoComplete="off">
+      <Grid container spacing={2}>
+        <Grid item xs={12}>
+          <TextField
+            required
+            variant="filled"
+            fullWidth
+            label="Title"
+            name="title"
+            value={template.title}
+            onChange={handleChange}
+          />
         </Grid>
-      </form>
-    </Page>
+        <Grid item xs={2}>
+          <TextField
+            required
+            variant="filled"
+            select
+            size="small"
+            fullWidth
+            label="Type of slug"
+            name="slugType"
+            value={template.slug.type}
+            onChange={handleChange}
+          >
+            <MenuItem key="url" value="url">
+              url
+            </MenuItem>
+            <MenuItem key="date" value="date">
+              date
+            </MenuItem>
+            <MenuItem key="timestamp" value="timestamp">
+              datetime
+            </MenuItem>
+            <MenuItem key="string" value="string">
+              string (plain text)
+            </MenuItem>
+          </TextField>
+        </Grid>
+        <Grid item xs={10}>
+          {['string', 'url'].includes(template.slug.type) && (
+            <TextField
+              variant="filled"
+              fullWidth
+              size="small"
+              label={`Placeholder text for ${template.slug.type}`}
+              name="slugPlaceholder"
+              value={template.slug.placeholder}
+              onChange={handleChange}
+            />
+          )}
+        </Grid>
+        <Grid item md={6} sm={12}>
+          <TextField
+            required
+            variant="filled"
+            fullWidth
+            multiline
+            rows="10"
+            label="Markdown"
+            name="markdown"
+            value={template.markdown}
+            onChange={handleChange}
+          />
+        </Grid>
+        <Grid item md={6} sm={12}>
+          {/* TODO: correctly render markdown with checkboxes etc */}
+          <ReactMarkdown>{template.markdown}</ReactMarkdown>
+        </Grid>
+        <Grid item xs={12}>
+          <ButtonGroup>
+            <Button onClick={handleSubmit} color="primary" variant="contained">
+              Save
+            </Button>
+            <Button onClick={handleDelete}>
+              <DeleteIcon />
+            </Button>
+          </ButtonGroup>
+        </Grid>
+      </Grid>
+    </form>
   );
 }
 

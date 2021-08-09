@@ -1,9 +1,8 @@
-import { useEffect, useState } from 'react';
+import { Fragment, useEffect, useState } from 'react';
 import React from 'react';
 import ReactDOM from 'react-dom';
 import ReactMarkdown from 'react-markdown';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { setRepeatable } from '../state/docsSlice';
 import { useSelector, useDispatch } from 'react-redux';
 
 import {
@@ -22,11 +21,13 @@ import DeleteIcon from '@material-ui/icons/Delete';
 import { v4 as uuid } from 'uuid';
 import qs from 'qs';
 
-import Page from '../components/Page';
+import { setRepeatable } from '../state/docsSlice';
+import { setTemplate } from '../state/docsSlice';
+import { set as setContext } from '../state/pageSlice';
 
 const debug = require('debug')('sanremo:client:repeatable');
 
-const useStyles = makeStyles((theme) => ({
+const slugStyle = makeStyles((theme) => ({
   inputRoot: {
     paddingLeft: '0.5em',
     color: 'inherit',
@@ -34,12 +35,11 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 function Repeatable(props) {
-  const classes = useStyles();
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
   const repeatable = useSelector((state) => state.docs.repeatable);
-  const [template, setTemplate] = useState({});
+  const template = useSelector((state) => state.docs.template);
 
   // Used for determining how complete / uncomplete function
   const [initiallyOpen, setInitiallyOpen] = useState(false); // On first load, was the repeatable uncompleted?
@@ -87,16 +87,27 @@ function Repeatable(props) {
         const template = await db.get(repeatable.template);
         debug('post template load');
 
-        // ReactDOM.unstable_batchedUpdates(() => {
-        dispatch(setRepeatable(repeatable));
-        setTemplate(template);
-        setInitiallyOpen(!repeatable.completed);
-        setNextIdx(nextIdx);
-        // });
+        ReactDOM.unstable_batchedUpdates(() => {
+          dispatch(
+            setContext({
+              title: template.title,
+              back: true,
+              under: 'home',
+            })
+          );
+          dispatch(setRepeatable(repeatable));
+          dispatch(setTemplate(template));
+          setInitiallyOpen(!repeatable.completed);
+          setNextIdx(nextIdx);
+        });
       }
     }
 
     loadRepeatable();
+    return () => {
+      dispatch(setRepeatable());
+      dispatch(setTemplate());
+    };
   }, [dispatch, db, repeatableId, location, navigate]);
 
   async function deleteRepeatable() {
@@ -152,12 +163,8 @@ function Repeatable(props) {
     };
   }
 
-  if (!repeatable) {
-    return (
-      <Page title="poop" back under="home" db={db}>
-        {/* put a throbber in here if we need to? */}
-      </Page>
-    );
+  if (!(repeatable && template)) {
+    return null;
   }
 
   debug(`Render: ${repeatable?._id} | ${template?._id} | ${initiallyOpen}`);
@@ -208,9 +215,9 @@ function Repeatable(props) {
 
   const lastChunkIdx = chunks.length - 1;
   if (lastInputIdx !== lastChunkIdx) {
-    const text = chunks.slice(lastInputIdx + 1, lastChunkIdx).join('\n');
+    const text = chunks.slice(lastInputIdx + 1).join('\n');
     items.push(
-      <ListItem key={`chunk-${lastInputIdx + 1}-${lastChunkIdx}`}>
+      <ListItem key={`chunk-${lastInputIdx + 1}-∞`}>
         <ListItemText>
           <ReactMarkdown>{text}</ReactMarkdown>
         </ListItemText>
@@ -223,6 +230,57 @@ function Repeatable(props) {
   }
 
   debug('chunks computed, ready to render');
+
+  // There is actually an autoFocus property on button, but it doesn't work.
+  // Instead, this is the current workaround. See the following workaround:
+  // https://github.com/mui-org/material-ui/issues/3008#issuecomment-284223777
+  class CompleteButton extends React.Component {
+    componentDidMount() {
+      if (nextIdx === maxIdx) {
+        ReactDOM.findDOMNode(this.button).focus();
+      }
+    }
+
+    render() {
+      return (
+        <Button
+          onClick={complete}
+          color="primary"
+          variant="contained"
+          ref={(node) => (this.button = node)}
+        >
+          Complete
+        </Button>
+      );
+    }
+  }
+
+  return (
+    <Fragment>
+      <List>{items}</List>
+      <ButtonGroup>
+        {!repeatable?.completed && <CompleteButton />}
+        {repeatable?.completed && (
+          <Button onClick={uncomplete} color="primary" variant="contained">
+            Un-complete
+          </Button>
+        )}
+        <Button onClick={deleteRepeatable}>
+          <DeleteIcon />
+        </Button>
+      </ButtonGroup>
+    </Fragment>
+  );
+}
+
+function RepeatableSlug(props) {
+  const classes = slugStyle();
+  const dispatch = useDispatch();
+
+  const { db } = props;
+
+  const repeatable = useSelector((state) => state.docs.repeatable);
+  const template = useSelector((state) => state.docs.template);
 
   function changeSlug({ target }) {
     const copy = Object.assign({}, repeatable);
@@ -303,54 +361,17 @@ function Repeatable(props) {
     );
   }
 
-  const header = (
+  return (
     <div>
       {template?.title}
       <i> for </i>
       {slug}
     </div>
   );
-
-  // There is actually an autoFocus property on button, but it doesn't work.
-  // Instead, this is the current workaround. See the following workaround:
-  // https://github.com/mui-org/material-ui/issues/3008#issuecomment-284223777
-  class CompleteButton extends React.Component {
-    componentDidMount() {
-      if (nextIdx === maxIdx) {
-        ReactDOM.findDOMNode(this.button).focus();
-      }
-    }
-
-    render() {
-      return (
-        <Button
-          onClick={complete}
-          color="primary"
-          variant="contained"
-          ref={(node) => (this.button = node)}
-        >
-          Complete
-        </Button>
-      );
-    }
-  }
-
-  return (
-    <Page title={template?.title} header={header} back under="home" db={db}>
-      <List>{items}</List>
-      <ButtonGroup>
-        {!repeatable?.completed && <CompleteButton />}
-        {repeatable?.completed && (
-          <Button onClick={uncomplete} color="primary" variant="contained">
-            Un-complete
-          </Button>
-        )}
-        <Button onClick={deleteRepeatable}>
-          <DeleteIcon />
-        </Button>
-      </ButtonGroup>
-    </Page>
-  );
 }
+RepeatableSlug.relevant = (state) => {
+  return state.docs.repeatable && state.docs.template;
+};
 
+export { RepeatableSlug };
 export default Repeatable;
