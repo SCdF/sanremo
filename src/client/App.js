@@ -80,7 +80,7 @@ function App() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <Page>
+      <Page db={handle}>
         <Routes>
           <Home db={handle} path="/" />
           <About db={handle} path="/about" />
