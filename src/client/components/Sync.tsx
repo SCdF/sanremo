@@ -1,5 +1,8 @@
 import axios from 'axios';
 
+import { update } from '../state/docsSlice';
+import { useDispatch } from 'react-redux';
+
 import { CircularProgress, IconButton, makeStyles } from '@material-ui/core';
 import SyncIcon from '@material-ui/icons/Sync';
 import { useState } from 'react';
@@ -25,6 +28,7 @@ const useStyles = makeStyles((theme) => ({
 
 function Sync(props: { db: PouchDB.Database }) {
   const classes = useStyles();
+  const dispatch = useDispatch();
   const [state, setState] = useState(State.idle);
   const [progress, setProgress] = useState(0);
 
@@ -111,6 +115,9 @@ function Sync(props: { db: PouchDB.Database }) {
             });
             debug('<- stored');
 
+            dispatch(update(result));
+            debug('<- state updated');
+
             docCount += batch.length;
             updateProgress();
           }
@@ -120,6 +127,7 @@ function Sync(props: { db: PouchDB.Database }) {
         // TODO: set sad icon here? (with sync action still attached)
       } finally {
         debug('finished');
+        // TODO: set finished icon here, that changes to idle after a time
         setState(State.idle);
       }
     } else {

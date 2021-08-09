@@ -3,6 +3,8 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import ReactMarkdown from 'react-markdown';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
+import { setRepeatable } from '../state/docsSlice';
+import { useSelector, useDispatch } from 'react-redux';
 
 import {
   Button,
@@ -34,8 +36,9 @@ const useStyles = makeStyles((theme) => ({
 function Repeatable(props) {
   const classes = useStyles();
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
-  const [repeatable, setRepeatable] = useState({});
+  const repeatable = useSelector((state) => state.docs.repeatable);
   const [template, setTemplate] = useState({});
 
   // Used for determining how complete / uncomplete function
@@ -84,17 +87,17 @@ function Repeatable(props) {
         const template = await db.get(repeatable.template);
         debug('post template load');
 
-        ReactDOM.unstable_batchedUpdates(() => {
-          setRepeatable(repeatable);
-          setTemplate(template);
-          setInitiallyOpen(!repeatable.completed);
-          setNextIdx(nextIdx);
-        });
+        // ReactDOM.unstable_batchedUpdates(() => {
+        dispatch(setRepeatable(repeatable));
+        setTemplate(template);
+        setInitiallyOpen(!repeatable.completed);
+        setNextIdx(nextIdx);
+        // });
       }
     }
 
     loadRepeatable();
-  }, [db, repeatableId, location, navigate]);
+  }, [dispatch, db, repeatableId, location, navigate]);
 
   async function deleteRepeatable() {
     const copy = Object.assign({}, repeatable);
@@ -115,7 +118,7 @@ function Repeatable(props) {
       navigate('/');
     } else {
       copy._rev = rev;
-      setRepeatable(copy);
+      dispatch(setRepeatable(copy));
     }
   }
 
@@ -125,7 +128,7 @@ function Repeatable(props) {
     delete copy.completed;
     const { rev } = await db.put(copy);
     copy._rev = rev;
-    setRepeatable(copy);
+    dispatch(setRepeatable(copy));
   }
 
   function handleToggle(idx) {
@@ -143,17 +146,25 @@ function Repeatable(props) {
 
       ReactDOM.unstable_batchedUpdates(() => {
         setEdited(true);
-        setRepeatable(copy);
+        dispatch(setRepeatable(copy));
         setNextIdx(copy.values[idx] ? idx + 1 : idx);
       });
     };
+  }
+
+  if (!repeatable) {
+    return (
+      <Page title="poop" back under="home" db={db}>
+        {/* put a throbber in here if we need to? */}
+      </Page>
+    );
   }
 
   debug(`Render: ${repeatable?._id} | ${template?._id} | ${initiallyOpen}`);
 
   const items = [];
 
-  const inputValues = repeatable.values;
+  const inputValues = repeatable?.values || [];
   const chunks = template.markdown?.split('\n') || [];
   let lastInputIdx = -1;
   let valueIdx = -1;
@@ -181,7 +192,7 @@ function Repeatable(props) {
           key={`value-${valueIdx}`}
           button
           onClick={handleToggle(valueIdx)}
-          disabled={!!repeatable.completed}
+          disabled={!!repeatable?.completed}
           autoFocus={valueIdx === nextIdx}
         >
           <ListItemIcon>
@@ -215,11 +226,13 @@ function Repeatable(props) {
 
   function changeSlug({ target }) {
     const copy = Object.assign({}, repeatable);
-    const value = ['date', 'timestamp'].includes(template.slug.type) ? new Date(target.value).getTime() : target.value;
+    const value = ['date', 'timestamp'].includes(template.slug.type)
+      ? new Date(target.value).getTime()
+      : target.value;
 
     copy.slug = value;
 
-    setRepeatable(copy);
+    dispatch(setRepeatable(copy));
   }
 
   async function storeSlugChange() {
@@ -227,7 +240,7 @@ function Repeatable(props) {
 
     const { rev } = await db.put(copy);
     copy._rev = rev;
-    setRepeatable(copy);
+    dispatch(setRepeatable(copy));
   }
 
   let slug;
@@ -274,7 +287,10 @@ function Repeatable(props) {
         (slugDate.getDate() + '').padStart(2, '0'),
       ].join('-') +
       'T' +
-      [(slugDate.getHours() + '').padStart(2, '0'), (slugDate.getMinutes() + '').padStart(2, '0')].join(':');
+      [
+        (slugDate.getHours() + '').padStart(2, '0'),
+        (slugDate.getMinutes() + '').padStart(2, '0'),
+      ].join(':');
 
     slug = (
       <Input
@@ -307,7 +323,12 @@ function Repeatable(props) {
 
     render() {
       return (
-        <Button onClick={complete} color="primary" variant="contained" ref={(node) => (this.button = node)}>
+        <Button
+          onClick={complete}
+          color="primary"
+          variant="contained"
+          ref={(node) => (this.button = node)}
+        >
           Complete
         </Button>
       );
@@ -318,8 +339,8 @@ function Repeatable(props) {
     <Page title={template?.title} header={header} back under="home" db={db}>
       <List>{items}</List>
       <ButtonGroup>
-        {!repeatable.completed && <CompleteButton />}
-        {repeatable.completed && (
+        {!repeatable?.completed && <CompleteButton />}
+        {repeatable?.completed && (
           <Button onClick={uncomplete} color="primary" variant="contained">
             Un-complete
           </Button>
