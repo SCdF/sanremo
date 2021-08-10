@@ -36,6 +36,17 @@ const sess: SessionOptions = {
 if (process.env.NODE_ENV === 'production') {
   app.set('trust proxy', 1);
   sess.cookie!.secure = true;
+
+  // Heroku-specific SSL work, other hosts may need different logic
+  app.use(function (req, res, next) {
+    if (req.headers['x-forwarded-proto'] !== 'https') {
+      res.set('location', `https://${req.hostname}${req.url}`);
+      res.status(301);
+      res.send();
+    } else {
+      next();
+    }
+  });
 }
 
 if (process.env.DATABASE_URL) {
@@ -46,7 +57,9 @@ app.use(session(sess));
 
 app.post('/api/auth', async function (req, res) {
   const { username, password } = req.body;
-  const result = await db.query('select id, password from users where username = $1::text', [username]);
+  const result = await db.query('select id, password from users where username = $1::text', [
+    username,
+  ]);
 
   if (result?.rows.length === 1) {
     const id = result.rows[0].id;
