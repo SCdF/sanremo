@@ -13,7 +13,6 @@ const app = express();
 
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
-app.use(express.static('build'));
 
 if (process.env.NODE_ENV === 'production' && !process.env.SECRET) {
   console.error('Production deployment but no SECRET defined!');
@@ -39,7 +38,7 @@ if (process.env.NODE_ENV === 'production') {
 
   // Heroku-specific SSL work, other hosts may need different logic
   app.use(function (req, res, next) {
-    console.log(JSON.stringify(req.headers));
+    console.log('use', JSON.stringify(req.headers));
 
     if (req.headers['x-forwarded-proto'] !== 'https') {
       res.set('location', `https://${req.hostname}${req.url}`);
@@ -50,6 +49,8 @@ if (process.env.NODE_ENV === 'production') {
     }
   });
 }
+
+app.use(express.static('build'));
 
 if (process.env.DATABASE_URL) {
   sess.store = new pgSession({ pool: db });
@@ -117,6 +118,7 @@ app.get('/api/deployment', function (req, res) {
 syncRoutes(app);
 
 app.get('/*', function (req, res) {
+  console.log('catch all', JSON.stringify(req.headers));
   const index = new URL('../../build/index.html', import.meta.url).pathname;
   res.sendFile(index);
 });

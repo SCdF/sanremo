@@ -1,8 +1,11 @@
 import { Button, Container, FormHelperText, TextField } from '@material-ui/core';
 import { useState } from 'react';
+import { useDispatch } from 'react-redux';
 
-function Login(props) {
-  const { setLoggedInUser } = props;
+import { set as setLoggedInUser } from '../state/userSlice';
+
+function Login() {
+  const dispatch = useDispatch();
 
   const [username, setUsername] = useState();
   const [password, setPassword] = useState();
@@ -26,8 +29,6 @@ function Login(props) {
       body: JSON.stringify({ username, password }),
     }).catch((err) => ({ status: 404 }));
 
-    console.log(JSON.stringify(response));
-
     if (response.status === 400) {
       return setError('Cannot find server. Offline?');
     }
@@ -42,7 +43,7 @@ function Login(props) {
 
     // In theory we're all good now?
     const data = await response.json();
-    setLoggedInUser(data.user);
+    dispatch(setLoggedInUser(data.user));
   }
 
   return (
