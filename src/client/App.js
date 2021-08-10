@@ -70,7 +70,7 @@ function App() {
     return (
       <ThemeProvider theme={theme}>
         <CssBaseline />
-        <Login setLoggedInUser={setLoggedInUser} />
+        <Login />
       </ThemeProvider>
     );
   }
