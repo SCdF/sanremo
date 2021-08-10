@@ -11,9 +11,6 @@ import { db } from './db';
 
 const app = express();
 
-app.use(express.urlencoded({ extended: true }));
-app.use(express.json());
-
 if (process.env.NODE_ENV === 'production' && !process.env.SECRET) {
   console.error('Production deployment but no SECRET defined!');
   process.exit(-1);
@@ -38,8 +35,6 @@ if (process.env.NODE_ENV === 'production') {
 
   // Heroku-specific SSL work, other hosts may need different logic
   app.use(function (req, res, next) {
-    console.log('use', JSON.stringify(req.headers));
-
     if (req.headers['x-forwarded-proto'] !== 'https') {
       res.set('location', `https://${req.hostname}${req.url}`);
       res.status(301);
@@ -50,6 +45,8 @@ if (process.env.NODE_ENV === 'production') {
   });
 }
 
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
 app.use(express.static('build'));
 
 if (process.env.DATABASE_URL) {
