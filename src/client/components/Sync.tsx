@@ -7,7 +7,7 @@ import PageVisibility from 'react-page-visibility';
 
 import { CircularProgress, IconButton, makeStyles } from '@material-ui/core';
 import SyncIcon from '@material-ui/icons/Sync';
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { Doc, DocStub } from '../../server/types';
 import { Requests } from '../../server/sync/types';
@@ -164,6 +164,7 @@ function Sync(props: { db: PouchDB.Database }) {
         debug(`app waited, only ${since / 1000} seconds since last sync, not syncing`);
       }
     }, PERIODIC_WAIT_BUFFER);
+    // we want this to be run once
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
