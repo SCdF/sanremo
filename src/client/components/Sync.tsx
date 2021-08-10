@@ -3,9 +3,11 @@ import axios from 'axios';
 import { update } from '../state/docsSlice';
 import { useDispatch } from 'react-redux';
 
+import PageVisibility from 'react-page-visibility';
+
 import { CircularProgress, IconButton, makeStyles } from '@material-ui/core';
 import SyncIcon from '@material-ui/icons/Sync';
-import { useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 import { Doc, DocStub } from '../../server/types';
 import { Requests } from '../../server/sync/types';
@@ -15,6 +17,9 @@ const debug = require('debug')('sanremo:client:sync');
 require('debug').enable('sanremo:client:sync');
 
 const BATCH_SIZE = 20;
+const VISIBLE_WAIT_BUFFER = 1000 * 60; // one minute
+const PERIODIC_WAIT_BUFFER = 1000 * 60 * 5; // five minutes
+
 enum State {
   idle,
   syncing,
@@ -31,6 +36,7 @@ function Sync(props: { db: PouchDB.Database }) {
   const dispatch = useDispatch();
   const [state, setState] = useState(State.idle);
   const [progress, setProgress] = useState(0);
+  const [lastRan, setLastRan] = useState(0);
 
   const { db } = props;
 
@@ -137,27 +143,59 @@ function Sync(props: { db: PouchDB.Database }) {
         debug('finished');
         // TODO: set finished icon here, that changes to idle after a time
         setState(State.idle);
+        // TODO: maybe only if it completed successfully?
+        setLastRan(Date.now());
       }
     } else {
-      // TODO: cancel here?
+      // TODO: cancel here? Differentiate between automated and manual
+    }
+  };
+
+  useEffect(() => {
+    debug('app booted, syncing');
+    handleSync();
+
+    setInterval(() => {
+      const since = Date.now() - lastRan;
+      if (since > PERIODIC_WAIT_BUFFER) {
+        debug(`app waited, ${since / 1000} seconds since last sync, syncing`);
+        handleSync();
+      } else {
+        debug(`app waited, only ${since / 1000} seconds since last sync, not syncing`);
+      }
+    }, PERIODIC_WAIT_BUFFER);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const handleVisibilityChange = async function (isVisible: boolean) {
+    if (isVisible) {
+      const since = Date.now() - lastRan;
+      if (since > VISIBLE_WAIT_BUFFER) {
+        debug(`app visible, ${since / 1000} seconds since last sync, syncing`);
+        handleSync();
+      } else {
+        debug(`app visible, only ${since / 1000} seconds since last sync, not syncing`);
+      }
     }
   };
 
   return (
-    <IconButton color="inherit" onClick={handleSync}>
-      <SyncIcon />
-      {state === State.syncing && (
-        <CircularProgress color="secondary" className={classes.progress} size="30px" />
-      )}
-      {state === State.syncing && (
-        <CircularProgress
-          color="secondary"
-          variant="determinate"
-          value={progress}
-          className={classes.progress}
-        />
-      )}
-    </IconButton>
+    <PageVisibility onChange={handleVisibilityChange}>
+      <IconButton color="inherit" onClick={handleSync}>
+        <SyncIcon />
+        {state === State.syncing && (
+          <CircularProgress color="secondary" className={classes.progress} size="30px" />
+        )}
+        {state === State.syncing && (
+          <CircularProgress
+            color="secondary"
+            variant="determinate"
+            value={progress}
+            className={classes.progress}
+          />
+        )}
+      </IconButton>
+    </PageVisibility>
   );
 }
 

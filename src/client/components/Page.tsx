@@ -137,7 +137,7 @@ function Page(props: { db: PouchDB.Database; children: React.ReactNode }) {
           )}
           <Typography variant="h6">{title}</Typography>
           <div className={classes.grow} />
-          <Sync db={db} />
+          {process.env.NODE_ENV === 'production' && <Sync db={db} />}
           <IconButton edge="end" color="inherit" onClick={handleMenuOpen}>
             <AccountCircle />
           </IconButton>
