@@ -41,15 +41,19 @@ function Sync(props: { db: PouchDB.Database }) {
         setState(State.syncing);
         setProgress(0);
 
-        // Get the docs we have locally
-        const docs = await db.allDocs();
-        const stubs: DocStub[] = docs.rows
+        // Get the docs we have locally. The only way to see deleted documents with PouchDB
+        // is with the changes feed to get all ids, then pass them as keys to allDocs
+        const changes = await db.changes({
+          // since: 0,
+        });
+        const stubs: DocStub[] = changes.results
           .filter((row) => !row.id.startsWith('_design/'))
           .map((row) => {
             return {
               _id: row.id,
-              _rev: row.value.rev,
-              _deleted: row.value.deleted,
+              // FIXME: work out if I ever need to care about more than one change
+              _rev: row.changes[0].rev,
+              _deleted: row.deleted,
             };
           });
         debug(`locally we have ${stubs.length} docs`);
@@ -61,7 +65,9 @@ function Sync(props: { db: PouchDB.Database }) {
             docs: stubs,
           })
           .then(({ data }) => data);
-        debug(`the server needs ${serverState.server.length}, we need ${serverState.client.length}`);
+        debug(
+          `the server needs ${serverState.server.length}, we need ${serverState.client.length}`
+        );
 
         const docTotal = serverState.client.length + serverState.server.length;
         if (docTotal > 0) {
@@ -89,7 +95,9 @@ function Sync(props: { db: PouchDB.Database }) {
 
             await axios
               .post('/api/sync/update', {
-                docs: result.rows.map((r) => r.doc),
+                docs: result.rows.map(
+                  (r) => r.doc || { _id: r.id, _rev: r.value.rev, _deleted: r.value.deleted }
+                ),
               })
               .then(({ data }) => data);
             debug('-> sent');
@@ -138,9 +146,16 @@ function Sync(props: { db: PouchDB.Database }) {
   return (
     <IconButton color="inherit" onClick={handleSync}>
       <SyncIcon />
-      {state === State.syncing && <CircularProgress color="secondary" className={classes.progress} size="30px" />}
       {state === State.syncing && (
-        <CircularProgress color="secondary" variant="determinate" value={progress} className={classes.progress} />
+        <CircularProgress color="secondary" className={classes.progress} size="30px" />
+      )}
+      {state === State.syncing && (
+        <CircularProgress
+          color="secondary"
+          variant="determinate"
+          value={progress}
+          className={classes.progress}
+        />
       )}
     </IconButton>
   );

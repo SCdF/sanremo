@@ -6,7 +6,7 @@ import { DocStub, Doc, User } from '../types';
 
 // const debug = debugLib.debug("sanremo:server:sync");
 
-async function declare(user: User, stubs: DocStub[]): Promise<Requests> {
+async function declare(user: User, clientStubs: DocStub[]): Promise<Requests> {
   const toReturn: Requests = {
     server: [],
     client: [],
@@ -15,7 +15,7 @@ async function declare(user: User, stubs: DocStub[]): Promise<Requests> {
   const serverDocs: DocStub[] = await getStubsForUser(user);
 
   const serverDocsById = new Map(serverDocs.map((d) => [d._id, d]));
-  const userDocsById = new Map(stubs.map((d) => [d._id, d]));
+  const userDocsById = new Map(clientStubs.map((d) => [d._id, d]));
 
   for (const doc of serverDocs) {
     if (!userDocsById.has(doc._id)) {
@@ -34,9 +34,9 @@ async function declare(user: User, stubs: DocStub[]): Promise<Requests> {
     } // TODO: deal with rev numbers being the same but hash being different (ie, conflict)
   }
 
-  for (const doc of stubs) {
-    if (!serverDocsById.has(doc._id)) {
-      toReturn.server.push(doc);
+  for (const stub of clientStubs) {
+    if (!serverDocsById.has(stub._id)) {
+      toReturn.server.push(stub);
     }
   }
 
