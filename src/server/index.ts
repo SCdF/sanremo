@@ -39,6 +39,8 @@ if (process.env.NODE_ENV === 'production') {
 
   // Heroku-specific SSL work, other hosts may need different logic
   app.use(function (req, res, next) {
+    console.log(JSON.stringify(req.headers));
+
     if (req.headers['x-forwarded-proto'] !== 'https') {
       res.set('location', `https://${req.hostname}${req.url}`);
       res.status(301);
