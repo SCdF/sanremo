@@ -6,38 +6,58 @@ import { DocStub, Doc, User } from '../types';
 
 // const debug = debugLib.debug("sanremo:server:sync");
 
-async function declare(user: User, clientStubs: DocStub[]): Promise<Requests> {
+async function begin(user: User, clientStubs: DocStub[]): Promise<Requests> {
   const toReturn: Requests = {
     server: [],
     client: [],
   };
 
-  const serverDocs: DocStub[] = await getStubsForUser(user);
+  const serverStubs: DocStub[] = await getStubsForUser(user);
 
-  const serverDocsById = new Map(serverDocs.map((d) => [d._id, d]));
-  const userDocsById = new Map(clientStubs.map((d) => [d._id, d]));
+  const serverStubsById = new Map(serverStubs.map((d) => [d._id, d]));
+  const clientStubsById = new Map(clientStubs.map((d) => [d._id, d]));
 
-  for (const doc of serverDocs) {
-    if (!userDocsById.has(doc._id)) {
-      toReturn.client.push(doc);
+  const toDelete = [];
+
+  for (const serverStub of serverStubs) {
+    if (!clientStubsById.has(serverStub._id)) {
+      toReturn.client.push(serverStub);
       continue;
     }
-    const userDoc: Doc = userDocsById.get(doc._id)!;
 
-    const serverDocRev = Number(doc._rev.split('-')[0]);
-    const userDocRev = Number(userDoc._rev.split('-')[0]);
+    const clientStub: DocStub = clientStubsById.get(serverStub._id)!;
 
-    if (serverDocRev > userDocRev) {
-      toReturn.client.push(doc);
-    } else if (userDocRev > serverDocRev) {
-      toReturn.server.push(userDoc);
+    if (clientStub._deleted) {
+      toDelete.push(clientStub);
+      continue;
+    }
+    if (serverStub._deleted) {
+      toReturn.client.push(serverStub);
+      continue;
+    }
+
+    const serverRev = Number(serverStub._rev.split('-')[0]);
+    const clientRev = Number(clientStub._rev.split('-')[0]);
+
+    if (serverRev > clientRev) {
+      toReturn.client.push(serverStub);
+    } else if (clientRev > serverRev) {
+      toReturn.server.push(clientStub);
     } // TODO: deal with rev numbers being the same but hash being different (ie, conflict)
   }
 
   for (const stub of clientStubs) {
-    if (!serverDocsById.has(stub._id)) {
-      toReturn.server.push(stub);
+    if (!serverStubsById.has(stub._id)) {
+      if (stub._deleted) {
+        toDelete.push(stub);
+      } else {
+        toReturn.server.push(stub);
+      }
     }
+  }
+
+  if (toDelete.length) {
+    await putDocs(user, toDelete);
   }
 
   return toReturn;
@@ -60,7 +80,7 @@ async function update(user: User, docs: Doc[]): Promise<void> {
 }
 
 const sync = {
-  declare,
+  begin,
   request,
   update,
 };

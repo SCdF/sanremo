@@ -10,7 +10,7 @@ const mockPutDocs = putDocs as jest.MockedFunction<typeof putDocs>;
 
 const user = { name: 'test', id: 1 };
 
-describe('declare', () => {
+describe('begin', () => {
   it('works correctly', async () => {
     const newToServer = { _id: 'doc new to server', _rev: '1-abc' };
     const newToClient = { _id: 'doc new to client', _rev: '1-abc' };
@@ -53,13 +53,50 @@ describe('declare', () => {
 
     mockGetStubsForUser.mockResolvedValue(serverDocs);
 
-    const result = await sync.declare(user, userDocs);
+    const result = await sync.begin(user, userDocs);
 
     expect(mockGetStubsForUser).toBeCalledTimes(1);
     expect(mockGetStubsForUser).lastCalledWith(user);
     expect(result).toEqual({
       server: [userDocNewerThanServerFromClient, newToServer],
       client: [newToClient, serverDocNewerThanUserFromServer],
+    });
+  });
+
+  describe('deletes', () => {
+    it('rights deletes for new documents', async () => {
+      const clientDocs = [{ _id: 'to be deleted', _rev: '1-abc', _deleted: true }];
+      mockGetStubsForUser.mockResolvedValue([]);
+
+      const results = await sync.begin(user, clientDocs);
+
+      expect(results.client.length).toBe(0);
+      expect(results.server.length).toBe(0);
+      expect(mockPutDocs).toBeCalledTimes(1);
+      expect(mockPutDocs).toBeCalledWith(user, clientDocs);
+    });
+    it('writes deletes over existing documents', async () => {
+      const clientDocs = [{ _id: 'to be deleted', _rev: '2-abc', _deleted: true }];
+      const serverDocs = [{ _id: 'to be deleted', _rev: '1-abc' }];
+      mockGetStubsForUser.mockResolvedValue(serverDocs);
+
+      const results = await sync.begin(user, clientDocs);
+
+      expect(results.client.length).toBe(0);
+      expect(results.server.length).toBe(0);
+      expect(mockPutDocs).toBeCalledTimes(1);
+      expect(mockPutDocs).toBeCalledWith(user, clientDocs);
+    });
+    it('ignores client writes if a delete exists on the server, return that delete', async () => {
+      const clientDocs = [{ _id: 'to be deleted', _rev: '2-abc' }];
+      const serverDocs = [{ _id: 'to be deleted', _rev: '1-abc', _deleted: true }];
+      mockGetStubsForUser.mockResolvedValue(serverDocs);
+
+      const results = await sync.begin(user, clientDocs);
+
+      expect(results.client.length).toBe(1);
+      expect(results.client).toEqual(serverDocs);
+      expect(results.server.length).toBe(0);
     });
   });
 });

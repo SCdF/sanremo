@@ -24,6 +24,8 @@ export default function db(loggedInUser: User) {
       fields: ['template'],
     },
   });
+  // @ts-ignore
+  window.db = db;
   // TODO: add index for finding via slug
   return db;
 }

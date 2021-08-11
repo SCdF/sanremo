@@ -9,7 +9,7 @@ import { CircularProgress, IconButton, makeStyles } from '@material-ui/core';
 import SyncIcon from '@material-ui/icons/Sync';
 import { useEffect, useState } from 'react';
 
-import { Doc, DocStub } from '../../server/types';
+import { Doc, DocId, DocStub } from '../../server/types';
 import { Requests } from '../../server/sync/types';
 
 const debug = require('debug')('sanremo:client:sync');
@@ -67,7 +67,7 @@ function Sync(props: { db: PouchDB.Database }) {
         // Work out the difference between us and the server
         debug('checking with the server');
         const serverState: Requests = await axios
-          .post('/api/sync/declare', {
+          .post('/api/sync/begin', {
             docs: stubs,
           })
           .then(({ data }) => data);
@@ -81,7 +81,7 @@ function Sync(props: { db: PouchDB.Database }) {
 
           const updateProgress = () => {
             const percent = (docCount / docTotal) * 100;
-            debug(`> ${percent} <`);
+            debug(`~${percent}% complete`);
             setProgress(percent);
           };
 
@@ -117,9 +117,41 @@ function Sync(props: { db: PouchDB.Database }) {
             const batch = serverState.client.splice(0, BATCH_SIZE);
             debug(`<- preparing ${batch.length}`);
 
+            // FIXME: https://github.com/pouchdb/pouchdb/issues/7841 means we have to performed deletes
+            // specifically, instead of generically alongside other writes
+            // This also means that the server has to treat deletes specifically, otherwise the
+            // revs that increments here will cause an infinite loop with other clients. On the server
+            // revs on deleted documents are ignored and they are all considered the same
+            const { deleteIds, writes } = batch.reduce(
+              (acc, doc) => {
+                if (doc._deleted) {
+                  acc.deleteIds.push(doc._id);
+                } else {
+                  acc.writes.push(doc);
+                }
+                return acc;
+              },
+              { deleteIds: [] as DocId[], writes: [] as DocStub[] }
+            );
+
+            if (deleteIds.length) {
+              const deleteResults = await db.allDocs({ keys: deleteIds });
+              const deletedDocs = deleteResults.rows.map((row) => ({
+                _id: row.key,
+                // If the client doesn't have this document, the row will have
+                //error: "not_found"
+                // and no _rev.
+                _rev: row?.value?.rev,
+                _deleted: true,
+              }));
+
+              await db.bulkDocs(deletedDocs);
+              debug('<- deleted deletes');
+            }
+
             const result: Doc[] = await axios
               .post('/api/sync/request', {
-                docs: batch,
+                docs: writes,
               })
               .then(({ data }) => data);
             debug('<- got server');

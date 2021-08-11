@@ -8,8 +8,8 @@ import sync from './sync';
  * Minimal syncing support to avoid having to install CouchDB on a server.
  *
  * How it works:
- *  - The CLIENT calls /declare, passing a collection of stubs containing a
- * stub for every document the CLIENT has.
+ *  - The CLIENT calls /begin, passing a collection of stubs containing a
+ * stub for every document the CLIENT has. If the SERVER needs to delete a document it will do so here
  *  - The SERVER returns two stub collections: documents that the CLIENT should
  * request from the SERVER, and documents the CLIENT should send to the SERVER
  *  - The CLIENT performs this (with batching) using /request to get documents
@@ -19,18 +19,17 @@ import sync from './sync';
  *  - Very heavy. Is essentially a dumb "full sync" every time.
  *  - No intelligence in regard to conflicts. We are picking the biggest rev
  * as the winner, which can obviously be deeply wrong
- *  - We are potentially non optimal around deletes, as we just store them like
- * normal
+ *  - Deletes just get deleted, rev and other data does not matter. DELETES ALWAYS WIN
  *  - Does not support attachments
  */
 export default function routes(app: Router) {
-  app.post('/api/sync/declare', async function (req, res) {
+  app.post('/api/sync/begin', async function (req, res) {
     try {
       const stubs = req.body.docs || [];
-      const results = await sync.declare(req.session.user as User, stubs);
+      const results = await sync.begin(req.session.user as User, stubs);
       res.json(results);
     } catch (error) {
-      console.log('Unexpected error on /api/sync/declare', error);
+      console.log('Unexpected error on /api/sync/begin', error);
       res.status(500);
       res.end();
     }
