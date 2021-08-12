@@ -1,6 +1,6 @@
 import { getDocs, getStubsForUser, putDocs } from './db';
 import { Requests } from './types';
-import { DocStub, Doc, User } from '../types';
+import { DocStub, Doc, User } from '../../shared/types';
 
 // import * as debugLib from "debug";
 
@@ -36,8 +36,8 @@ async function begin(user: User, clientStubs: DocStub[]): Promise<Requests> {
       continue;
     }
 
-    const serverRev = Number(serverStub._rev.split('-')[0]);
-    const clientRev = Number(clientStub._rev.split('-')[0]);
+    const serverRev = Number(serverStub?._rev?.split('-')[0]);
+    const clientRev = Number(clientStub?._rev?.split('-')[0]);
 
     if (serverRev > clientRev) {
       toReturn.client.push(serverStub);

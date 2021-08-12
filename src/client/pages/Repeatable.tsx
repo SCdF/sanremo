@@ -1,9 +1,8 @@
-import { Fragment, useEffect, useState } from 'react';
+import { ChangeEvent, Fragment, useEffect, useState } from 'react';
 import React from 'react';
 import ReactDOM from 'react-dom';
 import ReactMarkdown from 'react-markdown';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { useSelector, useDispatch } from 'react-redux';
 
 import {
   Button,
@@ -24,6 +23,8 @@ import qs from 'qs';
 import { setRepeatable } from '../state/docsSlice';
 import { setTemplate } from '../state/docsSlice';
 import { set as setContext } from '../state/pageSlice';
+import { RootState, useDispatch, useSelector } from '../store';
+import { RepeatableDoc, TemplateDoc } from '../../shared/types';
 
 const debug = require('debug')('sanremo:client:repeatable');
 
@@ -34,7 +35,7 @@ const slugStyle = makeStyles((theme) => ({
   },
 }));
 
-function Repeatable(props) {
+function Repeatable(props: { db: PouchDB.Database }) {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
@@ -46,8 +47,8 @@ function Repeatable(props) {
   const [edited, setEdited] = useState(false); // Have we made changes to the repeatable
 
   // Used for auto-focus (hammer spacebar to tick everything and close)
-  const [nextIdx, setNextIdx] = useState(); // the next index that the user should focus on
-  const [maxIdx, setMaxIdx] = useState(); // the maximum index of fields the user can focus on
+  const [nextIdx, setNextIdx] = useState(undefined as unknown as number); // the next index that the user should focus on
+  const [maxIdx, setMaxIdx] = useState(undefined as unknown as number); // the maximum index of fields the user can focus on
 
   const location = useLocation();
 
@@ -57,26 +58,32 @@ function Repeatable(props) {
   useEffect(() => {
     async function loadRepeatable() {
       if (repeatableId === 'new') {
-        const templateId = qs.parse(location.search, { ignoreQueryPrefix: true }).template;
-        const template = await db.get(templateId);
+        const templateId = qs.parse(location.search, { ignoreQueryPrefix: true })
+          .template as string;
+        const template: TemplateDoc = await db.get(templateId);
 
-        const repeatable = {
+        let created, updated, slug;
+        created = updated = Date.now();
+        if (['date', 'timestamp'].includes(template.slug.type)) {
+          slug = Date.now();
+        } else {
+          // if (['url', 'string'].includes(template.slug.type)) {
+          slug = '';
+        }
+        const repeatable: RepeatableDoc = {
           _id: `repeatable:instance:${uuid()}`,
           template: templateId,
           values: template.values,
+          created,
+          updated,
+          slug,
         };
-        repeatable.created = repeatable.updated = Date.now();
-        if (['url', 'string'].includes(template.slug.type)) {
-          repeatable.slug = '';
-        } else if (['date', 'timestamp'].includes(template.slug.type)) {
-          repeatable.slug = Date.now();
-        }
 
         await db.put(repeatable);
         navigate(`/repeatable/${repeatable._id}`, { replace: true });
       } else {
         debug('pre repeatable load');
-        const repeatable = await db.get(repeatableId);
+        const repeatable: RepeatableDoc = await db.get(repeatableId);
         // repeatable.values ??= [];
         repeatable.values = repeatable.values || [];
 
@@ -84,7 +91,7 @@ function Repeatable(props) {
         if (nextIdx === -1) nextIdx = repeatable.values.length;
 
         debug('post repeatable load, pre template load');
-        const template = await db.get(repeatable.template);
+        const template: TemplateDoc = await db.get(repeatable.template);
         debug('post template load');
 
         ReactDOM.unstable_batchedUpdates(() => {
@@ -105,8 +112,8 @@ function Repeatable(props) {
 
     loadRepeatable();
     return () => {
-      dispatch(setRepeatable());
-      dispatch(setTemplate());
+      dispatch(setRepeatable(undefined));
+      dispatch(setTemplate(undefined));
     };
   }, [dispatch, db, repeatableId, location, navigate]);
 
@@ -142,7 +149,7 @@ function Repeatable(props) {
     dispatch(setRepeatable(copy));
   }
 
-  function handleToggle(idx) {
+  function handleToggle(idx: number) {
     return async () => {
       const now = Date.now();
       const copy = Object.assign({}, repeatable);
@@ -172,7 +179,7 @@ function Repeatable(props) {
   const items = [];
 
   const inputValues = repeatable?.values || [];
-  const chunks = template.markdown?.split('\n') || [];
+  const chunks: string[] = template.markdown?.split('\n') || [];
   let lastInputIdx = -1;
   let valueIdx = -1;
   chunks.forEach((chunk, chunkIdx) => {
@@ -203,7 +210,7 @@ function Repeatable(props) {
           autoFocus={valueIdx === nextIdx}
         >
           <ListItemIcon>
-            <Checkbox checked={!!checked} edge="start" tabIndex="-1" />
+            <Checkbox checked={!!checked} edge="start" tabIndex={-1} />
           </ListItemIcon>
           <ListItemText>
             <ReactMarkdown renderers={{ paragraph: 'span' }}>{text}</ReactMarkdown>
@@ -229,14 +236,13 @@ function Repeatable(props) {
     setMaxIdx(valueIdx + 1);
   }
 
-  debug('chunks computed, ready to render');
-
   // There is actually an autoFocus property on button, but it doesn't work.
   // Instead, this is the current workaround. See the following workaround:
   // https://github.com/mui-org/material-ui/issues/3008#issuecomment-284223777
   class CompleteButton extends React.Component {
     componentDidMount() {
       if (nextIdx === maxIdx) {
+        //@ts-ignore
         ReactDOM.findDOMNode(this.button).focus();
       }
     }
@@ -247,6 +253,7 @@ function Repeatable(props) {
           onClick={complete}
           color="primary"
           variant="contained"
+          //@ts-ignore
           ref={(node) => (this.button = node)}
         >
           Complete
@@ -254,6 +261,8 @@ function Repeatable(props) {
       );
     }
   }
+
+  debug('chunks computed, ready to render');
 
   return (
     <Fragment>
@@ -273,7 +282,7 @@ function Repeatable(props) {
   );
 }
 
-function RepeatableSlug(props) {
+function RepeatableSlug(props: { db: PouchDB.Database }) {
   const classes = slugStyle();
   const dispatch = useDispatch();
 
@@ -282,11 +291,13 @@ function RepeatableSlug(props) {
   const repeatable = useSelector((state) => state.docs.repeatable);
   const template = useSelector((state) => state.docs.template);
 
-  function changeSlug({ target }) {
+  function changeSlug({ target }: ChangeEvent) {
     const copy = Object.assign({}, repeatable);
+    // @ts-ignore FIXME: check if nodeValue works
+    const targetValue = target.value;
     const value = ['date', 'timestamp'].includes(template.slug.type)
-      ? new Date(target.value).getTime()
-      : target.value;
+      ? new Date(targetValue).getTime()
+      : targetValue;
 
     copy.slug = value;
 
@@ -369,7 +380,7 @@ function RepeatableSlug(props) {
     </div>
   );
 }
-RepeatableSlug.relevant = (state) => {
+RepeatableSlug.relevant = (state: RootState) => {
   return state.docs.repeatable && state.docs.template;
 };
 

@@ -2,10 +2,12 @@ import { configureStore } from '@reduxjs/toolkit';
 import userReducer from './state/userSlice';
 import docsSlice from './state/docsSlice';
 import pageSlice from './state/pageSlice';
+import * as RR from 'react-redux';
+import syncSlice from './state/syncSlice';
 
 function createStore() {
   return configureStore({
-    reducer: { user: userReducer, docs: docsSlice, page: pageSlice },
+    reducer: { user: userReducer, docs: docsSlice, page: pageSlice, sync: syncSlice },
     // devTools: process.env.NODE_ENV !== 'production',
   });
 }
@@ -14,5 +16,9 @@ const store = createStore();
 export default store;
 
 export { createStore };
+// FIXME: we expose createStore for tests, but we should probably scope these to createStore?
 export type RootState = ReturnType<typeof store.getState>;
 export type AppDispatch = typeof store.dispatch;
+
+export const useSelector: RR.TypedUseSelectorHook<RootState> = RR.useSelector;
+export const useDispatch = () => RR.useDispatch<AppDispatch>();

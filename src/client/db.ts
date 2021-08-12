@@ -1,6 +1,8 @@
 import PouchDB from 'pouchdb-browser';
 import pdbFind from 'pouchdb-find';
-import { User } from '../server/types';
+import { User } from '../shared/types';
+import { markStale } from './state/syncSlice';
+import store from './store';
 PouchDB.plugin(pdbFind);
 
 export default function db(loggedInUser: User) {
@@ -24,6 +26,15 @@ export default function db(loggedInUser: User) {
       fields: ['template'],
     },
   });
+
+  db.changes({ live: true, include_docs: true, since: 'now' }).on('change', (change) => {
+    const doc = change.doc
+      ? change.doc
+      : { _id: change.id, _rev: change.changes[0].rev, _deleted: true };
+
+    store.dispatch(markStale(doc));
+  });
+
   // @ts-ignore
   window.db = db;
   // TODO: add index for finding via slug

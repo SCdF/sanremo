@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 import { update } from '../state/docsSlice';
-import { useDispatch } from 'react-redux';
+import { cleanStale, cleanStaleAll } from '../state/syncSlice';
 
 import PageVisibility from 'react-page-visibility';
 
@@ -9,16 +9,18 @@ import { CircularProgress, IconButton, makeStyles } from '@material-ui/core';
 import SyncIcon from '@material-ui/icons/Sync';
 import { useEffect, useState } from 'react';
 
-import { Doc, DocId, DocStub } from '../../server/types';
+import { Doc, DocId, DocStub } from '../../shared/types';
 import { Requests } from '../../server/sync/types';
+import { useDispatch, useSelector } from '../store';
 
 const debug = require('debug')('sanremo:client:sync');
 
 require('debug').enable('sanremo:client:sync');
 
 const BATCH_SIZE = 20;
-const VISIBLE_WAIT_BUFFER = 1000 * 60; // one minute
-const PERIODIC_WAIT_BUFFER = 1000 * 60 * 5; // five minutes
+const VISIBLE_WAIT_BUFFER = 1000 * 60;
+const PERIODIC_WAIT_BUFFER = 1000 * 60 * 5;
+const STALE_WAIT_BUFFER = 1000 * 5;
 
 enum State {
   idle,
@@ -34,18 +36,51 @@ const useStyles = makeStyles((theme) => ({
 function Sync(props: { db: PouchDB.Database }) {
   const classes = useStyles();
   const dispatch = useDispatch();
+  const stale = useSelector((state) => state.sync.stale);
+
+  const [staleHandle, setTimeoutHandle] = useState(undefined as unknown as NodeJS.Timeout);
   const [state, setState] = useState(State.idle);
   const [progress, setProgress] = useState(0);
   const [lastRan, setLastRan] = useState(0);
 
   const { db } = props;
 
+  useEffect(() => {
+    if (!Object.values(stale).length) {
+      return;
+    }
+
+    debug(`${Object.values(stale).length} stale docs, priming server update`);
+
+    clearTimeout(staleHandle);
+    setTimeoutHandle(
+      setTimeout(async () => {
+        const docs = Object.values(stale);
+        debug(`stale server update for ${docs.length} docs`);
+
+        await axios.post('/api/sync/update', {
+          docs,
+        });
+
+        debug(`server update sent for ${docs.length} stale docs`);
+
+        dispatch(cleanStale(docs));
+      }, STALE_WAIT_BUFFER)
+    );
+    // timeoutHandle changes should not fire this effect, otherwise it would be an infinite loop
+    // of clearing and setting the time out
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [stale]);
+
   const handleSync = async function () {
     if (state === State.idle) {
       try {
-        debug('starting sync');
+        debug('starting full sync');
         setState(State.syncing);
         setProgress(0);
+        // wipe the stale queue
+        clearTimeout(staleHandle);
+        dispatch(cleanStaleAll());
 
         // Get the docs we have locally. The only way to see deleted documents with PouchDB
         // is with the changes feed to get all ids, then pass them as keys to allDocs
@@ -99,13 +134,11 @@ function Sync(props: { db: PouchDB.Database }) {
             });
             debug('-> got local');
 
-            await axios
-              .post('/api/sync/update', {
-                docs: result.rows.map(
-                  (r) => r.doc || { _id: r.id, _rev: r.value.rev, _deleted: r.value.deleted }
-                ),
-              })
-              .then(({ data }) => data);
+            await axios.post('/api/sync/update', {
+              docs: result.rows.map(
+                (r) => r.doc || { _id: r.id, _rev: r.value.rev, _deleted: r.value.deleted }
+              ),
+            });
             debug('-> sent');
 
             docCount += batch.length;

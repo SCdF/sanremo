@@ -1,4 +1,4 @@
-import { DocStub } from '../types';
+import { DocStub } from '../../shared/types';
 
 // List of docs that the SERVER needs and the CLIENT needs
 // So, the client should request the documents declared under 'client',

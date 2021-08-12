@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { User } from '../types';
+import { User } from '../../shared/types';
 import sync from './sync';
 
 /**

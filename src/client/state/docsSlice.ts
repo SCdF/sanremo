@@ -1,11 +1,11 @@
 import { createSlice } from '@reduxjs/toolkit';
-import { Doc } from '../../server/types';
+import { Doc, RepeatableDoc, TemplateDoc } from '../../shared/types';
 
 export const docsSlice = createSlice({
   name: 'docs',
   initialState: {
-    repeatable: undefined as unknown as Doc,
-    template: undefined as unknown as Doc,
+    repeatable: undefined as unknown as RepeatableDoc,
+    template: undefined as unknown as TemplateDoc,
     /**
      * Trigger to refresh lists. In the future we could more intelligently detect
      * if a list has to be refreshed, but that involves the list-filtering logic
@@ -25,12 +25,12 @@ export const docsSlice = createSlice({
       const updatedDocs: Doc[] = action.payload;
       for (const doc of updatedDocs) {
         if (state.repeatable?._id === doc._id) {
-          state.repeatable = doc;
+          state.repeatable = doc as RepeatableDoc;
         }
         // It's not clear how this could happen, considering we version these in the _id
         // Putting it here anyway
         if (state.template?._id === doc._id) {
-          state.template = doc;
+          state.template = doc as TemplateDoc;
         }
       }
       state.lastSynced = Date.now();

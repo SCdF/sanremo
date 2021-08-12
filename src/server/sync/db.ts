@@ -1,16 +1,19 @@
 import { db } from '../db';
-import { Doc, DocId, DocStub, User } from '../types';
+import { Doc, DocId, DocStub, User } from '../../shared/types';
 
 export async function getStubsForUser(user: User): Promise<DocStub[]> {
-  const result = await db.query('SELECT _id, _rev, _deleted FROM raw_client_documents WHERE user_id = $1', [user.id]);
+  const result = await db.query(
+    'SELECT _id, _rev, _deleted FROM raw_client_documents WHERE user_id = $1',
+    [user.id]
+  );
   return result.rows;
 }
 
 export async function getDocs(user: User, ids: DocId[]): Promise<Doc[]> {
-  const result = await db.query('SELECT data FROM raw_client_documents WHERE user_id = $1 AND _id = ANY($2)', [
-    user.id,
-    ids,
-  ]);
+  const result = await db.query(
+    'SELECT data FROM raw_client_documents WHERE user_id = $1 AND _id = ANY($2)',
+    [user.id, ids]
+  );
   return result.rows.map(({ data }) => JSON.parse(data));
 }
 

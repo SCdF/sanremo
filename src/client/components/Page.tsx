@@ -20,10 +20,9 @@ import InfoIcon from '@material-ui/icons/Info';
 
 import { useNavigate } from 'react-router-dom';
 import React, { useEffect, useState } from 'react';
-import { useSelector } from 'react-redux';
 
 import Sync from './Sync';
-import store, { RootState } from '../store';
+import store, { useSelector } from '../store';
 import { PageContext } from '../state/pageSlice';
 import { RepeatableSlug } from '../pages/Repeatable';
 
@@ -47,8 +46,8 @@ function Page(props: { db: PouchDB.Database; children: React.ReactNode }) {
 
   const [anchorEl, setAnchorEl] = useState(null);
 
-  const loggedInUser = useSelector((state: RootState) => state.user.value);
-  const context: PageContext = useSelector((state: RootState) => state.page.value);
+  const loggedInUser = useSelector((state) => state.user.value);
+  const context: PageContext = useSelector((state) => state.page.value);
 
   const isMenuOpen = !!anchorEl;
 

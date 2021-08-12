@@ -8,6 +8,7 @@ import pgConnect from 'connect-pg-simple';
 
 import syncRoutes from './sync/routes';
 import { db } from './db';
+import { User } from '../shared/types';
 
 const app = express();
 
@@ -28,6 +29,12 @@ const sess: SessionOptions = {
     maxAge: 1000 * 60 * 60 * 24 * 14, // two weeks
   },
 };
+
+declare module 'express-session' {
+  interface SessionData {
+    user: User;
+  }
+}
 
 if (process.env.NODE_ENV === 'production') {
   app.set('trust proxy', 1);
@@ -92,7 +99,7 @@ app.get('/api/auth', function (req, res) {
 
 app.get('/api/deployment', function (req, res) {
   const releaseVersion = JSON.parse(
-    readFileSync(new URL('../../package.json', import.meta.url).pathname, 'utf-8')
+    readFileSync(new URL('../../../package.json', import.meta.url).pathname, 'utf-8')
   ).version;
 
   if (process.env.NODE_ENV === 'production') {
@@ -116,7 +123,7 @@ syncRoutes(app);
 
 app.get('/*', function (req, res) {
   console.log('catch all', JSON.stringify(req.headers));
-  const index = new URL('../../build/index.html', import.meta.url).pathname;
+  const index = new URL('../../../build/index.html', import.meta.url).pathname;
   res.sendFile(index);
 });
 

@@ -1,5 +1,5 @@
 import { createSlice } from '@reduxjs/toolkit';
-import { User } from '../../server/types';
+import { User } from '../../shared/types';
 
 export const userSlice = createSlice({
   name: 'user',
