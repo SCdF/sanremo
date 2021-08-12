@@ -32,7 +32,9 @@ export default function db(loggedInUser: User) {
       ? change.doc
       : { _id: change.id, _rev: change.changes[0].rev, _deleted: true };
 
-    store.dispatch(markStale(doc));
+    if (!doc._id.startsWith('_design/')) {
+      store.dispatch(markStale(doc));
+    }
   });
 
   // @ts-ignore
