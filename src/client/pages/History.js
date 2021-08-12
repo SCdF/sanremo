@@ -1,17 +1,29 @@
 import { useEffect, useState } from 'react';
-import { useDispatch } from 'react-redux';
 
 import { List } from '@material-ui/core';
 
 import { set as setContext } from '../state/pageSlice';
 
 import RepeatableListItem from '../components/RepeatableListItem';
+import { useDispatch, useSelector } from '../store';
 
 function History(props) {
   const [repeatables, setRepeatables] = useState([]);
   const dispatch = useDispatch();
 
   const { db } = props;
+
+  // we don't actually care about this value, we just use it to trigger list reloading
+  const lastSynced = useSelector((state) => state.docs.lastSynced);
+
+  useEffect(() => {
+    dispatch(
+      setContext({
+        title: 'History',
+        under: 'history',
+      })
+    );
+  }, [dispatch]);
 
   // NB: this code also exists in Home.js using updated instead of completed
   useEffect(() => {
@@ -52,18 +64,12 @@ function History(props) {
 
     // TODO: sort out logging / elevation for errors
     go();
-  }, [db]);
+  }, [db, lastSynced]);
 
   const repeatableList = repeatables.map((repeatable) => (
     <RepeatableListItem key={repeatable._id} {...repeatable} />
   ));
 
-  dispatch(
-    setContext({
-      title: 'History',
-      under: 'history',
-    })
-  );
   return <List>{repeatableList}</List>;
 }
 
