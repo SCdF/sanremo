@@ -1,8 +1,6 @@
 import PouchDB from 'pouchdb-browser';
 import pdbFind from 'pouchdb-find';
 import { User } from '../shared/types';
-import { markStale } from './state/syncSlice';
-import store from './store';
 PouchDB.plugin(pdbFind);
 
 export default function db(loggedInUser: User) {
@@ -25,16 +23,6 @@ export default function db(loggedInUser: User) {
     index: {
       fields: ['template'],
     },
-  });
-
-  db.changes({ live: true, include_docs: true, since: 'now' }).on('change', (change) => {
-    const doc = change.doc
-      ? change.doc
-      : { _id: change.id, _rev: change.changes[0].rev, _deleted: true };
-
-    if (!doc._id.startsWith('_design/')) {
-      store.dispatch(markStale(doc));
-    }
   });
 
   // @ts-ignore

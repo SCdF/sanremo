@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 import { update } from '../state/docsSlice';
-import { cleanStale, cleanStaleAll } from '../state/syncSlice';
+import { cleanStale, cleanStaleAll, markStale } from '../state/syncSlice';
 
 import PageVisibility from 'react-page-visibility';
 
@@ -44,6 +44,18 @@ function Sync(props: { db: PouchDB.Database }) {
   const [lastRan, setLastRan] = useState(0);
 
   const { db } = props;
+
+  useEffect(() => {
+    db.changes({ live: true, include_docs: true, since: 'now' }).on('change', (change) => {
+      const doc = change.doc
+        ? change.doc
+        : { _id: change.id, _rev: change.changes[0].rev, _deleted: true };
+
+      if (!doc._id.startsWith('_design/')) {
+        dispatch(markStale(doc));
+      }
+    });
+  }, [db, dispatch]);
 
   useEffect(() => {
     if (!Object.values(stale).length) {
