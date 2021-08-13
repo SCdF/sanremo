@@ -46,45 +46,53 @@ function Sync(props: { db: PouchDB.Database }) {
   const { db } = props;
 
   useEffect(() => {
-    db.changes({ live: true, include_docs: true, since: 'now' }).on('change', (change) => {
-      const doc = change.doc
-        ? change.doc
-        : { _id: change.id, _rev: change.changes[0].rev, _deleted: true };
+    const initStaleQueue = () => {
+      db.changes({ live: true, include_docs: true, since: 'now' }).on('change', (change) => {
+        const doc = change.doc
+          ? change.doc
+          : { _id: change.id, _rev: change.changes[0].rev, _deleted: true };
 
-      if (!doc._id.startsWith('_design/')) {
-        dispatch(markStale(doc));
-      }
-    });
+        if (!doc._id.startsWith('_design/')) {
+          dispatch(markStale(doc));
+        }
+      });
+    };
+
+    initStaleQueue();
   }, [db, dispatch]);
 
   useEffect(() => {
-    if (!Object.values(stale).length) {
-      return;
-    }
+    const processStaleQueue = () => {
+      if (!Object.values(stale).length) {
+        return;
+      }
 
-    debug(`${Object.values(stale).length} stale docs, priming server update`);
+      debug(`${Object.values(stale).length} stale docs, priming server update`);
 
-    clearTimeout(staleHandle);
-    setTimeoutHandle(
-      setTimeout(async () => {
-        const docs = Object.values(stale);
-        debug(`stale server update for ${docs.length} docs`);
+      clearTimeout(staleHandle);
+      setTimeoutHandle(
+        setTimeout(async () => {
+          const docs = Object.values(stale);
+          debug(`stale server update for ${docs.length} docs`);
 
-        await axios.post('/api/sync/update', {
-          docs,
-        });
+          await axios.post('/api/sync/update', {
+            docs,
+          });
 
-        debug(`server update sent for ${docs.length} stale docs`);
+          debug(`server update sent for ${docs.length} stale docs`);
 
-        dispatch(cleanStale(docs));
-      }, STALE_WAIT_BUFFER)
-    );
+          dispatch(cleanStale(docs));
+        }, STALE_WAIT_BUFFER)
+      );
+    };
+    processStaleQueue();
+
     // timeoutHandle changes should not fire this effect, otherwise it would be an infinite loop
     // of clearing and setting the time out
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [stale]);
 
-  const handleSync = async function () {
+  const handleFullSync = async function () {
     if (state === State.idle) {
       try {
         debug('starting full sync');
@@ -229,19 +237,23 @@ function Sync(props: { db: PouchDB.Database }) {
   };
 
   useEffect(() => {
-    debug('app booted, syncing');
-    handleSync();
+    const periodicFullSync = () => {
+      debug('app booted, syncing');
+      handleFullSync();
 
-    setInterval(() => {
-      const since = Date.now() - lastRan;
-      if (since > PERIODIC_WAIT_BUFFER) {
-        debug(`app waited, ${since / 1000} seconds since last sync, syncing`);
-        handleSync();
-      } else {
-        debug(`app waited, only ${since / 1000} seconds since last sync, not syncing`);
-      }
-    }, PERIODIC_WAIT_BUFFER);
+      setInterval(() => {
+        const since = Date.now() - lastRan;
+        if (since > PERIODIC_WAIT_BUFFER) {
+          debug(`app waited, ${since / 1000} seconds since last sync, syncing`);
+          handleFullSync();
+        } else {
+          debug(`app waited, only ${since / 1000} seconds since last sync, not syncing`);
+        }
+      }, PERIODIC_WAIT_BUFFER);
+    };
+    periodicFullSync();
     // we want this to be run once
+    // FIXME: work out how to put handleFullSync in deps as that's probably more correct
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -250,7 +262,7 @@ function Sync(props: { db: PouchDB.Database }) {
       const since = Date.now() - lastRan;
       if (since > VISIBLE_WAIT_BUFFER) {
         debug(`app visible, ${since / 1000} seconds since last sync, syncing`);
-        handleSync();
+        handleFullSync();
       } else {
         debug(`app visible, only ${since / 1000} seconds since last sync, not syncing`);
       }
@@ -259,7 +271,7 @@ function Sync(props: { db: PouchDB.Database }) {
 
   return (
     <PageVisibility onChange={handleVisibilityChange}>
-      <IconButton color="inherit" onClick={handleSync}>
+      <IconButton color="inherit" onClick={handleFullSync}>
         <SyncIcon />
         {state === State.syncing && (
           <CircularProgress color="secondary" className={classes.progress} size="30px" />
