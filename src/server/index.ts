@@ -2,6 +2,7 @@ import { readFileSync } from 'fs';
 import express from 'express';
 import session from 'express-session';
 import { SessionOptions } from 'express-session';
+import compression from 'compression';
 import bcrypt from 'bcryptjs';
 
 import pgConnect from 'connect-pg-simple';
@@ -54,6 +55,7 @@ if (process.env.NODE_ENV === 'production') {
 
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
+app.use(compression());
 app.use(express.static('build'));
 
 if (process.env.DATABASE_URL) {
