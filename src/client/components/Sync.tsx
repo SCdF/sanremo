@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { io, Socket } from 'socket.io-client';
 
 import { update } from '../state/docsSlice';
 import { cleanStale, cleanStaleAll, markStale } from '../state/syncSlice';
@@ -9,7 +10,13 @@ import { CircularProgress, IconButton, makeStyles } from '@material-ui/core';
 import SyncIcon from '@material-ui/icons/Sync';
 import { useEffect, useState } from 'react';
 
-import { Doc, DocId, DocStub } from '../../shared/types';
+import {
+  ClientToServerEvents,
+  Doc,
+  DocId,
+  DocStub,
+  ServerToClientEvents,
+} from '../../shared/types';
 import { Requests } from '../../server/sync/types';
 import { useDispatch, useSelector } from '../store';
 
@@ -20,7 +27,7 @@ require('debug').enable('sanremo:client:sync');
 const BATCH_SIZE = 20;
 const VISIBLE_WAIT_BUFFER = 1000 * 60;
 const PERIODIC_WAIT_BUFFER = 1000 * 60 * 5;
-const STALE_WAIT_BUFFER = 1000 * 5;
+const STALE_WAIT_BUFFER = 1000;
 
 enum State {
   idle,
@@ -42,6 +49,10 @@ function Sync(props: { db: PouchDB.Database }) {
   const [state, setState] = useState(State.idle);
   const [progress, setProgress] = useState(0);
   const [lastRan, setLastRan] = useState(0);
+
+  const [socket, setSocket] = useState(
+    undefined as unknown as Socket<ServerToClientEvents, ClientToServerEvents>
+  );
 
   const { db } = props;
 
@@ -75,11 +86,7 @@ function Sync(props: { db: PouchDB.Database }) {
           const docs = Object.values(stale);
           debug(`stale server update for ${docs.length} docs`);
 
-          await axios.post('/api/sync/update', {
-            docs,
-          });
-
-          debug(`server update sent for ${docs.length} stale docs`);
+          socket.emit('docUpdate', docs);
 
           dispatch(cleanStale(docs));
         }, STALE_WAIT_BUFFER)
@@ -91,6 +98,28 @@ function Sync(props: { db: PouchDB.Database }) {
     // of clearing and setting the time out
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [stale]);
+
+  useEffect(() => {
+    const initSocket = () => {
+      debug('initializing server socket');
+      setSocket(io());
+    };
+    initSocket();
+  }, []);
+
+  useEffect(() => {
+    const handleIncomingSocket = () => {
+      socket.on('docUpdate', async (docs) => {
+        debug('got update from socket');
+        await db.bulkDocs(docs, {
+          new_edits: false,
+        });
+      });
+    };
+    if (socket) {
+      handleIncomingSocket();
+    }
+  }, [db, socket]);
 
   const handleFullSync = async function () {
     if (state === State.idle) {

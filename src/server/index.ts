@@ -1,17 +1,26 @@
 import { readFileSync } from 'fs';
+
 import express from 'express';
 import session from 'express-session';
 import { SessionOptions } from 'express-session';
+<<<<<<< HEAD
 import compression from 'compression';
 import bcrypt from 'bcryptjs';
+=======
+import http from 'http';
+import { Server as SocketServer } from 'socket.io';
+>>>>>>> WIP
 
+import bcrypt from 'bcryptjs';
 import pgConnect from 'connect-pg-simple';
 
 import syncRoutes from './sync/routes';
 import { db } from './db';
-import { User } from '../shared/types';
+import { ClientToServerEvents, ServerToClientEvents, User } from '../shared/types';
 
 const app = express();
+const server = http.createServer(app);
+const io = new SocketServer<ClientToServerEvents, ServerToClientEvents>(server);
 
 if (process.env.NODE_ENV === 'production' && !process.env.SECRET) {
   console.error('Production deployment but no SECRET defined!');
@@ -61,8 +70,10 @@ app.use(express.static('build'));
 if (process.env.DATABASE_URL) {
   sess.store = new pgSession({ pool: db });
 }
-
-app.use(session(sess));
+const sesh = session(sess);
+app.use(sesh);
+// @ts-ignore TODO: make sure this works and if it does fix this ignore
+io.use((socket, next) => sesh(socket.request, {}, next));
 
 app.post('/api/auth', async function (req, res) {
   const { username, password } = req.body;
@@ -94,6 +105,16 @@ app.all('/api/*', function (req, res, next) {
 
   next();
 });
+io.use((socket, next) => {
+  // @ts-ignore https://github.com/socketio/socket.io/issues/3890
+  const user = socket.request?.session?.user;
+  console.log(`SOCKET: connection with ${JSON.stringify(user)}`);
+  if (user) {
+    next();
+  } else {
+    next(new Error('no authentication provided'));
+  }
+});
 
 app.get('/api/auth', function (req, res) {
   return res.json(req.session);
@@ -121,15 +142,14 @@ app.get('/api/deployment', function (req, res) {
   });
 });
 
-syncRoutes(app);
+syncRoutes(app, io);
 
-app.get('/*', function (req, res) {
-  console.log('catch all', JSON.stringify(req.headers));
+app.get('/*', function (req, res, next) {
   const index = new URL('../../../build/index.html', import.meta.url).pathname;
   res.sendFile(index);
 });
 
 const port = process.env.PORT || 80;
-app.listen(port);
+server.listen(port);
 
 console.log(`Started server on port ${port}`);

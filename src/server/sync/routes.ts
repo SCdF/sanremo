@@ -1,5 +1,6 @@
 import { Router } from 'express';
-import { User } from '../../shared/types';
+import { Server as SocketServer } from 'socket.io';
+import { ClientToServerEvents, Doc, ServerToClientEvents, User, UserId } from '../../shared/types';
 import sync from './sync';
 
 /**
@@ -22,7 +23,10 @@ import sync from './sync';
  *  - Deletes just get deleted, rev and other data does not matter. DELETES ALWAYS WIN
  *  - Does not support attachments
  */
-export default function routes(app: Router) {
+export default function routes(
+  app: Router,
+  io: SocketServer<ClientToServerEvents, ServerToClientEvents>
+) {
   app.post('/api/sync/begin', async function (req, res) {
     try {
       const stubs = req.body.docs || [];
@@ -48,12 +52,58 @@ export default function routes(app: Router) {
   app.post('/api/sync/update', async function (req, res) {
     try {
       const docs = req.body.docs || [];
-      await sync.update(req.session.user as User, docs);
+      const user = req.session.user!;
+
+      await sync.update(user, docs);
+      broadcastDocUpdate(user, docs);
+
       res.end();
     } catch (error) {
       console.log('Unexpected error on /api/sync/update', error);
       res.status(500);
       res.end();
     }
+  });
+
+  // TODO: first off this obviously won't scale
+  // but also surely there is a bit a way of doing this, ideally provided by socket.io
+  type SocketIdMap = Map<UserId, Set<string>>;
+  const socketIds: SocketIdMap = new Map();
+
+  const broadcastDocUpdate = function (user: User, docs: Doc[], currentSocketId?: string) {
+    const userSockets = Array.from(socketIds.get(user.id) || []);
+
+    for (const socketId of userSockets) {
+      if (currentSocketId !== socketId) {
+        console.log(`SOCKET: sending ${docs.length} to ${JSON.stringify(user)} as ${socketId}`);
+
+        io.to(socketId).emit('docUpdate', docs);
+      }
+    }
+  };
+
+  io.on('connection', (socket) => {
+    // @ts-ignore https://github.com/socketio/socket.io/issues/3890
+    const user: User = socket.request.session.user;
+    if (!socketIds.has(user.id)) {
+      socketIds.set(user.id, new Set());
+    }
+    const socketSet = socketIds.get(user.id)!;
+    const socketId = socket.id;
+
+    console.log(`SOCKET: ${JSON.stringify(user)} connected as ${socketId}`);
+    socketSet.add(socketId);
+
+    socket.on('disconnect', () => {
+      console.log(`SOCKET: ${JSON.stringify(user)} as ${socketId} disconnected`);
+      socketSet.delete(socketId);
+    });
+
+    socket.on('docUpdate', async (docs) => {
+      console.log(`SOCKET: ${JSON.stringify(user)} as ${socketId} sent us ${docs.length}`);
+
+      await sync.update(user, docs);
+      broadcastDocUpdate(user, docs, socketId);
+    });
   });
 }
