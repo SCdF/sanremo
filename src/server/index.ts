@@ -3,13 +3,10 @@ import { readFileSync } from 'fs';
 import express from 'express';
 import session from 'express-session';
 import { SessionOptions } from 'express-session';
-<<<<<<< HEAD
 import compression from 'compression';
-import bcrypt from 'bcryptjs';
-=======
+
 import http from 'http';
 import { Server as SocketServer } from 'socket.io';
->>>>>>> WIP
 
 import bcrypt from 'bcryptjs';
 import pgConnect from 'connect-pg-simple';
