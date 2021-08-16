@@ -11,6 +11,7 @@ import { v4 as uuid } from 'uuid';
 
 import { set as setContext } from '../state/pageSlice';
 import { setTemplate } from '../state/docsSlice';
+import { markStale } from '../state/syncSlice';
 
 function Template(props) {
   const template = useSelector((state) => state.docs.template);
@@ -35,7 +36,8 @@ function Template(props) {
         };
         template.created = template.updated = template.versioned = Date.now();
 
-        await db.put(template);
+        await db.userPut(template);
+        dispatch(markStale(template));
 
         navigate(`/template/${template._id}`, { replace: true });
       } else {
@@ -77,7 +79,8 @@ function Template(props) {
       copy._deleted = true;
     }
 
-    await db.put(copy);
+    await db.userPut(copy);
+    dispatch(markStale(copy));
     navigate('/');
   }
 
@@ -102,7 +105,7 @@ function Template(props) {
       delete copy._rev;
     }
 
-    await db.put(copy);
+    await db.userPut(copy);
 
     navigate(-1);
   }

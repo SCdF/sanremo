@@ -25,6 +25,7 @@ import Sync from './Sync';
 import store, { useSelector } from '../store';
 import { PageContext } from '../state/pageSlice';
 import { RepeatableSlug } from '../pages/Repeatable';
+import { Database } from '../db';
 
 const useStyles = makeStyles((theme) => ({
   grow: {
@@ -38,7 +39,7 @@ const useStyles = makeStyles((theme) => ({
 /**
  * Wrapper for Pages. Manages headers, sidebar etc
  */
-function Page(props: { db: PouchDB.Database; children: React.ReactNode }) {
+function Page(props: { db: Database; children: React.ReactNode }) {
   const classes = useStyles();
   const navigate = useNavigate();
 

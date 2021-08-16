@@ -1,27 +1,37 @@
 import { createSlice } from '@reduxjs/toolkit';
 import { Doc, RepeatableDoc, TemplateDoc } from '../../shared/types';
 
+type State = {
+  repeatable?: RepeatableDoc;
+  template?: TemplateDoc;
+  lastSynced?: number;
+};
 export const docsSlice = createSlice({
   name: 'docs',
   initialState: {
-    repeatable: undefined as unknown as RepeatableDoc,
-    template: undefined as unknown as TemplateDoc,
+    repeatable: undefined,
+    template: undefined,
     /**
      * Trigger to refresh lists. In the future we could more intelligently detect
      * if a list has to be refreshed, but that involves the list-filtering logic
      * either being only here or being here and the list's origin
      */
-    lastSynced: undefined as unknown as number,
-  },
+    lastSynced: undefined,
+  } as State,
   reducers: {
-    setRepeatable: (state, action) => {
+    setRepeatable: (state, action: { payload: RepeatableDoc }) => {
       state.repeatable = action.payload;
     },
-    setTemplate: (state, action) => {
+    setTemplate: (state, action: { payload: TemplateDoc }) => {
       state.template = action.payload;
     },
-    // TODO: add types into action, so we don't forget we need to send in array
-    update: (state, action) => {
+    clearRepeatable: (state) => {
+      state.repeatable = undefined;
+    },
+    clearTemplate: (state) => {
+      state.template = undefined;
+    },
+    update: (state, action: { payload: Doc[] }) => {
       const updatedDocs: Doc[] = action.payload;
       for (const doc of updatedDocs) {
         if (state.repeatable?._id === doc._id) {
@@ -38,5 +48,6 @@ export const docsSlice = createSlice({
   },
 });
 
-export const { setRepeatable, setTemplate, update } = docsSlice.actions;
+export const { setRepeatable, setTemplate, clearRepeatable, clearTemplate, update } =
+  docsSlice.actions;
 export default docsSlice.reducer;

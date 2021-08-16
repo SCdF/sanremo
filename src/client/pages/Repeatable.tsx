@@ -20,11 +20,12 @@ import DeleteIcon from '@material-ui/icons/Delete';
 import { v4 as uuid } from 'uuid';
 import qs from 'qs';
 
-import { setRepeatable } from '../state/docsSlice';
+import { clearRepeatable, clearTemplate, setRepeatable } from '../state/docsSlice';
 import { setTemplate } from '../state/docsSlice';
 import { set as setContext } from '../state/pageSlice';
 import { RootState, useDispatch, useSelector } from '../store';
 import { RepeatableDoc, TemplateDoc } from '../../shared/types';
+import { Database } from '../db';
 
 const debug = require('debug')('sanremo:client:repeatable');
 
@@ -35,7 +36,7 @@ const slugStyle = makeStyles((theme) => ({
   },
 }));
 
-function Repeatable(props: { db: PouchDB.Database }) {
+function Repeatable(props: { db: Database }) {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
@@ -79,7 +80,7 @@ function Repeatable(props: { db: PouchDB.Database }) {
           slug,
         };
 
-        await db.put(repeatable);
+        await db.userPut(repeatable);
         navigate(`/repeatable/${repeatable._id}`, { replace: true });
       } else {
         debug('pre repeatable load');
@@ -112,8 +113,8 @@ function Repeatable(props: { db: PouchDB.Database }) {
 
     loadRepeatable();
     return () => {
-      dispatch(setRepeatable(undefined));
-      dispatch(setTemplate(undefined));
+      dispatch(clearRepeatable());
+      dispatch(clearTemplate());
     };
   }, [dispatch, db, repeatableId, location, navigate]);
 
@@ -121,7 +122,7 @@ function Repeatable(props: { db: PouchDB.Database }) {
     const copy = Object.assign({}, repeatable);
 
     copy._deleted = true;
-    await db.put(copy);
+    await db.userPut(copy);
 
     navigate('/');
   }
@@ -130,12 +131,11 @@ function Repeatable(props: { db: PouchDB.Database }) {
     const copy = Object.assign({}, repeatable);
 
     copy.completed = Date.now();
-    const { rev } = await db.put(copy);
+    await db.userPut(copy);
 
     if (edited || initiallyOpen) {
       navigate('/');
     } else {
-      copy._rev = rev;
       dispatch(setRepeatable(copy));
     }
   }
@@ -144,8 +144,7 @@ function Repeatable(props: { db: PouchDB.Database }) {
     const copy = Object.assign({}, repeatable);
 
     delete copy.completed;
-    const { rev } = await db.put(copy);
-    copy._rev = rev;
+    await db.userPut(copy);
     dispatch(setRepeatable(copy));
   }
 
@@ -159,8 +158,7 @@ function Repeatable(props: { db: PouchDB.Database }) {
 
       copy.updated = now;
 
-      const { rev } = await db.put(copy);
-      copy._rev = rev;
+      await db.userPut(copy);
 
       ReactDOM.unstable_batchedUpdates(() => {
         setEdited(true);
@@ -282,7 +280,7 @@ function Repeatable(props: { db: PouchDB.Database }) {
   );
 }
 
-function RepeatableSlug(props: { db: PouchDB.Database }) {
+function RepeatableSlug(props: { db: Database }) {
   const classes = slugStyle();
   const dispatch = useDispatch();
 
@@ -295,7 +293,7 @@ function RepeatableSlug(props: { db: PouchDB.Database }) {
     const copy = Object.assign({}, repeatable);
     // @ts-ignore FIXME: check if nodeValue works
     const targetValue = target.value;
-    const value = ['date', 'timestamp'].includes(template.slug.type)
+    const value = ['date', 'timestamp'].includes(template!.slug.type)
       ? new Date(targetValue).getTime()
       : targetValue;
 
@@ -307,13 +305,16 @@ function RepeatableSlug(props: { db: PouchDB.Database }) {
   async function storeSlugChange() {
     const copy = Object.assign({}, repeatable);
 
-    const { rev } = await db.put(copy);
-    copy._rev = rev;
+    await db.userPut(copy);
     dispatch(setRepeatable(copy));
   }
 
+  if (!(repeatable && template)) {
+    return null;
+  }
+
   let slug;
-  if (['url', 'string'].includes(template?.slug?.type)) {
+  if (['url', 'string'].includes(template.slug.type)) {
     slug = (
       <Input
         type="text"
@@ -324,7 +325,7 @@ function RepeatableSlug(props: { db: PouchDB.Database }) {
         onBlur={storeSlugChange}
       />
     );
-  } else if ('date' === template?.slug?.type) {
+  } else if ('date' === template.slug.type) {
     // FIXME: Clean This Up! The format required for the native date input type cannot
     // be manufactured from the native JavaScript date type. If we were in raw HTML
     // we could post-set it with Javascript by using valueAsNumber, but not in situ
@@ -344,7 +345,7 @@ function RepeatableSlug(props: { db: PouchDB.Database }) {
         onBlur={storeSlugChange}
       />
     );
-  } else if ('timestamp' === template?.slug?.type) {
+  } else if ('timestamp' === template.slug.type) {
     // FIXME: Clean This Up! The format required for the native date input type cannot
     // be manufactured from the native JavaScript date type. If we were in raw HTML
     // we could post-set it with Javascript by using valueAsNumber, but not in situ
@@ -374,7 +375,7 @@ function RepeatableSlug(props: { db: PouchDB.Database }) {
 
   return (
     <div>
-      {template?.title}
+      {template.title}
       <i> for </i>
       {slug}
     </div>

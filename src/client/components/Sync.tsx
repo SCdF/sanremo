@@ -2,7 +2,7 @@ import axios from 'axios';
 import { io, Socket } from 'socket.io-client';
 
 import { update } from '../state/docsSlice';
-import { cleanStale, cleanStaleAll, markStale } from '../state/syncSlice';
+import { cleanStale, cleanStaleAll } from '../state/syncSlice';
 
 import PageVisibility from 'react-page-visibility';
 
@@ -10,13 +10,7 @@ import { CircularProgress, IconButton, makeStyles } from '@material-ui/core';
 import SyncIcon from '@material-ui/icons/Sync';
 import { useEffect, useState } from 'react';
 
-import {
-  ClientToServerEvents,
-  Doc,
-  DocId,
-  DocStub,
-  ServerToClientEvents,
-} from '../../shared/types';
+import { ClientToServerEvents, Doc, DocStub, ServerToClientEvents } from '../../shared/types';
 import { Requests } from '../../server/sync/types';
 import { useDispatch, useSelector } from '../store';
 
@@ -56,21 +50,23 @@ function Sync(props: { db: PouchDB.Database }) {
 
   const { db } = props;
 
-  useEffect(() => {
-    const initStaleQueue = () => {
-      db.changes({ live: true, include_docs: true, since: 'now' }).on('change', (change) => {
-        const doc = change.doc
-          ? change.doc
-          : { _id: change.id, _rev: change.changes[0].rev, _deleted: true };
+  // TODO: have a generic stale queue. It can't actually rely on the changes feed, because we need to know if
+  //       the write originates from the user or from the server, as the latter shouldn't result in another server push
+  // useEffect(() => {
+  //   const initStaleQueue = () => {
+  //     db.changes({ live: true, include_docs: true, since: 'now' }).on('change', (change) => {
+  //       const doc = change.doc
+  //         ? change.doc
+  //         : { _id: change.id, _rev: change.changes[0].rev, _deleted: true };
+  //       if (!doc._id.startsWith('_design/')) {
+  //         debug(`${doc._id} is stale, queuing`);
+  //         dispatch(markStale(doc));
+  //       }
+  //     });
+  //   };
 
-        if (!doc._id.startsWith('_design/')) {
-          dispatch(markStale(doc));
-        }
-      });
-    };
-
-    initStaleQueue();
-  }, [db, dispatch]);
+  //   initStaleQueue();
+  // }, [db, dispatch]);
 
   useEffect(() => {
     const processStaleQueue = () => {
@@ -111,15 +107,25 @@ function Sync(props: { db: PouchDB.Database }) {
     const handleIncomingSocket = () => {
       socket.on('docUpdate', async (docs) => {
         debug('got update from socket');
-        await db.bulkDocs(docs, {
-          new_edits: false,
-        });
+
+        const { writes, deletes } = splitDeletes(docs);
+
+        // TODO: do these in parallel
+        if (deletes.length) {
+          await bulkDelete(db, deletes);
+        }
+        if (writes.length) {
+          await db.bulkDocs(writes, {
+            new_edits: false,
+          });
+        }
+        dispatch(update(docs));
       });
     };
     if (socket) {
       handleIncomingSocket();
     }
-  }, [db, socket]);
+  }, [db, socket, dispatch]);
 
   const handleFullSync = async function () {
     if (state === State.idle) {
@@ -199,35 +205,11 @@ function Sync(props: { db: PouchDB.Database }) {
             const batch = serverState.client.splice(0, BATCH_SIZE);
             debug(`<- preparing ${batch.length}`);
 
-            // FIXME: https://github.com/pouchdb/pouchdb/issues/7841 means we have to performed deletes
-            // specifically, instead of generically alongside other writes
-            // This also means that the server has to treat deletes specifically, otherwise the
-            // revs that increments here will cause an infinite loop with other clients. On the server
-            // revs on deleted documents are ignored and they are all considered the same
-            const { deleteIds, writes } = batch.reduce(
-              (acc, doc) => {
-                if (doc._deleted) {
-                  acc.deleteIds.push(doc._id);
-                } else {
-                  acc.writes.push(doc);
-                }
-                return acc;
-              },
-              { deleteIds: [] as DocId[], writes: [] as DocStub[] }
-            );
+            const { deletes, writes } = splitDeletes(batch);
 
-            if (deleteIds.length) {
-              const deleteResults = await db.allDocs({ keys: deleteIds });
-              const deletedDocs = deleteResults.rows.map((row) => ({
-                _id: row.key,
-                // If the client doesn't have this document, the row will have
-                //error: "not_found"
-                // and no _rev.
-                _rev: row?.value?.rev,
-                _deleted: true,
-              }));
-
-              await db.bulkDocs(deletedDocs);
+            // TODO: do these writes in parallel
+            if (deletes.length) {
+              await bulkDelete(db, deletes);
               debug('<- deleted deletes');
             }
 
@@ -316,6 +298,38 @@ function Sync(props: { db: PouchDB.Database }) {
       </IconButton>
     </PageVisibility>
   );
+
+  // FIXME: https://github.com/pouchdb/pouchdb/issues/7841 means we have to performed deletes
+  // specifically, instead of generically alongside other writes
+  // This also means that the server has to treat deletes specifically, otherwise the
+  // revs that increments here will cause an infinite loop with other clients. On the server
+  // revs on deleted documents are ignored and they are all considered the same
+  function splitDeletes(batch: Doc[]): { deletes: Doc[]; writes: Doc[] } {
+    return batch.reduce(
+      (acc, doc) => {
+        if (doc._deleted) {
+          acc.deletes.push(doc);
+        } else {
+          acc.writes.push(doc);
+        }
+        return acc;
+      },
+      { deletes: [] as Doc[], writes: [] as Doc[] }
+    );
+  }
 }
 
 export default Sync;
+async function bulkDelete(db: PouchDB.Database<{}>, deletes: Doc[]) {
+  const deleteResults = await db.allDocs({ keys: deletes.map((d) => d._id) });
+  const deletedDocs = deleteResults.rows.map((row) => ({
+    _id: row.key,
+    // If the client doesn't have this document, the row will have
+    //error: "not_found"
+    // and no _rev.
+    _rev: row?.value?.rev,
+    _deleted: true,
+  }));
+
+  await db.bulkDocs(deletedDocs);
+}
