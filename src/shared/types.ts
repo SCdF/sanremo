@@ -7,18 +7,18 @@ export interface Doc {
 }
 export type DocStub = Doc;
 
+export type UserId = number;
 export interface User {
-  id: number;
+  id: UserId;
   name: string;
 }
 
-enum SlugType {
+export enum SlugType {
   Date = 'date',
   Timestamp = 'timestamp',
   URL = 'url',
   String = 'string',
 }
-
 export interface RepeatableDoc extends Doc {
   template: DocId;
   slug: string | number;
@@ -36,4 +36,11 @@ export interface TemplateDoc extends Doc {
   };
   markdown: string;
   values: any[];
+}
+
+export interface ServerToClientEvents {
+  docUpdate: (docs: Doc[]) => void;
+}
+export interface ClientToServerEvents {
+  docUpdate: (docs: Doc[]) => void;
 }
