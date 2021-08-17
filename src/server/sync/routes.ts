@@ -30,7 +30,17 @@ export default function routes(
   app.post('/api/sync/begin', async function (req, res) {
     try {
       const stubs = req.body.docs || [];
-      const results = await sync.begin(req.session.user as User, stubs);
+      let results;
+      try {
+        results = await sync.begin(req.session.user as User, stubs);
+      } catch (error) {
+        if (error.code === '23505') {
+          // duplicate key, implies two syncs from the same client, try again one more time
+          // if we rerunit my last or rocky okay a a in1//
+          // TODO: deal with this more robustly
+          results = await sync.begin(req.session.user as User, stubs);
+        }
+      }
       res.json(results);
     } catch (error) {
       console.log('Unexpected error on /api/sync/begin', error);
