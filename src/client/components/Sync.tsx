@@ -13,6 +13,7 @@ import { useEffect, useState } from 'react';
 import { ClientToServerEvents, Doc, DocStub, ServerToClientEvents } from '../../shared/types';
 import { Requests } from '../../server/sync/types';
 import { useDispatch, useSelector } from '../store';
+import { Database } from '../db';
 
 const debug = require('debug')('sanremo:client:sync');
 
@@ -34,7 +35,7 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-function Sync(props: { db: PouchDB.Database }) {
+function Sync(props: { db: Database }) {
   const classes = useStyles();
   const dispatch = useDispatch();
   const stale = useSelector((state) => state.sync.stale);
@@ -49,24 +50,6 @@ function Sync(props: { db: PouchDB.Database }) {
   );
 
   const { db } = props;
-
-  // TODO: have a generic stale queue. It can't actually rely on the changes feed, because we need to know if
-  //       the write originates from the user or from the server, as the latter shouldn't result in another server push
-  // useEffect(() => {
-  //   const initStaleQueue = () => {
-  //     db.changes({ live: true, include_docs: true, since: 'now' }).on('change', (change) => {
-  //       const doc = change.doc
-  //         ? change.doc
-  //         : { _id: change.id, _rev: change.changes[0].rev, _deleted: true };
-  //       if (!doc._id.startsWith('_design/')) {
-  //         debug(`${doc._id} is stale, queuing`);
-  //         dispatch(markStale(doc));
-  //       }
-  //     });
-  //   };
-
-  //   initStaleQueue();
-  // }, [db, dispatch]);
 
   useEffect(() => {
     const processStaleQueue = () => {
@@ -319,7 +302,6 @@ function Sync(props: { db: PouchDB.Database }) {
   }
 }
 
-export default Sync;
 async function bulkDelete(db: PouchDB.Database<{}>, deletes: Doc[]) {
   const deleteResults = await db.allDocs({ keys: deletes.map((d) => d._id) });
   const deletedDocs = deleteResults.rows.map((row) => ({
@@ -333,3 +315,5 @@ async function bulkDelete(db: PouchDB.Database<{}>, deletes: Doc[]) {
 
   await db.bulkDocs(deletedDocs);
 }
+
+export default Sync;
