@@ -101,8 +101,10 @@ export default function routes(
     const socketSet = socketIds.get(user.id)!;
     const socketId = socket.id;
 
-    console.log(`SOCKET: ${JSON.stringify(user)} connected as ${socketId}`);
-    socketSet.add(socketId);
+    socket.on('ready', () => {
+      console.log(`SOCKET: ${JSON.stringify(user)} connected as ${socketId}`);
+      socketSet.add(socketId);
+    });
 
     socket.on('disconnect', () => {
       console.log(`SOCKET: ${JSON.stringify(user)} as ${socketId} disconnected`);

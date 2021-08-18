@@ -16,7 +16,6 @@ const store = createStore();
 export default store;
 
 export { createStore };
-// FIXME: we expose createStore for tests, but we should probably scope these to createStore?
 export type RootState = ReturnType<typeof store.getState>;
 export type AppDispatch = typeof store.dispatch;
 
