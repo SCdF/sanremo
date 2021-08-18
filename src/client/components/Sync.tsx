@@ -1,48 +1,74 @@
 import axios from 'axios';
 import { io, Socket } from 'socket.io-client';
 
-import { update } from '../state/docsSlice';
-import { cleanStale, cleanStaleAll } from '../state/syncSlice';
-
 import PageVisibility from 'react-page-visibility';
+import { Fragment, useCallback, useEffect, useState } from 'react';
 
-import { CircularProgress, IconButton, makeStyles } from '@material-ui/core';
-import SyncIcon from '@material-ui/icons/Sync';
-import { useEffect, useState } from 'react';
+import { CircularProgress, Fade, IconButton, makeStyles, Tooltip } from '@material-ui/core';
+
+import CloudRoundedIcon from '@material-ui/icons/CloudRounded';
+import CloudDoneRoundedIcon from '@material-ui/icons/CloudDoneRounded';
+import CloudOffRoundedIcon from '@material-ui/icons/CloudOffRounded';
+import ErrorOutlineRoundedIcon from '@material-ui/icons/ErrorOutlineRounded';
 
 import { ClientToServerEvents, Doc, DocStub, ServerToClientEvents } from '../../shared/types';
+import { update } from '../state/docsSlice';
+import { cleanStale, cleanStaleAll } from '../state/syncSlice';
 import { Requests } from '../../server/sync/types';
 import { useDispatch, useSelector } from '../store';
+import { Database } from '../db';
+import { useLocation } from 'react-router-dom';
 
 const debug = require('debug')('sanremo:client:sync');
 
 require('debug').enable('sanremo:client:sync');
 
 const BATCH_SIZE = 20;
-const VISIBLE_WAIT_BUFFER = 1000 * 60;
-const PERIODIC_WAIT_BUFFER = 1000 * 60 * 5;
 const STALE_WAIT_BUFFER = 1000;
 
 enum State {
-  idle,
+  /** initial, or socket is disconnected */
+  disconnected,
+  /** a full sync is in progress, the socket is still disconnected */
   syncing,
+  /** the socket is open and waiting */
+  connected,
+  /** something went 'orribly wrong */
+  error,
 }
-
 const useStyles = makeStyles((theme) => ({
   progress: {
     position: 'absolute',
   },
 }));
 
-function Sync(props: { db: PouchDB.Database }) {
+async function bulkDelete(db: PouchDB.Database<{}>, deletes: Doc[]) {
+  const deleteResults = await db.allDocs({ keys: deletes.map((d) => d._id) });
+  const deletedDocs = deleteResults.rows.map((row) => ({
+    _id: row.key,
+    // If the client doesn't have this document, the row will have
+    //error: "not_found"
+    // and no _rev.
+    _rev: row?.value?.rev,
+    _deleted: true,
+  }));
+
+  await db.bulkDocs(deletedDocs);
+}
+
+function Sync(props: { db: Database }) {
   const classes = useStyles();
   const dispatch = useDispatch();
   const stale = useSelector((state) => state.sync.stale);
 
-  const [staleHandle, setTimeoutHandle] = useState(undefined as unknown as NodeJS.Timeout);
-  const [state, setState] = useState(State.idle);
+  const location = useLocation();
+
+  const [staleTimeoutHandle, setStaleTimeoutHandle] = useState(
+    undefined as unknown as NodeJS.Timeout
+  );
+  const [state, setState] = useState(State.disconnected);
+  const [error, setError] = useState(undefined as unknown as string);
   const [progress, setProgress] = useState(0);
-  const [lastRan, setLastRan] = useState(0);
 
   const [socket, setSocket] = useState(
     undefined as unknown as Socket<ServerToClientEvents, ClientToServerEvents>
@@ -50,67 +76,184 @@ function Sync(props: { db: PouchDB.Database }) {
 
   const { db } = props;
 
-  // TODO: have a generic stale queue. It can't actually rely on the changes feed, because we need to know if
-  //       the write originates from the user or from the server, as the latter shouldn't result in another server push
-  // useEffect(() => {
-  //   const initStaleQueue = () => {
-  //     db.changes({ live: true, include_docs: true, since: 'now' }).on('change', (change) => {
-  //       const doc = change.doc
-  //         ? change.doc
-  //         : { _id: change.id, _rev: change.changes[0].rev, _deleted: true };
-  //       if (!doc._id.startsWith('_design/')) {
-  //         debug(`${doc._id} is stale, queuing`);
-  //         dispatch(markStale(doc));
-  //       }
-  //     });
-  //   };
+  // TODO: make this work more in parallel, benchmark it to see if it makes a difference etc
+  const handleFullSync = useCallback(
+    async function () {
+      if (state !== State.syncing) {
+        try {
+          debug('starting full sync');
+          setState(State.syncing);
+          setProgress(0);
 
-  //   initStaleQueue();
-  // }, [db, dispatch]);
+          // wipe the stale queue, we're about to do a full sync anyway
+          clearTimeout(staleTimeoutHandle);
+          dispatch(cleanStaleAll());
+
+          // Get the docs we have locally. The only way to see deleted documents with PouchDB
+          // is with the changes feed to get all ids
+          const changes = await db.changes();
+          const stubs: DocStub[] = changes.results
+            .filter((row) => !row.id.startsWith('_design/'))
+            .map((row) => {
+              return {
+                _id: row.id,
+                // FIXME: work out if I ever need to care about more than one change
+                _rev: row.changes[0].rev,
+                _deleted: row.deleted,
+              };
+            });
+          debug(`locally we have ${stubs.length} docs`);
+
+          // Work out the difference between us and the server
+          debug('checking with the server');
+          const serverState: Requests = await axios
+            .post('/api/sync/begin', {
+              docs: stubs,
+            })
+            .then(({ data }) => data);
+          debug(
+            `the server needs ${serverState.server.length}, we need ${serverState.client.length}`
+          );
+
+          const docTotal = serverState.client.length + serverState.server.length;
+          if (docTotal > 0) {
+            let docCount = 0;
+
+            const updateProgress = () => {
+              const percent = (docCount / docTotal) * 100;
+              debug(`~${percent}% complete`);
+              setProgress(percent);
+            };
+
+            debug('starting transfers');
+            updateProgress();
+
+            // Give the server what they need
+            while (serverState.server.length > 0) {
+              const batch = serverState.server.splice(0, BATCH_SIZE);
+              debug(`-> preparing ${batch.length}`);
+
+              const result = await db.allDocs({
+                include_docs: true,
+                keys: batch.map((d) => d._id),
+              });
+              debug('-> got local');
+
+              await axios.post('/api/sync/update', {
+                docs: result.rows.map(
+                  (r) => r.doc || { _id: r.id, _rev: r.value.rev, _deleted: r.value.deleted }
+                ),
+              });
+              debug('-> sent');
+
+              docCount += batch.length;
+              updateProgress();
+            }
+
+            // Get what we need from the server
+            while (serverState.client.length > 0) {
+              const batch = serverState.client.splice(0, BATCH_SIZE);
+              debug(`<- preparing ${batch.length}`);
+
+              const { deletes, writes } = splitDeletes(batch);
+
+              if (deletes.length) {
+                await bulkDelete(db, deletes);
+                debug('<- deleted deletes');
+              }
+
+              const result: Doc[] = await axios
+                .post('/api/sync/request', {
+                  docs: writes,
+                })
+                .then(({ data }) => data);
+              debug('<- got server');
+
+              await db.bulkDocs(result, {
+                new_edits: false,
+              });
+              debug('<- stored');
+
+              dispatch(update(result));
+              debug('<- state updated');
+
+              docCount += batch.length;
+              updateProgress();
+            }
+          }
+
+          setState(State.connected);
+        } catch (e) {
+          console.error('Failed to sync', e);
+          if (e.message === 'Network Error') {
+            setState(State.disconnected);
+          } else {
+            setError(`${e.name}: ${e.message}, tap to try again`);
+            setState(State.error);
+          }
+        } finally {
+          debug('finished');
+        }
+      }
+    },
+    [db, dispatch, staleTimeoutHandle, state]
+  );
+
+  const flushStaleQueue = useCallback(async () => {
+    const docs = Object.values(stale);
+    // Don't try to flush the stale queue whilst it's disconnected. Otherwise you'll potentially
+    // queue up a bunch of emits that contradict each other.
+    if (docs.length && socket && socket.connected) {
+      debug(`stale server update for ${docs.length} docs`);
+
+      socket.emit('docUpdate', docs);
+      dispatch(cleanStale(docs));
+    }
+  }, [dispatch, socket, stale]);
 
   useEffect(() => {
     const processStaleQueue = () => {
-      if (!Object.values(stale).length) {
+      clearTimeout(staleTimeoutHandle);
+
+      const staleCount = Object.values(stale).length;
+      if (!(socket && staleCount)) {
         return;
       }
 
-      debug(`${Object.values(stale).length} stale docs, priming server update`);
+      debug(`${staleCount} stale docs, priming server update`);
 
-      clearTimeout(staleHandle);
-      setTimeoutHandle(
-        setTimeout(async () => {
-          const docs = Object.values(stale);
-          debug(`stale server update for ${docs.length} docs`);
-
-          socket.emit('docUpdate', docs);
-
-          dispatch(cleanStale(docs));
-        }, STALE_WAIT_BUFFER)
-      );
+      setStaleTimeoutHandle(setTimeout(flushStaleQueue, STALE_WAIT_BUFFER));
     };
+
     processStaleQueue();
 
     // timeoutHandle changes should not fire this effect, otherwise it would be an infinite loop
     // of clearing and setting the time out
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [stale]);
+  }, [dispatch, socket, stale /*, timeoutHandle */]);
 
   useEffect(() => {
     const initSocket = () => {
-      debug('initializing server socket');
-      setSocket(io());
-    };
-    initSocket();
-  }, []);
+      if (socket) {
+        socket.close();
+      }
 
-  useEffect(() => {
-    const handleIncomingSocket = () => {
-      socket.on('docUpdate', async (docs) => {
+      debug('initializing server socket');
+      const localSocket = io();
+
+      localSocket.on('connect', async () => {
+        debug('socket connected');
+        await handleFullSync();
+
+        localSocket.emit('ready');
+      });
+
+      localSocket.on('docUpdate', async (docs) => {
         debug('got update from socket');
 
         const { writes, deletes } = splitDeletes(docs);
 
-        // TODO: do these in parallel
+        // TODO: do these in parallel, see if it's faster
         if (deletes.length) {
           await bulkDelete(db, deletes);
         }
@@ -119,183 +262,58 @@ function Sync(props: { db: PouchDB.Database }) {
             new_edits: false,
           });
         }
+
         dispatch(update(docs));
       });
+
+      localSocket.on('disconnect', () => {
+        debug('socket disconnected');
+        setState(State.disconnected);
+      });
+
+      setSocket(localSocket);
     };
-    if (socket) {
-      handleIncomingSocket();
-    }
-  }, [db, socket, dispatch]);
 
-  const handleFullSync = async function () {
-    if (state === State.idle) {
-      try {
-        debug('starting full sync');
-        setState(State.syncing);
-        setProgress(0);
-        // wipe the stale queue
-        clearTimeout(staleHandle);
-        dispatch(cleanStaleAll());
-
-        // Get the docs we have locally. The only way to see deleted documents with PouchDB
-        // is with the changes feed to get all ids, then pass them as keys to allDocs
-        const changes = await db.changes({
-          // since: 0,
-        });
-        const stubs: DocStub[] = changes.results
-          .filter((row) => !row.id.startsWith('_design/'))
-          .map((row) => {
-            return {
-              _id: row.id,
-              // FIXME: work out if I ever need to care about more than one change
-              _rev: row.changes[0].rev,
-              _deleted: row.deleted,
-            };
-          });
-        debug(`locally we have ${stubs.length} docs`);
-
-        // Work out the difference between us and the server
-        debug('checking with the server');
-        const serverState: Requests = await axios
-          .post('/api/sync/begin', {
-            docs: stubs,
-          })
-          .then(({ data }) => data);
-        debug(
-          `the server needs ${serverState.server.length}, we need ${serverState.client.length}`
-        );
-
-        const docTotal = serverState.client.length + serverState.server.length;
-        if (docTotal > 0) {
-          let docCount = 0;
-
-          const updateProgress = () => {
-            const percent = (docCount / docTotal) * 100;
-            debug(`~${percent}% complete`);
-            setProgress(percent);
-          };
-
-          debug('starting transfers');
-          updateProgress();
-
-          // Give the server what they need
-          while (serverState.server.length > 0) {
-            const batch = serverState.server.splice(0, BATCH_SIZE);
-            debug(`-> preparing ${batch.length}`);
-
-            const result = await db.allDocs({
-              include_docs: true,
-              keys: batch.map((d) => d._id),
-            });
-            debug('-> got local');
-
-            await axios.post('/api/sync/update', {
-              docs: result.rows.map(
-                (r) => r.doc || { _id: r.id, _rev: r.value.rev, _deleted: r.value.deleted }
-              ),
-            });
-            debug('-> sent');
-
-            docCount += batch.length;
-            updateProgress();
-          }
-
-          // Get what we need from the server
-          while (serverState.client.length > 0) {
-            const batch = serverState.client.splice(0, BATCH_SIZE);
-            debug(`<- preparing ${batch.length}`);
-
-            const { deletes, writes } = splitDeletes(batch);
-
-            // TODO: do these writes in parallel
-            if (deletes.length) {
-              await bulkDelete(db, deletes);
-              debug('<- deleted deletes');
-            }
-
-            const result: Doc[] = await axios
-              .post('/api/sync/request', {
-                docs: writes,
-              })
-              .then(({ data }) => data);
-            debug('<- got server');
-
-            await db.bulkDocs(result, {
-              new_edits: false,
-            });
-            debug('<- stored');
-
-            dispatch(update(result));
-            debug('<- state updated');
-
-            docCount += batch.length;
-            updateProgress();
-          }
-        }
-      } catch (e) {
-        console.error('Failed to sync', e);
-        // TODO: set sad icon here? (with sync action still attached)
-      } finally {
-        debug('finished');
-        // TODO: set finished icon here, that changes to idle after a time
-        setState(State.idle);
-        // TODO: maybe only if it completed successfully?
-        setLastRan(Date.now());
-      }
-    } else {
-      // TODO: cancel here? Differentiate between automated and manual
-    }
-  };
-
-  useEffect(() => {
-    const periodicFullSync = () => {
-      debug('app booted, syncing');
-      handleFullSync();
-
-      setInterval(() => {
-        const since = Date.now() - lastRan;
-        if (since > PERIODIC_WAIT_BUFFER) {
-          debug(`app waited, ${since / 1000} seconds since last sync, syncing`);
-          handleFullSync();
-        } else {
-          debug(`app waited, only ${since / 1000} seconds since last sync, not syncing`);
-        }
-      }, PERIODIC_WAIT_BUFFER);
-    };
-    periodicFullSync();
-    // we want this to be run once
-    // FIXME: work out how to put handleFullSync in deps as that's probably more correct
+    initSocket();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleVisibilityChange = async function (isVisible: boolean) {
-    if (isVisible) {
-      const since = Date.now() - lastRan;
-      if (since > VISIBLE_WAIT_BUFFER) {
-        debug(`app visible, ${since / 1000} seconds since last sync, syncing`);
-        handleFullSync();
-      } else {
-        debug(`app visible, only ${since / 1000} seconds since last sync, not syncing`);
-      }
+    if (!isVisible) {
+      clearTimeout(staleTimeoutHandle);
+      await flushStaleQueue();
     }
   };
 
+  const fadeOutConnected = state === State.connected && location.pathname !== '/about';
   return (
     <PageVisibility onChange={handleVisibilityChange}>
-      <IconButton color="inherit" onClick={handleFullSync}>
-        <SyncIcon />
-        {state === State.syncing && (
-          <CircularProgress color="secondary" className={classes.progress} size="30px" />
-        )}
-        {state === State.syncing && (
-          <CircularProgress
-            color="secondary"
-            variant="determinate"
-            value={progress}
-            className={classes.progress}
-          />
-        )}
-      </IconButton>
+      {/* instantly "fade in" other states, slowly fade out connected state */}
+      <Fade in={!fadeOutConnected} timeout={fadeOutConnected ? 2000 : 0}>
+        <IconButton color="inherit" onClick={handleFullSync}>
+          {state === State.error && (
+            <Tooltip title={error}>
+              <ErrorOutlineRoundedIcon />
+            </Tooltip>
+          )}
+          {state === State.disconnected && <CloudOffRoundedIcon />}
+          {state === State.syncing && (
+            <Fragment>
+              <CloudRoundedIcon />
+              {/* inner constantly animating progress */}
+              <CircularProgress color="secondary" className={classes.progress} size="33px" />
+              {/* outer percentage progress */}
+              <CircularProgress
+                color="secondary"
+                className={classes.progress}
+                variant="determinate"
+                value={progress}
+              />
+            </Fragment>
+          )}
+          {state === State.connected && <CloudDoneRoundedIcon />}
+        </IconButton>
+      </Fade>
     </PageVisibility>
   );
 
@@ -320,16 +338,3 @@ function Sync(props: { db: PouchDB.Database }) {
 }
 
 export default Sync;
-async function bulkDelete(db: PouchDB.Database<{}>, deletes: Doc[]) {
-  const deleteResults = await db.allDocs({ keys: deletes.map((d) => d._id) });
-  const deletedDocs = deleteResults.rows.map((row) => ({
-    _id: row.key,
-    // If the client doesn't have this document, the row will have
-    //error: "not_found"
-    // and no _rev.
-    _rev: row?.value?.rev,
-    _deleted: true,
-  }));
-
-  await db.bulkDocs(deletedDocs);
-}

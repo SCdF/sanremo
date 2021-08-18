@@ -41,7 +41,7 @@ const useStyles = makeStyles((theme) => ({
  */
 function Page(props: { db: Database; children: React.ReactNode }) {
   const classes = useStyles();
-  const navigate = useNavigate();
+  const rrdNavigate = useNavigate();
 
   const { db, children } = props;
 
@@ -62,6 +62,11 @@ function Page(props: { db: Database; children: React.ReactNode }) {
   }
   function handleMenuClose() {
     setAnchorEl(null);
+  }
+  function navigate(to: string | number) {
+    handleMenuClose();
+    // @ts-ignore
+    rrdNavigate(to);
   }
 
   const menu = (

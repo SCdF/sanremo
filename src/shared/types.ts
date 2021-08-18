@@ -42,5 +42,7 @@ export interface ServerToClientEvents {
   docUpdate: (docs: Doc[]) => void;
 }
 export interface ClientToServerEvents {
+  /** the client is in a position to receive streaming updates (ie they have finished their full sync) */
+  ready: () => void;
   docUpdate: (docs: Doc[]) => void;
 }
