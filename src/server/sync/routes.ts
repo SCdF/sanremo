@@ -35,10 +35,13 @@ export default function routes(
         results = await sync.begin(req.session.user as User, stubs);
       } catch (error) {
         if (error.code === '23505') {
+          console.warn('Failed to `/api/sync/begin` the first time, conflict, retrying');
           // duplicate key, implies two syncs from the same client, try again one more time
           // if we rerunit my last or rocky okay a a in1//
           // TODO: deal with this more robustly
           results = await sync.begin(req.session.user as User, stubs);
+        } else {
+          throw error;
         }
       }
       res.json(results);

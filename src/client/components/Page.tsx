@@ -63,9 +63,10 @@ function Page(props: { db: Database; children: React.ReactNode }) {
   function handleMenuClose() {
     setAnchorEl(null);
   }
-  function navigate(url: string) {
+  function navigate(to: string | number) {
     handleMenuClose();
-    rrdNavigate(url);
+    // @ts-ignore
+    rrdNavigate(to);
   }
 
   const menu = (
