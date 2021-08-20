@@ -49,30 +49,33 @@ function Login() {
   return (
     <Container>
       <h1>Project Sanremo</h1>
-      <p>Create a new account or log in with an existing one.</p>
-      <TextField
-        variant="filled"
-        fullWidth
-        onChange={(e) => setUsername(e.target.value)}
-        label="Username"
-        name="username"
-      />
-      <TextField
-        variant="filled"
-        fullWidth
-        type="password"
-        onChange={(e) => setPassword(e.target.value)}
-        label="Password"
-        name="password"
-      />
-      {error && (
-        <FormHelperText error fullWidth>
-          {error}
-        </FormHelperText>
-      )}
-      <Button variant="contained" color="primary" onClick={submit}>
-        Submit
-      </Button>
+      <form onSubmit={submit}>
+        <TextField
+          variant="filled"
+          fullWidth
+          onChange={(e) => setUsername(e.target.value)}
+          label="Username"
+          name="username"
+          autoComplete="username"
+        />
+        <TextField
+          variant="filled"
+          fullWidth
+          type="password"
+          onChange={(e) => setPassword(e.target.value)}
+          label="Password"
+          name="password"
+          autoComplete="current-password"
+        />
+        {error && (
+          <FormHelperText error fullWidth>
+            {error}
+          </FormHelperText>
+        )}
+        <Button variant="contained" color="primary" type="submit">
+          Submit
+        </Button>
+      </form>
     </Container>
   );
 }
