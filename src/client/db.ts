@@ -62,6 +62,12 @@ export default function db(loggedInUser: User): Database {
     let idbTime = performance.now();
     const idbResult = await fn(idb);
     idbTime = performance.now() - idbTime;
+
+    if (loggedInUser.id !== 1) {
+      // don't subject others to this testing
+      return idbResult;
+    }
+
     let indexeddbTime = performance.now();
     const indexeddbResult = await fn(indexeddb);
     indexeddbTime = performance.now() - indexeddbTime;
@@ -82,6 +88,7 @@ export default function db(loggedInUser: User): Database {
         indexeddbResult,
         diff,
       });
+      alert('different results returned, check the logs');
     }
     return idbResult;
   };
