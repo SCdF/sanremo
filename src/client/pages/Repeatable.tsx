@@ -84,7 +84,14 @@ function Repeatable(props: { db: Database }) {
         navigate(`/repeatable/${repeatable._id}`, { replace: true });
       } else {
         debug('pre repeatable load');
-        const repeatable: RepeatableDoc = await db.get(repeatableId);
+        let repeatable: RepeatableDoc;
+        try {
+          repeatable = await db.get(repeatableId);
+        } catch (error) {
+          console.warn(`Repeatable ${repeatableId} failed to load`, error);
+          return navigate('/');
+        }
+
         // repeatable.values ??= [];
         repeatable.values = repeatable.values || [];
 
@@ -169,6 +176,11 @@ function Repeatable(props: { db: Database }) {
   }
 
   if (!(repeatable && template)) {
+    return null;
+  }
+
+  if (repeatable?._deleted) {
+    navigate('/');
     return null;
   }
 
