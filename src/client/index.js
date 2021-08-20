@@ -10,6 +10,8 @@ import store from './store';
 
 import reportWebVitals from './reportWebVitals';
 
+require('debug').enable('sanremo:client:*');
+
 ReactDOM.render(
   <Provider store={store}>
     <BrowserRouter>

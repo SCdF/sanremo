@@ -13,13 +13,17 @@ function mapProps(parent, info) {
 }
 
 function About(props) {
-  const { db } = props;
   const dispatch = useDispatch();
 
-  const [dbInfo, setDbInfo] = useState([]);
+  const [idbInfo, setIdbInfo] = useState([]);
+  const [indexeddbInfo, setIndexeddbInfo] = useState([]);
   const [serverInfo, setServerInfo] = useState([]);
 
-  useEffect(() => db.info().then((info) => setDbInfo(mapProps('db', info))), [db]);
+  useEffect(() => window.IDB.info().then((info) => setIdbInfo(mapProps('idb', info))), []);
+  useEffect(
+    () => window.INDEXEDDB.info().then((info) => setIndexeddbInfo(mapProps('indexeddb', info))),
+    []
+  );
   useEffect(() => {
     if (process.env.NODE_ENV === 'production') {
       axios
@@ -58,7 +62,8 @@ function About(props) {
   const vars = [
     ['Deployment Type', <b>{process.env.NODE_ENV.toUpperCase()}</b>],
     ...serverInfo,
-    ...dbInfo,
+    ...idbInfo,
+    ...indexeddbInfo,
   ];
 
   return (
