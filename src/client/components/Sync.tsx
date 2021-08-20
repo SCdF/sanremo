@@ -46,9 +46,6 @@ function Sync(props: { db: Database }) {
 
   const location = useLocation();
 
-  const [staleTimeoutHandle, setStaleTimeoutHandle] = useState(
-    undefined as unknown as NodeJS.Timeout
-  );
   const [state, setState] = useState(State.disconnected);
   const [error, setError] = useState(undefined as unknown as string);
   const [progress, setProgress] = useState(0);
@@ -69,7 +66,6 @@ function Sync(props: { db: Database }) {
           setProgress(0);
 
           // wipe the stale queue, we're about to do a full sync anyway
-          clearTimeout(staleTimeoutHandle);
           dispatch(cleanStaleAll());
 
           // Get the docs we have locally. The only way to see deleted documents with PouchDB
@@ -181,41 +177,26 @@ function Sync(props: { db: Database }) {
         }
       }
     },
-    [db, dispatch, staleTimeoutHandle, state]
+    [db, dispatch, state]
   );
-
-  const flushStaleQueue = useCallback(async () => {
-    const docs = Object.values(stale);
-    // Don't try to flush the stale queue whilst it's disconnected. Otherwise you'll potentially
-    // queue up a bunch of emits that contradict each other.
-    if (docs.length && socket && socket.connected) {
-      debug(`stale server update for ${docs.length} docs`);
-
-      socket.emit('docUpdate', docs);
-      dispatch(cleanStale(docs));
-    }
-  }, [dispatch, socket, stale]);
 
   useEffect(() => {
     const processStaleQueue = () => {
-      clearTimeout(staleTimeoutHandle);
+      const docs = Object.values(stale);
+      // Don't emit if we're disconnected. Otherwise we'll queue up a bunch of emits that could contradict each other.
+      // Once we reconnect a full sync will occur anyway
+      if (docs.length && socket && socket.connected) {
+        debug(`stale server update for ${docs.length} docs`);
 
-      const staleCount = Object.values(stale).length;
-      if (!(socket && staleCount)) {
-        return;
+        socket.emit('docUpdate', docs);
       }
 
-      debug(`${staleCount} stale docs, priming server update`);
-
-      flushStaleQueue();
+      // Always clean the docs we're aware of out though. Again, they aren't needed in the stale queue if we're offline
+      dispatch(cleanStale(docs));
     };
 
     processStaleQueue();
-
-    // timeoutHandle changes should not fire this effect, otherwise it would be an infinite loop
-    // of clearing and setting the time out
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dispatch, socket, stale /*, timeoutHandle */]);
+  }, [dispatch, socket, stale]);
 
   useEffect(() => {
     const initSocket = () => {
@@ -262,10 +243,8 @@ function Sync(props: { db: Database }) {
   }, []);
 
   const handleVisibilityChange = async function (isVisible: boolean) {
-    if (!isVisible) {
-      clearTimeout(staleTimeoutHandle);
-      await flushStaleQueue();
-    }
+    // TODO: we aren't actually using this right now. Investigate whether or not we should be
+    // disconnecting or reconnecting sockets here
   };
 
   const fadeOutConnected = state === State.connected && location.pathname !== '/about';

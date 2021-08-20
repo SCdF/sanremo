@@ -9,6 +9,8 @@ export const syncSlice = createSlice({
     stale: {} as DocMap,
   },
   reducers: {
+    // TODO: work out how to only use this while online
+    // there is no point keeping a stale queue while we're offline, as we do a full sync when we come online
     markStale: (state, action: { payload: Doc }) => {
       state.stale[action.payload._id] = action.payload;
     },
