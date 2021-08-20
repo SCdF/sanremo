@@ -1,13 +1,21 @@
+import * as RR from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
+
 import userReducer from './state/userSlice';
 import docsSlice from './state/docsSlice';
 import pageSlice from './state/pageSlice';
-import * as RR from 'react-redux';
 import syncSlice from './state/syncSlice';
+import debugSlice from './state/debugSlice';
 
 function createStore() {
   return configureStore({
-    reducer: { user: userReducer, docs: docsSlice, page: pageSlice, sync: syncSlice },
+    reducer: {
+      user: userReducer,
+      docs: docsSlice,
+      page: pageSlice,
+      sync: syncSlice,
+      debug: debugSlice,
+    },
     // devTools: process.env.NODE_ENV !== 'production',
   });
 }

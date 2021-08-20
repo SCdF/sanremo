@@ -74,7 +74,7 @@ io.use((socket, next) => sesh(socket.request, {}, next));
 
 app.post('/api/auth', async function (req, res) {
   const { username, password } = req.body;
-  const result = await db.query('select id, password from users where username = $1::text', [
+  const result = await db.query('SELECT id, password FROM users WHERE username = $1::text', [
     username,
   ]);
 
@@ -117,26 +117,38 @@ app.get('/api/auth', function (req, res) {
   return res.json(req.session);
 });
 
-app.get('/api/deployment', function (req, res) {
+app.get('/api/deployment', async function (req, res) {
   const releaseVersion = JSON.parse(
     readFileSync(new URL('../../../package.json', import.meta.url).pathname, 'utf-8')
   ).version;
 
+  const toReturn: Record<string, any> = {
+    release_version: releaseVersion,
+  };
+
   if (process.env.NODE_ENV === 'production') {
-    return res.json({
-      deploy_created_at: process.env.HEROKU_RELEASE_CREATED_AT,
-      deploy_version: process.env.HEROKU_RELEASE_VERSION,
-      deploy_commit: process.env.HEROKU_SLUG_COMMIT,
-      release_version: releaseVersion,
-    });
+    toReturn.deploy_created_at = process.env.HEROKU_RELEASE_CREATED_AT;
+    toReturn.deploy_version = process.env.HEROKU_RELEASE_VERSION;
+    toReturn.deploy_commit = process.env.HEROKU_SLUG_COMMIT;
+  } else {
+    toReturn.deploy_created_at = '1970-01-01T12:12:12Z';
+    toReturn.deploy_version = 'continuous';
+    toReturn.deploy_commit = 'local HEAD';
   }
 
-  return res.json({
-    deploy_created_at: '1970-01-01T12:12:12Z',
-    deploy_version: 'continuous',
-    deploy_commit: 'local HEAD',
-    release_version: releaseVersion,
-  });
+  if (req.session.user?.id === 1) {
+    const userSummaries = await db.query(`
+      SELECT users.id, users.username, COUNT(*) AS count
+      FROM users
+      JOIN raw_client_documents
+      ON users.id = raw_client_documents.user_id
+      GROUP BY users.id
+      ORDER BY users.id`);
+
+    toReturn.users = userSummaries.rows;
+  }
+
+  return res.json(toReturn);
 });
 
 syncRoutes(app, io);

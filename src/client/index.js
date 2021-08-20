@@ -9,11 +9,11 @@ import App from './App';
 import store from './store';
 
 import reportWebVitals from './reportWebVitals';
-
-require('debug').enable('sanremo:client:*');
+import Debug from './components/Debug';
 
 ReactDOM.render(
   <Provider store={store}>
+    <Debug />
     <BrowserRouter>
       <React.StrictMode>
         <App />
