@@ -12,7 +12,9 @@ function Login() {
 
   const [error, setError] = useState();
 
-  async function submit() {
+  async function submit(event) {
+    event.preventDefault();
+
     if (!username) {
       return setError('No username!');
     }
