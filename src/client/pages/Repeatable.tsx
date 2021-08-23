@@ -193,7 +193,8 @@ function Repeatable(props: { db: Database }) {
   let lastInputIdx = -1;
   let valueIdx = -1;
   chunks.forEach((chunk, chunkIdx) => {
-    if (chunk.trimStart().startsWith('- [ ]')) {
+    chunk = chunk.trim();
+    if (chunk.startsWith('- [ ]')) {
       if (chunkIdx > 0 && lastInputIdx + 1 < chunkIdx) {
         const text = chunks.slice(lastInputIdx + 1, chunkIdx).join('\n');
         items.push(
@@ -209,7 +210,7 @@ function Repeatable(props: { db: Database }) {
       valueIdx++;
 
       const checked = inputValues[valueIdx];
-      const text = chunk.substring(5).trim();
+      const text = chunk.substring(5);
 
       items.push(
         <ListItem
