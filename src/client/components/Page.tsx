@@ -17,6 +17,7 @@ import ArrowBack from '@material-ui/icons/ArrowBack';
 import CheckBoxIcon from '@material-ui/icons/CheckBox';
 import HistoryIcon from '@material-ui/icons/History';
 import InfoIcon from '@material-ui/icons/Info';
+import ExitToAppIcon from '@material-ui/icons/ExitToApp';
 
 import { useNavigate } from 'react-router-dom';
 import React, { useEffect, useState } from 'react';
@@ -69,6 +70,12 @@ function Page(props: { db: Database; children: React.ReactNode }) {
     rrdNavigate(to);
   }
 
+  async function handleLogout() {
+    document.cookie = 'sanremo-client='; // ugly-wipe client-side cookie
+    await db.destroy();
+    window.location.reload();
+  }
+
   const menu = (
     <div>
       <Menu
@@ -117,6 +124,12 @@ function Page(props: { db: Database; children: React.ReactNode }) {
             <InfoIcon />
           </ListItemIcon>
           <Typography>About</Typography>
+        </MenuItem>
+        <MenuItem button key="logout" onClick={handleLogout}>
+          <ListItemIcon>
+            <ExitToAppIcon />
+          </ListItemIcon>
+          <Typography>Logout</Typography>
         </MenuItem>
       </Menu>
     </div>

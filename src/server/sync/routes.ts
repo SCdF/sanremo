@@ -1,7 +1,12 @@
 import { Router } from 'express';
 import { Server as SocketServer } from 'socket.io';
+
+import debugModule from 'debug';
+
 import { ClientToServerEvents, Doc, ServerToClientEvents, User, UserId } from '../../shared/types';
 import sync from './sync';
+
+const debugSocket = debugModule('sanremo:server:socket');
 
 /**
  * Sync 0.0: The Worst Possible Implementation
@@ -46,7 +51,7 @@ export default function routes(
       }
       res.json(results);
     } catch (error) {
-      console.log('Unexpected error on /api/sync/begin', error);
+      console.warn('Unexpected error on /api/sync/begin', error);
       res.status(500);
       res.end();
     }
@@ -57,7 +62,7 @@ export default function routes(
       const results = await sync.request(req.session.user as User, stubs);
       res.json(results);
     } catch (error) {
-      console.log('Unexpected error on /api/sync/request', error);
+      console.warn('Unexpected error on /api/sync/request', error);
       res.status(500);
       res.end();
     }
@@ -72,7 +77,7 @@ export default function routes(
 
       res.end();
     } catch (error) {
-      console.log('Unexpected error on /api/sync/update', error);
+      console.warn('Unexpected error on /api/sync/update', error);
       res.status(500);
       res.end();
     }
@@ -88,7 +93,7 @@ export default function routes(
 
     for (const socketId of userSockets) {
       if (currentSocketId !== socketId) {
-        console.log(`SOCKET: sending ${docs.length} to ${JSON.stringify(user)} as ${socketId}`);
+        debugSocket(`sending ${docs.length} to ${JSON.stringify(user)} as ${socketId}`);
 
         io.to(socketId).emit('docUpdate', docs);
       }
@@ -105,17 +110,17 @@ export default function routes(
     const socketId = socket.id;
 
     socket.on('ready', () => {
-      console.log(`SOCKET: ${JSON.stringify(user)} connected as ${socketId}`);
+      debugSocket(`${JSON.stringify(user)} connected as ${socketId}`);
       socketSet.add(socketId);
     });
 
     socket.on('disconnect', () => {
-      console.log(`SOCKET: ${JSON.stringify(user)} as ${socketId} disconnected`);
+      debugSocket(`${JSON.stringify(user)} as ${socketId} disconnected`);
       socketSet.delete(socketId);
     });
 
     socket.on('docUpdate', async (docs) => {
-      console.log(`SOCKET: ${JSON.stringify(user)} as ${socketId} sent us ${docs.length}`);
+      debugSocket(`${JSON.stringify(user)} as ${socketId} sent us ${docs.length}`);
 
       await sync.update(user, docs);
       broadcastDocUpdate(user, docs, socketId);

@@ -39,6 +39,7 @@ export interface Database {
     options?: PouchDB.Core.GetOptions
   ): Promise<PouchDB.Core.Document<Model> & PouchDB.Core.GetMeta>;
   find(request?: PouchDB.Find.FindRequest<{}>): Promise<PouchDB.Find.FindResponse<{}>>;
+  destroy(): Promise<void>;
 }
 
 export default function db(loggedInUser: User): Database {
@@ -157,6 +158,9 @@ export default function db(loggedInUser: User): Database {
     },
     find: (request?: PouchDB.Find.FindRequest<{}>): Promise<PouchDB.Find.FindResponse<{}>> => {
       return every('find', (db) => db.find(request), request);
+    },
+    destroy: () => {
+      return every('destroy', (db) => db.destroy());
     },
   };
 }

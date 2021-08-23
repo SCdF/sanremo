@@ -1,8 +1,11 @@
 import { readFileSync } from 'fs';
 
-import express from 'express';
+import debugModule from 'debug';
+
+import express, { CookieOptions } from 'express';
 import session from 'express-session';
 import { SessionOptions } from 'express-session';
+import cookieParser from 'cookie-parser';
 import compression from 'compression';
 
 import http from 'http';
@@ -14,6 +17,7 @@ import pgConnect from 'connect-pg-simple';
 import syncRoutes from './sync/routes';
 import { db } from './db';
 import { ClientToServerEvents, ServerToClientEvents, User } from '../shared/types';
+import { Response } from 'express-serve-static-core';
 
 const app = express();
 const server = http.createServer(app);
@@ -23,31 +27,49 @@ if (process.env.NODE_ENV === 'production' && !process.env.SECRET) {
   console.error('Production deployment but no SECRET defined!');
   process.exit(-1);
 }
-const secret = (process.env.NODE_ENV === 'production' ? process.env.SECRET : 'devsecret') as string;
+const SECRET = (process.env.NODE_ENV === 'production' ? process.env.SECRET : 'devsecret') as string;
+const SECURE = process.env.NODE_ENV === 'production';
 
-const pgSession = pgConnect(session);
+// We use two cookies for authentication:
+// - a 'server' cookie that is httpOnly and is used by express-session
+// - a 'client' cookie that is not httpOnly and can be wiped by client-side javascript
+// Both are required for a valid session. This allows an XSS-safe server cookie and an offline-logout-able client cookie
+//
+// NB: This feels VERY CLOSE TO ROLLING OUR OWN SECURITY. I do not like it.
+//
+const SERVER_COOKIE = 'sanremo';
+const CLIENT_COOKIE = `${SERVER_COOKIE}-client`;
+const SESSION_AGE = 1000 * 60 * 60 * 24 * 14; // two weeks
+
 const sess: SessionOptions = {
-  secret: secret,
-  name: 'sanremo',
+  secret: SECRET,
+  name: SERVER_COOKIE,
   saveUninitialized: false,
   resave: true, // TODO: work out what we want this to be
   rolling: true,
   cookie: {
-    maxAge: 1000 * 60 * 60 * 24 * 14, // two weeks
+    maxAge: SESSION_AGE,
+    secure: SECURE,
+    // sameSite: true,
   },
 };
+const sesh = session(sess);
+if (process.env.DATABASE_URL) {
+  const pgSession = pgConnect(session);
+  sess.store = new pgSession({ pool: db });
+}
 
+// TODO: work out how to get socket.io to work with this as well without neding @ts-ignore
 declare module 'express-session' {
   interface SessionData {
     user: User;
   }
 }
 
+// Heroku-specific SSL work, other hosts may need different logic
 if (process.env.NODE_ENV === 'production') {
   app.set('trust proxy', 1);
-  sess.cookie!.secure = true;
 
-  // Heroku-specific SSL work, other hosts may need different logic
   app.use(function (req, res, next) {
     if (req.headers['x-forwarded-proto'] !== 'https') {
       res.set('location', `https://${req.hostname}${req.url}`);
@@ -63,17 +85,49 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(compression());
 app.use(express.static('build'));
-
-if (process.env.DATABASE_URL) {
-  sess.store = new pgSession({ pool: db });
-}
-const sesh = session(sess);
 app.use(sesh);
+app.use(cookieParser(SECRET));
+
+const clientSideCookie = (res: Response<any, Record<string, any>, number>, user: User) => {
+  const cookie = Object.assign({}, sess.cookie) as CookieOptions;
+  cookie.httpOnly = false;
+  cookie.signed = true;
+
+  res.cookie(CLIENT_COOKIE, user, cookie);
+};
+
+// Middleware that makes sure we have both cookies and invalidates the session if we don't
+const debugAuth = debugModule('sanremo:server:authentication');
+app.use((req, res, next) => {
+  debugAuth('double cookie middleware');
+  const serverUser: User | undefined = req.session.user;
+  const clientUser: User | undefined = req.signedCookies[CLIENT_COOKIE];
+
+  if (!serverUser) {
+    // We are not logged from the server's perspective. Let this flow through and be dealt with as normal
+    debugAuth('no server cookie, passing through');
+  } else if (
+    !(clientUser && clientUser.id === serverUser.id && clientUser.name === serverUser.name)
+  ) {
+    // Our two cookies do not exist match. Treat this session as "logged out"
+    debugAuth('client cookie does not exist or match server cookie, treating as logged out');
+
+    delete req.session.user;
+  } else {
+    // We have a sessionUser, a clientUser and they match
+    // re-up client-side cookie
+    clientSideCookie(res, clientUser);
+    debugAuth('double cookies match');
+  }
+
+  next();
+});
 // @ts-ignore TODO: make sure this works and if it does fix this ignore
 io.use((socket, next) => sesh(socket.request, {}, next));
 
 app.post('/api/auth', async function (req, res) {
   const { username, password } = req.body;
+  debugAuth(`/api/auth request for ${username}`);
   const result = await db.query('SELECT id, password FROM users WHERE username = $1::text', [
     username,
   ]);
@@ -82,9 +136,17 @@ app.post('/api/auth', async function (req, res) {
     const id = result.rows[0].id;
     const hash = result.rows[0].password;
     if (bcrypt.compareSync(password, hash)) {
+      debugAuth(`/api/auth request for ${username} successful`);
       req.session.user = { id: id, name: username };
+
+      // write cookie that javascript can clear,
+      clientSideCookie(res, req.session.user);
       return res.json(req.session);
+    } else {
+      debugAuth(`/api/auth request for ${username} denied, incorrect password`);
     }
+  } else {
+    debugAuth(`/api/auth request for ${username} denied, no user by that name`);
   }
 
   res.status(401);
@@ -93,9 +155,10 @@ app.post('/api/auth', async function (req, res) {
 
 // API access (bar logging in) requires a valid cookie, but accessing anything else (see /* below) does not
 app.all('/api/*', function (req, res, next) {
-  // FIXME: work out production appropriate ways of logging this (debug?)
-  console.log(`${req.method}: ${req.url} with ${JSON.stringify(req.session.user)}`);
-  if (!req.session.user) {
+  const user: User | undefined = req.session.user;
+
+  debugAuth(`${req.method}: ${req.url} with ${JSON.stringify(user)}`);
+  if (!user) {
     res.status(403);
     return res.json({ error: 'no authentication provided' });
   }
@@ -105,7 +168,7 @@ app.all('/api/*', function (req, res, next) {
 io.use((socket, next) => {
   // @ts-ignore https://github.com/socketio/socket.io/issues/3890
   const user = socket.request?.session?.user;
-  console.log(`SOCKET: connection with ${JSON.stringify(user)}`);
+  debugAuth(`SOCKET: connection with ${JSON.stringify(user)}`);
   if (user) {
     next();
   } else {
@@ -161,4 +224,4 @@ app.get('/*', function (req, res, next) {
 const port = process.env.PORT || 80;
 server.listen(port);
 
-console.log(`Started server on port ${port}`);
+debugModule('sanremo:server')(`Started server on port ${port}`);
