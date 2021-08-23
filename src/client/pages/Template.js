@@ -110,14 +110,18 @@ function Template(props) {
     navigate(-1);
   }
 
+  // TODO: replace this with slice actions so we don't have to do dumb (and slow presumably) copies
   async function handleChange({ target }) {
     const copy = Object.assign({}, template);
     const value = target.type === 'checkbox' ? target.checked : target.value;
     const name = target.name;
 
     if (name === 'slugType') {
+      copy.slug = Object.assign({}, copy.slug);
       copy.slug.type = value;
     } else if (name === 'slugPlaceholder') {
+      copy.slug = Object.assign({}, copy.slug);
+
       copy.slug.placeholder = value;
     } else {
       copy[name] = value;
