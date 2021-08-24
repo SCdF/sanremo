@@ -48,6 +48,7 @@ const SECURE = process.env.NODE_ENV === 'production';
 //
 // TODO: validate this approach with someone who knows more about security than you
 // we have validated that using the sanremo-client cookie as the sanremo cookie does not work, but that's it
+// session.clientCookie feels really fragile and the wrong approach
 const SERVER_COOKIE = 'sanremo';
 const CLIENT_COOKIE = `${SERVER_COOKIE}-client`;
 const SESSION_AGE = 1000 * 60 * 60 * 24 * 14; // two weeks
@@ -105,31 +106,6 @@ const clientSideCookie = (res: Response<any, Record<string, any>, number>, user:
   res.cookie(CLIENT_COOKIE, user, cookie);
 };
 
-// Middleware that makes sure we have both cookies and invalidates the session if we don't
-// This should be placed after express-session's middleware
-app.use((req, res, next) => {
-  debugAuth('double cookie middleware');
-  const serverUser: User | undefined = req.session.user;
-  const clientUser: User | undefined = req.signedCookies[CLIENT_COOKIE];
-
-  if (!serverUser) {
-    // We are not logged from the server's perspective. Let this flow through and be dealt with as normal
-    debugAuth('no server cookie, passing through');
-    next();
-  } else if (clientUser && clientUser.id === serverUser.id && clientUser.name === serverUser.name) {
-    // We have a sessionUser, a clientUser and they match
-    // re-up client-side cookie
-    clientSideCookie(res, clientUser);
-    debugAuth('double cookies match');
-    next();
-  } else {
-    // Our two cookies do not exist match. Treat this session as "logged out"
-    debugAuth('client cookie does not exist or match server cookie, treating as logged out');
-
-    res.status(401);
-    res.end();
-  }
-});
 // @ts-ignore TODO: make sure this works and if it does fix this ignore
 io.use((socket, next) => sesh(socket.request, {}, next)); // TODO: make sure this cares about double cookie middleware
 
@@ -147,9 +123,9 @@ app.post('/api/auth', async function (req, res) {
       debugAuth(`/api/auth request for ${username} successful`);
       req.session.user = { id: id, name: username };
 
-      // write cookie that javascript can clear,
+      // write cookie that javascript can clear
       clientSideCookie(res, req.session.user);
-      return res.json(req.session);
+      return res.json(req.session.user);
     } else {
       debugAuth(`/api/auth request for ${username} denied, incorrect password`);
     }
@@ -161,23 +137,38 @@ app.post('/api/auth', async function (req, res) {
   res.end();
 });
 
-// API access (bar logging in) requires a valid cookie, but accessing anything else (see /* below) does not
-app.all('/api/*', function (req, res, next) {
-  const user: User | undefined = req.session.user;
+// Validate both cookies for api access
+app.use('/api/*', (req, res, next) => {
+  const serverUser: User | undefined = req.session.user;
+  const clientUser: User | undefined = req.signedCookies[CLIENT_COOKIE];
 
-  debugAuth(`${req.method}: ${req.url} with ${JSON.stringify(user)}`);
-  if (!user) {
-    res.status(403);
-    return res.json({ error: 'no authentication provided' });
+  debugAuth(
+    `${req.method}: ${req.originalUrl} with server: ${JSON.stringify(
+      serverUser
+    )}, client:${JSON.stringify(clientUser)}`
+  );
+
+  if (
+    serverUser &&
+    clientUser &&
+    clientUser.id === serverUser.id &&
+    clientUser.name === serverUser.name
+  ) {
+    // Session is valid
+    // re-up client-side cookie (express-session will deal with server-side)
+    clientSideCookie(res, clientUser);
+    next();
+  } else {
+    res.status(401);
+    return res.json({ error: 'invalid authentication' });
   }
-
-  next();
 });
 io.use((socket, next) => {
   // @ts-ignore https://github.com/socketio/socket.io/issues/3890
   const user = socket.request?.session?.user;
   debugAuth(`SOCKET: connection with ${JSON.stringify(user)}`);
   if (user) {
+    // TODO: also care about the client-side cookie? Or is the server-side enough?
     next();
   } else {
     next(new Error('no authentication provided'));
@@ -185,7 +176,7 @@ io.use((socket, next) => {
 });
 
 app.get('/api/auth', function (req, res) {
-  return res.json(req.session);
+  return res.json(req.session.user);
 });
 
 app.get('/api/deployment', async function (req, res) {

@@ -1,9 +1,17 @@
 import './App.scss';
+
+import debugModule from 'debug';
+
+import cookie from 'cookie';
+import { axios, CancelToken } from 'axios';
+
 import React, { useEffect } from 'react';
 import { Routes } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 
 import CssBaseline from '@material-ui/core/CssBaseline';
+import { createMuiTheme, ThemeProvider } from '@material-ui/core/styles';
+import { CircularProgress } from '@material-ui/core';
 
 import db from './db';
 import { set as setLoggedInUser } from './state/userSlice';
@@ -14,10 +22,9 @@ import Home from './pages/Home';
 import Login from './pages/Login';
 import Repeatable from './pages/Repeatable';
 import Template from './pages/Template';
-
-import { createMuiTheme, ThemeProvider } from '@material-ui/core/styles';
-import { CircularProgress } from '@material-ui/core';
 import Page from './components/Page';
+
+const debugAuth = debugModule('sanremo:client:auth');
 
 const theme = createMuiTheme({
   // palette: {
@@ -35,25 +42,56 @@ function App() {
   const dispatch = useDispatch();
 
   useEffect(() => {
-    // FIXME: we don't want to actually do this. Instead, either:
-    // - remap this URL to an /api/ok or something that doesn't involve anything except validating the session,
-    // - rely entirely on actual remote calls to fail as they fail to trigger a login request
-    // And with either option know the difference between being offline and not authed
-    // FIXME: check a client-side cookie for this. Without this check we can't support offline first!
-    async function authCheck() {
-      const response = await fetch('/api/auth');
-      if (response.ok) {
-        const data = await response.json();
-        dispatch(setLoggedInUser(data.user));
-      } else {
-        dispatch(setLoggedInUser(false));
+    // Parse the user from the client-side cookie.
+    function localCookieCheck() {
+      debugAuth('local cookie parsing fallback');
+      try {
+        // 's:j:{...json...}.signature'
+        const clientCookie = cookie.parse(document.cookie)['sanremo-client'];
+        if (!clientCookie) {
+          return false;
+        }
+        // '{...json...}.signature'
+        const frontStripped = clientCookie.slice(4);
+        // '{...json...}'
+        const backStripped = frontStripped.slice(0, frontStripped.lastIndexOf('.'));
+        const user = JSON.parse(backStripped);
+        return user;
+      } catch (error) {
+        console.error('Failed to parse user from client cookie', error);
+        return false;
       }
+    }
+    async function networkCheck() {
+      debugAuth('server authentication check');
+      const source = CancelToken.source();
+      setTimeout(() => source.cancel(), 2000);
+      try {
+        const response = await axios('/api/auth', { cancelToken: source });
+        return response.data;
+      } catch (error) {
+        if (error.response?.status === 401) {
+          debugAuth('server authentication check failed');
+          return false; // authentication failed
+        }
+        debugAuth('server authentication unavailable');
+        return; // service is unavailable
+      }
+    }
+    async function auth() {
+      let user = await networkCheck();
+      if (user === undefined) {
+        user = localCookieCheck();
+      }
+
+      debugAuth(`setting user to ${user}`);
+      dispatch(setLoggedInUser(user));
     }
 
     if (process.env.NODE_ENV === 'development') {
       dispatch(setLoggedInUser('dev'));
     } else if (loggedInUser === undefined) {
-      authCheck();
+      auth();
     }
   }, [dispatch, loggedInUser]);
 

@@ -23,6 +23,7 @@ function Login() {
       return setError('No password!');
     }
 
+    // TODO: replace with axios, deal with offline etc better
     const response = await fetch('/api/auth', {
       method: 'POST',
       headers: {
@@ -44,8 +45,8 @@ function Login() {
     }
 
     // In theory we're all good now?
-    const data = await response.json();
-    dispatch(setLoggedInUser(data.user));
+    const user = await response.json();
+    dispatch(setLoggedInUser(user));
   }
 
   return (
