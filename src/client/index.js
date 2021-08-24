@@ -1,5 +1,7 @@
 import './index.css';
 
+import debugModule from 'debug';
+
 import React from 'react';
 import ReactDOM from 'react-dom';
 import { BrowserRouter } from 'react-router-dom';
@@ -7,14 +9,13 @@ import { Provider } from 'react-redux';
 
 import App from './App';
 import store from './store';
-import Debug from './components/Debug';
 
 import * as serviceWorkerRegistration from './serviceWorkerRegistration';
 import reportWebVitals from './reportWebVitals';
+import { updateNeeded } from './state/updateSlice';
 
 ReactDOM.render(
   <Provider store={store}>
-    <Debug />
     <BrowserRouter>
       <React.StrictMode>
         <App />
@@ -24,14 +25,31 @@ ReactDOM.render(
   document.getElementById('root')
 );
 
-// If you want your app to work offline and load faster, you can change
-// unregister() to register() below. Note this comes with some pitfalls.
-// Learn more about service workers: https://cra.link/PWA
+const debugUpdate = debugModule('sanremo:update');
+
+navigator.serviceWorker.onmessage = (event) => {
+  if (event?.data?.type === 'reload_ready') {
+    window.location.reload();
+  }
+};
+
 serviceWorkerRegistration.register({
   onUpdate: (reg) => {
-    // Changes will happen when you reload
-    // TODO: this will cause crazy issues if we start lazily loading things. Document this properly
-    reg.waiting.postMessage({ type: 'SKIP_WAITING' });
+    debugUpdate('updated is possible');
+    store.dispatch(updateNeeded());
+    store.subscribe(() => {
+      if (store.getState().update.requested) {
+        debugUpdate('user requested update');
+        reg.waiting.postMessage({ type: 'SKIP_WAITING' });
+      }
+    });
+  },
+  onReady: (reg) => {
+    debugUpdate('service worker registered successfully');
+    setInterval(() => {
+      debugUpdate('checking for updates');
+      reg.update();
+    }, 1000 * 60 * 60 * 4);
   },
 });
 

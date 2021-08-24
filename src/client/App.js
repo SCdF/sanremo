@@ -3,7 +3,7 @@ import './App.scss';
 import debugModule from 'debug';
 
 import cookie from 'cookie';
-import { axios, CancelToken } from 'axios';
+import axios, { CancelToken } from 'axios';
 
 import React, { useEffect } from 'react';
 import { Routes } from 'react-router-dom';
@@ -23,6 +23,7 @@ import Login from './pages/Login';
 import Repeatable from './pages/Repeatable';
 import Template from './pages/Template';
 import Page from './components/Page';
+import Debug from './components/Debug';
 
 const debugAuth = debugModule('sanremo:client:auth');
 
@@ -67,7 +68,7 @@ function App() {
       const source = CancelToken.source();
       setTimeout(() => source.cancel(), 2000);
       try {
-        const response = await axios('/api/auth', { cancelToken: source });
+        const response = await axios('/api/auth', { cancelToken: source.token });
         return response.data;
       } catch (error) {
         if (error.response?.status === 401) {
@@ -75,6 +76,7 @@ function App() {
           return false; // authentication failed
         }
         debugAuth('server authentication unavailable');
+        console.warn(error);
         return; // service is unavailable
       }
     }
@@ -118,6 +120,8 @@ function App() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
+      <Debug />
+      <p>foo</p>
       <Page db={handle}>
         <Routes>
           <Home db={handle} path="/" />

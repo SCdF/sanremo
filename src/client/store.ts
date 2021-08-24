@@ -6,6 +6,7 @@ import docsSlice from './state/docsSlice';
 import pageSlice from './state/pageSlice';
 import syncSlice from './state/syncSlice';
 import debugSlice from './state/debugSlice';
+import updateSlice from './state/updateSlice';
 
 function createStore() {
   return configureStore({
@@ -15,6 +16,7 @@ function createStore() {
       page: pageSlice,
       sync: syncSlice,
       debug: debugSlice,
+      update: updateSlice,
     },
     // devTools: process.env.NODE_ENV !== 'production',
   });

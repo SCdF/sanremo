@@ -1,5 +1,6 @@
 import {
   AppBar,
+  Badge,
   Container,
   Divider,
   IconButton,
@@ -18,15 +19,18 @@ import CheckBoxIcon from '@material-ui/icons/CheckBox';
 import HistoryIcon from '@material-ui/icons/History';
 import InfoIcon from '@material-ui/icons/Info';
 import ExitToAppIcon from '@material-ui/icons/ExitToApp';
+import UpdateIcon from '@material-ui/icons/Update';
 
 import { useNavigate } from 'react-router-dom';
 import React, { useEffect, useState } from 'react';
 
 import Sync from './Sync';
 import store, { useSelector } from '../store';
+import { Database } from '../db';
 import { PageContext } from '../state/pageSlice';
 import { RepeatableSlug } from '../pages/Repeatable';
-import { Database } from '../db';
+import { requestUpdate } from '../state/updateSlice';
+import { useDispatch } from 'react-redux';
 
 const useStyles = makeStyles((theme) => ({
   grow: {
@@ -43,6 +47,7 @@ const useStyles = makeStyles((theme) => ({
 function Page(props: { db: Database; children: React.ReactNode }) {
   const classes = useStyles();
   const rrdNavigate = useNavigate();
+  const dispatch = useDispatch();
 
   const { db, children } = props;
 
@@ -50,6 +55,7 @@ function Page(props: { db: Database; children: React.ReactNode }) {
 
   const loggedInUser = useSelector((state) => state.user.value);
   const context: PageContext = useSelector((state) => state.page.value);
+  const updateNeeded = useSelector((state) => state.update.needed);
 
   const isMenuOpen = !!anchorEl;
 
@@ -74,6 +80,11 @@ function Page(props: { db: Database; children: React.ReactNode }) {
     document.cookie = 'sanremo-client='; // ugly-wipe client-side cookie
     await db.destroy();
     window.location.reload();
+  }
+
+  function handleUpdate() {
+    dispatch(requestUpdate());
+    handleMenuClose();
   }
 
   const menu = (
@@ -125,6 +136,16 @@ function Page(props: { db: Database; children: React.ReactNode }) {
           </ListItemIcon>
           <Typography>About</Typography>
         </MenuItem>
+        {updateNeeded && (
+          <MenuItem button key="update" onClick={handleUpdate}>
+            <ListItemIcon>
+              <Badge color="secondary" variant="dot" invisible={!updateNeeded}>
+                <UpdateIcon />
+              </Badge>
+            </ListItemIcon>
+            <Typography>Update</Typography>
+          </MenuItem>
+        )}
         <MenuItem button key="logout" onClick={handleLogout}>
           <ListItemIcon>
             <ExitToAppIcon />
@@ -157,7 +178,9 @@ function Page(props: { db: Database; children: React.ReactNode }) {
           <div className={classes.grow} />
           {process.env.NODE_ENV === 'production' && <Sync db={db} />}
           <IconButton edge="end" color="inherit" onClick={handleMenuOpen}>
-            <AccountCircle />
+            <Badge color="secondary" variant="dot" invisible={!updateNeeded}>
+              <AccountCircle />
+            </Badge>
           </IconButton>
         </Toolbar>
       </AppBar>

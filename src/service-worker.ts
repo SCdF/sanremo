@@ -69,11 +69,23 @@ registerRoute(
   })
 );
 
-// This allows the web app to trigger skipWaiting via
-// registration.waiting.postMessage({type: 'SKIP_WAITING'})
-self.addEventListener('message', (event) => {
+self.addEventListener('message', async (event) => {
   if (event.data && event.data.type === 'SKIP_WAITING') {
-    self.skipWaiting();
+    // TODO: this will cause crazy issues if we start lazily loading things. Document this properly
+    await self.skipWaiting();
+
+    self.clients
+      .matchAll({
+        includeUncontrolled: true,
+        type: 'window',
+      })
+      .then((clients) => {
+        clients.forEach((client) => {
+          client.postMessage({
+            type: 'reload_ready',
+          });
+        });
+      });
   }
 });
 
