@@ -121,7 +121,6 @@ function App() {
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <Debug />
-      <p>foo</p>
       <Page db={handle}>
         <Routes>
           <Home db={handle} path="/" />
