@@ -1,11 +1,15 @@
 import { Button, Container, FormHelperText, TextField } from '@material-ui/core';
 import { useState } from 'react';
 import { useDispatch } from 'react-redux';
+import { requestUpdate } from '../state/updateSlice';
 
 import { set as setLoggedInUser } from '../state/userSlice';
+import { useSelector } from '../store';
 
 function Login() {
   const dispatch = useDispatch();
+
+  const updateNeeded = useSelector((state) => state.update.needed);
 
   const [username, setUsername] = useState();
   const [password, setPassword] = useState();
@@ -44,14 +48,20 @@ function Login() {
       return setError('Incorrect credentials');
     }
 
-    // In theory we're all good now?
-    const user = await response.json();
-    dispatch(setLoggedInUser(user));
+    // An httpOnly cookie should have been set (though we can't see it obviously)
+
+    if (updateNeeded) {
+      // might as well throw in update in there, this will reload the page
+      dispatch(requestUpdate());
+    } else {
+      const user = await response.json();
+      dispatch(setLoggedInUser(user));
+    }
   }
 
   return (
     <Container>
-      <h1>Project Sanremo</h1>
+      <h1>Project Sanremo!</h1>
       <form onSubmit={submit}>
         <TextField
           variant="filled"

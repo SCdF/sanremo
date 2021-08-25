@@ -86,7 +86,7 @@ function App() {
         user = localCookieCheck();
       }
 
-      debugAuth(`setting user to ${user}`);
+      debugAuth(`setting user to ${JSON.stringify(user)}`);
       dispatch(setLoggedInUser(user));
     }
 

@@ -77,7 +77,7 @@ export default function db(loggedInUser: User): Database {
     debug(name)(
       `indexeddb ${timeDiff >= 0 ? '<' : '> (!!!)'} idb (~${Math.round(
         Math.abs(timeDiff) * 1000
-      )}ns)`,
+      )}μs)`,
       timeDiff,
       detail
     );

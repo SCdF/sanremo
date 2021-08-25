@@ -37,15 +37,17 @@ serviceWorkerRegistration.register({
   onUpdate: (reg) => {
     debugUpdate('updated is possible');
     store.dispatch(updateNeeded());
-    store.subscribe(() => {
-      if (store.getState().update.requested) {
-        debugUpdate('user requested update');
-        reg.waiting.postMessage({ type: 'SKIP_WAITING' });
-      }
-    });
   },
   onReady: (reg) => {
     debugUpdate('service worker registered successfully');
+    store.subscribe(() => {
+      if (store.getState().update.requested) {
+        debugUpdate('user requested update');
+        reg.update();
+        reg.waiting.postMessage({ type: 'SKIP_WAITING' });
+      }
+    });
+
     setInterval(() => {
       debugUpdate('checking for updates');
       reg.update();
