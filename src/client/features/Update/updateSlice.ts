@@ -1,12 +1,17 @@
 import { createSlice } from '@reduxjs/toolkit';
 
+type UpdateState = {
+  waitingToInstall: boolean;
+  userReadyToUpdate: boolean;
+  lastChecked?: number;
+};
+
 export const updateSlice = createSlice({
   name: 'update',
   initialState: {
     waitingToInstall: false,
     userReadyToUpdate: false,
-    lastChecked: Date.now() as number | unknown,
-  },
+  } as UpdateState,
   reducers: {
     userReadyToUpdate: (state) => {
       state.userReadyToUpdate = true;
@@ -22,7 +27,7 @@ export const updateSlice = createSlice({
       state.lastChecked = Date.now();
     },
     checkForUpdate: (state) => {
-      state.lastChecked = undefined;
+      delete state.lastChecked;
     },
   },
 });

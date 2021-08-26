@@ -124,7 +124,7 @@ function App() {
       <CssBaseline />
       <DebugManager />
       <UpdateManager />
-      <SyncManager db={handle} />
+      {process.env.NODE_ENV !== 'development' && <SyncManager db={handle} />}
       <Page db={handle}>
         <Routes>
           <Home db={handle} path="/" />

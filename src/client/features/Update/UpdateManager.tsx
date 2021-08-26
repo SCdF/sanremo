@@ -54,11 +54,12 @@ function UpdateManager() {
 
       serviceWorkerRegistration.register({
         onUpdate: (reg) => {
-          debugUpdate('updated is possible');
+          debugUpdate('update is possible');
           dispatch(updateReadyToInstall());
         },
         onReady: (reg) => {
           debugUpdate('service worker registered successfully');
+          dispatch(noUpdateReady());
           setRegistration(reg);
 
           setInterval(() => {
