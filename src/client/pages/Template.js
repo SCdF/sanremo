@@ -11,8 +11,6 @@ import { v4 as uuid } from 'uuid';
 
 import { set as setContext } from '../features/Page/pageSlice';
 import { setTemplate } from '../state/docsSlice';
-// FIXME: we shouldn't care about this here
-import { markStale } from '../features/Sync/syncSlice';
 
 function Template(props) {
   const template = useSelector((state) => state.docs.template);
@@ -38,7 +36,6 @@ function Template(props) {
         template.created = template.updated = template.versioned = Date.now();
 
         await db.userPut(template);
-        dispatch(markStale(template));
 
         navigate(`/template/${template._id}`, { replace: true });
       } else {
@@ -68,12 +65,19 @@ function Template(props) {
 
     const copy = Object.assign({}, template);
 
-    // If we have used any version of this template we need to soft delete instead of hard delete
-    const unversionedId = copy._id.substring(0, copy._id.lastIndexOf(':'));
-    const used = await db.find({
-      selector: { template: { $gt: unversionedId, $lte: `${unversionedId}\uffff` } },
-    });
-    if (used.docs.length) {
+    // Soft delete if there is more than one version or we are using this one
+    let soft;
+    const unversionedId = Number(copy._id.substring(0, copy._id.lastIndexOf(':')));
+    if (unversionedId > 1) {
+      soft = true;
+    } else {
+      const used = await db.find({
+        selector: { template: { $gt: `${unversionedId}`, $lte: `${unversionedId}\uffff` } },
+      });
+      soft = !used.docs.length;
+    }
+
+    if (soft) {
       // TODO: consider: should we also update datetimes, bump version?
       copy.deleted = true;
     } else {
@@ -81,7 +85,6 @@ function Template(props) {
     }
 
     await db.userPut(copy);
-    dispatch(markStale(copy));
     navigate('/');
   }
 
