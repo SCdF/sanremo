@@ -3,10 +3,10 @@ import { useDispatch, useSelector } from 'react-redux';
 import { Divider, List, Typography } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
 
-import { set as setContext } from '../state/pageSlice';
+import { set as setContext } from '../features/Page/pageSlice';
 
-import RepeatableListItem from '../components/RepeatableListItem';
-import TemplateListItem from '../components/TemplateListItem';
+import RepeatableListItem from '../features/Repeatable/RepeatableListItem';
+import TemplateListItem from '../features/Template/TemplateListItem';
 
 const useStyles = makeStyles((theme) => ({
   root: {

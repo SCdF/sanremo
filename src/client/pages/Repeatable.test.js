@@ -6,7 +6,7 @@ import db from '../db';
 
 import Repeatable from './Repeatable';
 import { createStore } from '../store';
-import { set as setLoggedInUser } from '../state/userSlice';
+import { set as setLoggedInUser } from '../features/User/userSlice';
 
 jest.mock('react-router-dom');
 jest.mock('../db');

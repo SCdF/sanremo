@@ -19,17 +19,17 @@ import CheckBoxIcon from '@material-ui/icons/CheckBox';
 import HistoryIcon from '@material-ui/icons/History';
 import InfoIcon from '@material-ui/icons/Info';
 import ExitToAppIcon from '@material-ui/icons/ExitToApp';
-import UpdateIcon from '@material-ui/icons/Update';
+import GetAppIcon from '@material-ui/icons/GetApp';
 
 import { useNavigate } from 'react-router-dom';
 import React, { useEffect, useState } from 'react';
 
-import Sync from './Sync';
-import store, { useSelector } from '../store';
-import { Database } from '../db';
-import { PageContext } from '../state/pageSlice';
-import { RepeatableSlug } from '../pages/Repeatable';
-import { requestUpdate } from '../state/updateSlice';
+import SyncWidget from '../Sync/SyncWidget';
+import store, { useSelector } from '../../store';
+import { Database } from '../../db';
+import { PageContext } from './pageSlice';
+import { RepeatableSlug } from '../../pages/Repeatable';
+import { userReadyToUpdate } from '../Update/updateSlice';
 import { useDispatch } from 'react-redux';
 
 const useStyles = makeStyles((theme) => ({
@@ -55,7 +55,7 @@ function Page(props: { db: Database; children: React.ReactNode }) {
 
   const loggedInUser = useSelector((state) => state.user.value);
   const context: PageContext = useSelector((state) => state.page.value);
-  const updateNeeded = useSelector((state) => state.update.needed);
+  const updateNeeded = useSelector((state) => state.update.waitingToInstall);
 
   const isMenuOpen = !!anchorEl;
 
@@ -76,6 +76,7 @@ function Page(props: { db: Database; children: React.ReactNode }) {
     rrdNavigate(to);
   }
 
+  // TODO: move this into the user feature
   async function handleLogout() {
     document.cookie = 'sanremo-client='; // ugly-wipe client-side cookie
     await db.destroy();
@@ -83,7 +84,7 @@ function Page(props: { db: Database; children: React.ReactNode }) {
   }
 
   function handleUpdate() {
-    dispatch(requestUpdate());
+    dispatch(userReadyToUpdate());
     handleMenuClose();
   }
 
@@ -140,7 +141,7 @@ function Page(props: { db: Database; children: React.ReactNode }) {
           <MenuItem button key="update" onClick={handleUpdate}>
             <ListItemIcon>
               <Badge color="secondary" variant="dot" invisible={!updateNeeded}>
-                <UpdateIcon />
+                <GetAppIcon />
               </Badge>
             </ListItemIcon>
             <Typography>Update</Typography>
@@ -176,7 +177,7 @@ function Page(props: { db: Database; children: React.ReactNode }) {
           )}
           <Typography variant="h6">{title}</Typography>
           <div className={classes.grow} />
-          {process.env.NODE_ENV === 'production' && <Sync db={db} />}
+          {process.env.NODE_ENV === 'production' && <SyncWidget />}
           <IconButton edge="end" color="inherit" onClick={handleMenuOpen}>
             <Badge color="secondary" variant="dot" invisible={!updateNeeded}>
               <AccountCircle />

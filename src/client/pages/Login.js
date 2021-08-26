@@ -1,15 +1,15 @@
 import { Button, Container, FormHelperText, TextField } from '@material-ui/core';
 import { useState } from 'react';
 import { useDispatch } from 'react-redux';
-import { requestUpdate } from '../state/updateSlice';
 
-import { set as setLoggedInUser } from '../state/userSlice';
+import { userReadyToUpdate } from '../features/Update/updateSlice';
+import { set as setLoggedInUser } from '../features/User/userSlice';
 import { useSelector } from '../store';
 
 function Login() {
   const dispatch = useDispatch();
 
-  const updateNeeded = useSelector((state) => state.update.needed);
+  const updateNeeded = useSelector((state) => state.update.waitingToInstall);
 
   const [username, setUsername] = useState();
   const [password, setPassword] = useState();
@@ -52,7 +52,7 @@ function Login() {
 
     if (updateNeeded) {
       // might as well throw in update in there, this will reload the page
-      dispatch(requestUpdate());
+      dispatch(userReadyToUpdate());
     } else {
       const user = await response.json();
       dispatch(setLoggedInUser(user));

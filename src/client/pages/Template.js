@@ -9,9 +9,10 @@ import DeleteIcon from '@material-ui/icons/Delete';
 
 import { v4 as uuid } from 'uuid';
 
-import { set as setContext } from '../state/pageSlice';
+import { set as setContext } from '../features/Page/pageSlice';
 import { setTemplate } from '../state/docsSlice';
-import { markStale } from '../state/syncSlice';
+// FIXME: we shouldn't care about this here
+import { markStale } from '../features/Sync/syncSlice';
 
 function Template(props) {
   const template = useSelector((state) => state.docs.template);

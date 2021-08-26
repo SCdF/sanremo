@@ -2,7 +2,7 @@ import { formatDistance } from 'date-fns';
 import { useState } from 'react';
 import { useEffect } from 'react';
 
-function RelativeTime(props) {
+function RelativeTime(props: { date: number | Date }) {
   const { date } = props;
 
   // TODO: is it possible to only have ONE interval that propogates an update to each node

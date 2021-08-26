@@ -4,7 +4,7 @@ import { render as renderRtl, screen, waitFor } from '@testing-library/react';
 
 import Home from './Home';
 import { createStore } from '../store';
-import { set as setLoggedInUser } from '../state/userSlice';
+import { set as setLoggedInUser } from '../features/User/userSlice';
 
 import db from '../db';
 

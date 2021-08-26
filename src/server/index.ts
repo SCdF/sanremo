@@ -195,7 +195,7 @@ app.get('/api/deployment', async function (req, res) {
   } else {
     toReturn.deploy_created_at = '1970-01-01T12:12:12Z';
     toReturn.deploy_version = 'continuous';
-    toReturn.deploy_commit = 'local HEAD';
+    toReturn.deploy_commit = 'HEAD';
   }
 
   if (req.session.user?.id === 1) {
@@ -215,8 +215,8 @@ app.get('/api/deployment', async function (req, res) {
 
 syncRoutes(app, io);
 
+const index = new URL('../../../build/index.html', import.meta.url).pathname;
 app.get('/*', function (req, res, next) {
-  const index = new URL('../../../build/index.html', import.meta.url).pathname;
   res.sendFile(index);
 });
 

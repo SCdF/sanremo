@@ -3,9 +3,9 @@ import { render as renderRtl, screen } from '@testing-library/react';
 import { Provider } from 'react-redux';
 
 import Page from './Page';
-import { createStore } from '../store';
-import { set as setLoggedInUser } from '../state/userSlice';
-import { set as setPageContext } from '../state/pageSlice';
+import { createStore } from '../../store';
+import { set as setLoggedInUser } from '../User/userSlice';
+import { set as setPageContext } from './pageSlice';
 
 jest.mock('react-router-dom');
 

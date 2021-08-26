@@ -5,7 +5,7 @@ import indexedDb from 'pouchdb-adapter-indexeddb';
 import DeepDiff from 'deep-diff';
 
 import { Doc, User } from '../shared/types';
-import { markStale } from './state/syncSlice';
+import { markStale } from './features/Sync/syncSlice';
 import store from './store';
 import debugModule, { Debugger } from 'debug';
 

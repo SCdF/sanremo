@@ -22,7 +22,7 @@ import qs from 'qs';
 
 import { clearRepeatable, clearTemplate, setRepeatable } from '../state/docsSlice';
 import { setTemplate } from '../state/docsSlice';
-import { set as setContext } from '../state/pageSlice';
+import { set as setContext } from '../features/Page/pageSlice';
 import { RootState, useDispatch, useSelector } from '../store';
 import { RepeatableDoc, TemplateDoc } from '../../shared/types';
 import { Database } from '../db';

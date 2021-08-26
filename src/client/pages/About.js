@@ -1,12 +1,14 @@
 import axios from 'axios';
 
-import { Link, TextField } from '@material-ui/core';
+import { Link } from '@material-ui/core';
 import { Fragment, useEffect, useState } from 'react';
 import { useDispatch } from 'react-redux';
 
-import { set as setContext } from '../state/pageSlice';
-import { set as setDebug } from '../state/debugSlice';
+import { set as setContext } from '../features/Page/pageSlice';
 import { useSelector } from '../store';
+import UpdatePanel from '../features/Update/UpdatePanel';
+import DebugPanel from '../features/Debug/DebugPanel';
+import SyncPanel from '../features/Sync/SyncPanel';
 
 function mapProps(parent, info) {
   return Object.keys(info)
@@ -18,7 +20,6 @@ function About(props) {
   const dispatch = useDispatch();
 
   const loggedInUser = useSelector((state) => state.user.value);
-  const debug = useSelector((state) => state.debug.value);
 
   const [idbInfo, setIdbInfo] = useState([]);
   const [indexeddbInfo, setIndexeddbInfo] = useState([]);
@@ -49,7 +50,9 @@ function About(props) {
             ['Release', releaseVersion],
             [
               'Build Commit',
-              <Link href={`https://github.com/scdf/sanremo/commit/${hash}`}>{hash}</Link>,
+              <Link href={`https://github.com/scdf/sanremo/commit/${hash}`}>
+                {hash.substr(0, 7)}
+              </Link>,
             ],
           ];
 
@@ -72,10 +75,6 @@ function About(props) {
     );
   }, [dispatch]);
 
-  const handleDebugChange = ({ target }) => {
-    dispatch(setDebug(target.value));
-  };
-
   const vars = [
     [<h4>SERVER DETAILS</h4>],
     ['Deployment Type', <b>{process.env.NODE_ENV.toUpperCase()}</b>],
@@ -97,8 +96,12 @@ function About(props) {
           ))}
         </tbody>
       </table>
-      <h4>CONFIGURATION</h4>
-      <TextField label="Debug Level" onChange={handleDebugChange} value={debug} />
+      <h4>DATA SYNC</h4>
+      <SyncPanel />
+      <h4>SOFTWARE VERSION</h4>
+      <UpdatePanel />
+      <h4>DEBUG</h4>
+      <DebugPanel />
     </Fragment>
   );
 }

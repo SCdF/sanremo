@@ -14,7 +14,7 @@ import { createMuiTheme, ThemeProvider } from '@material-ui/core/styles';
 import { CircularProgress } from '@material-ui/core';
 
 import db from './db';
-import { set as setLoggedInUser } from './state/userSlice';
+import { set as setLoggedInUser } from './features/User/userSlice';
 
 import About from './pages/About';
 import History from './pages/History';
@@ -22,8 +22,10 @@ import Home from './pages/Home';
 import Login from './pages/Login';
 import Repeatable from './pages/Repeatable';
 import Template from './pages/Template';
-import Page from './components/Page';
-import Debug from './components/Debug';
+import Page from './features/Page/Page';
+import DebugManager from './features/Debug/DebugManager';
+import UpdateManager from './features/Update/UpdateManager';
+import SyncManager from './features/Sync/SyncManager';
 
 const debugAuth = debugModule('sanremo:client:auth');
 
@@ -120,7 +122,9 @@ function App() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <Debug />
+      <DebugManager />
+      <UpdateManager />
+      <SyncManager db={handle} />
       <Page db={handle}>
         <Routes>
           <Home db={handle} path="/" />

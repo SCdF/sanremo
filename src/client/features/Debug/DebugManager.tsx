@@ -1,11 +1,11 @@
 import debugModule from 'debug';
 import { useEffect } from 'react';
-import { useDispatch, useSelector } from '../store';
-import { set as setDebug } from '../state/debugSlice';
+import { useDispatch, useSelector } from '../../store';
+import { set as setDebug } from './debugSlice';
 
 const DEBUG_KEY = 'debug-filter';
 
-function Debug() {
+function DebugManager() {
   const dispatch = useDispatch();
   const debugFilter = useSelector((state) => state.debug.value);
 
@@ -26,4 +26,4 @@ function Debug() {
   return null;
 }
 
-export default Debug;
+export default DebugManager;

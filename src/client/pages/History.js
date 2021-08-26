@@ -2,9 +2,9 @@ import { useEffect, useState } from 'react';
 
 import { List } from '@material-ui/core';
 
-import { set as setContext } from '../state/pageSlice';
+import { set as setContext } from '../features/Page/pageSlice';
 
-import RepeatableListItem from '../components/RepeatableListItem';
+import RepeatableListItem from '../features/Repeatable/RepeatableListItem';
 import { useDispatch, useSelector } from '../store';
 
 function History(props) {
