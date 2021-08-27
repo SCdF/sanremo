@@ -144,7 +144,7 @@ function Repeatable(props: { db: Database }) {
     await db.userPut(copy);
 
     ReactDOM.unstable_batchedUpdates(() => {
-      setEdited(true);
+      if (!edited) setEdited(true);
       dispatch(setRepeatable(copy));
     });
   }
@@ -159,7 +159,7 @@ function Repeatable(props: { db: Database }) {
   }
 
   // There is actually an autoFocus property on button, but it doesn't work.
-  // Instead, this is the current workaround. See the following workaround:
+  // Instead, this is the current workaround. See the following:
   // https://github.com/mui-org/material-ui/issues/3008#issuecomment-284223777
   class CompleteButton extends React.Component<{ hasFocus: boolean }> {
     componentDidMount() {
