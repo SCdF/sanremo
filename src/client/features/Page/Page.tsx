@@ -28,7 +28,7 @@ import SyncWidget from '../Sync/SyncWidget';
 import store, { useSelector } from '../../store';
 import { Database } from '../../db';
 import { PageContext } from './pageSlice';
-import { RepeatableSlug } from '../../pages/Repeatable';
+import { RepeatableSlug } from '../Repeatable/RepeatableSlug';
 import { userReadyToUpdate } from '../Update/updateSlice';
 import { useDispatch } from 'react-redux';
 
