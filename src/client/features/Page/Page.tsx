@@ -177,7 +177,7 @@ function Page(props: { db: Database; children: React.ReactNode }) {
           )}
           <Typography variant="h6">{title}</Typography>
           <div className={classes.grow} />
-          {process.env.NODE_ENV === 'production' && <SyncWidget />}
+          {process.env.NODE_ENV !== 'development' && <SyncWidget />}
           <IconButton edge="end" color="inherit" onClick={handleMenuOpen}>
             <Badge color="secondary" variant="dot" invisible={!updateNeeded}>
               <AccountCircle />

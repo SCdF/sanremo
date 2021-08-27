@@ -5,7 +5,7 @@ import debugModule from 'debug';
 import cookie from 'cookie';
 import axios, { CancelToken } from 'axios';
 
-import React, { useEffect } from 'react';
+import React, { Fragment, useEffect } from 'react';
 import { Routes } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 
@@ -123,8 +123,12 @@ function App() {
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <DebugManager />
-      <UpdateManager />
-      {process.env.NODE_ENV !== 'development' && <SyncManager db={handle} />}
+      {process.env.NODE_ENV !== 'development' && (
+        <Fragment>
+          <UpdateManager />
+          <SyncManager db={handle} />
+        </Fragment>
+      )}
       <Page db={handle}>
         <Routes>
           <Home db={handle} path="/" />

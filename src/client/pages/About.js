@@ -96,10 +96,14 @@ function About(props) {
           ))}
         </tbody>
       </table>
-      <h4>DATA SYNC</h4>
-      <SyncPanel />
-      <h4>SOFTWARE VERSION</h4>
-      <UpdatePanel />
+      {process.env.NODE_ENV !== 'development' && (
+        <Fragment>
+          <h4>DATA SYNC</h4>
+          <SyncPanel />
+          <h4>SOFTWARE VERSION</h4>
+          <UpdatePanel />
+        </Fragment>
+      )}
       <h4>DEBUG</h4>
       <DebugPanel />
     </Fragment>
