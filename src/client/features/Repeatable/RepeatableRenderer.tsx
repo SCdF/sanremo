@@ -8,13 +8,13 @@ const debug = debugModule('sanremo:client:repeatable:render');
 type RepeatableProps = {
   markdown: string;
   values: any[];
-  changeValue?: (idx: number) => void;
+  onChange?: (idx: number) => void;
   hasFocus: (hasFocus: boolean) => void;
 };
 
 // FIXME: this re-runs a non-optimal number of times
 function RepeatableRenderer(props: RepeatableProps) {
-  const { markdown, values, changeValue, hasFocus: hasFocusCb } = props;
+  const { markdown, values, onChange: changeValue, hasFocus: hasFocusCb } = props;
 
   // Initially auto-select the value AFTER whatever the last entered value is
   let initialNextIndex = 0;

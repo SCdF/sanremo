@@ -189,7 +189,7 @@ function Repeatable(props: { db: Database }) {
       <RepeatableRenderer
         markdown={template.markdown}
         values={repeatable.values}
-        changeValue={repeatable.completed ? undefined : handleToggle}
+        onChange={repeatable.completed ? undefined : handleToggle}
         hasFocus={setRepeatableHasFocus}
       />
       <ButtonGroup>

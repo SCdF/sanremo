@@ -181,8 +181,4 @@ describe('Repeatable', () => {
       expect(navigate.mock.calls[0][0]).toBe('/');
     });
   });
-  // TODO: parsing tests
-  describe('parsing', () => {
-    it.todo('detect checkboxes');
-  });
 });
