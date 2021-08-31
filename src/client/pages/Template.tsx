@@ -157,7 +157,9 @@ function Template(props: { db: Database }) {
             onChange={handleChange}
           />
         </Grid>
-        <Grid item xs={2}>
+      </Grid>
+      <Grid container spacing={2}>
+        <Grid item xs={12} sm={4}>
           <TextField
             required
             variant="filled"
@@ -183,8 +185,8 @@ function Template(props: { db: Database }) {
             </MenuItem>
           </TextField>
         </Grid>
-        <Grid item xs={10}>
-          {['string', 'url'].includes(template.slug.type) && (
+        {['string', 'url'].includes(template.slug.type) && (
+          <Grid item xs={12} sm={8}>
             <TextField
               variant="filled"
               fullWidth
@@ -194,9 +196,11 @@ function Template(props: { db: Database }) {
               value={template.slug.placeholder}
               onChange={handleChange}
             />
-          )}
-        </Grid>
-        <Grid item md={6} sm={12}>
+          </Grid>
+        )}
+      </Grid>
+      <Grid container spacing={2}>
+        <Grid item md={6} sm={12} xs={12}>
           <TextField
             required
             variant="filled"
@@ -209,7 +213,7 @@ function Template(props: { db: Database }) {
             onChange={handleChange}
           />
         </Grid>
-        <Grid item md={6} sm={12}>
+        <Grid item md={6} sm={12} xs={12}>
           <RepeatableRenderer
             markdown={template.markdown}
             values={[]}
