@@ -12,6 +12,14 @@ type RepeatableProps = {
   hasFocus: (hasFocus: boolean) => void;
 };
 
+const renderMarkdownChunk = (chunkStart: number, chunkEnd: number, text: string) => (
+  <ListItem key={`chunk(${chunkStart}-${chunkEnd})`}>
+    <ListItemText>
+      <ReactMarkdown>{text}</ReactMarkdown>
+    </ListItemText>
+  </ListItem>
+);
+
 // FIXME: this re-runs a non-optimal number of times
 function RepeatableRenderer(props: RepeatableProps) {
   const { markdown, values, onChange: changeValue, hasFocus: hasFocusCb } = props;
@@ -67,13 +75,7 @@ function RepeatableRenderer(props: RepeatableProps) {
       // between the last time we rendered a custom input and now
       if (chunkIdx > 0 && lastChunkIdxWithInput + 1 < chunkIdx) {
         const text = markdownChunks.slice(lastChunkIdxWithInput + 1, chunkIdx).join('\n');
-        renderedChunks.push(
-          <ListItem key={`chunk(${lastChunkIdxWithInput + 1}-${chunkIdx - 1})`}>
-            <ListItemText>
-              <ReactMarkdown>{text}</ReactMarkdown>
-            </ListItemText>
-          </ListItem>
-        );
+        renderedChunks.push(renderMarkdownChunk(lastChunkIdxWithInput + 1, chunkIdx - 1, text));
       }
 
       lastChunkIdxWithInput = chunkIdx;
@@ -106,13 +108,7 @@ function RepeatableRenderer(props: RepeatableProps) {
   const lastChunkIdx = markdownChunks.length - 1;
   if (lastChunkIdxWithInput !== lastChunkIdx) {
     const text = markdownChunks.slice(lastChunkIdxWithInput + 1).join('\n');
-    renderedChunks.push(
-      <ListItem key={`chunk(${lastChunkIdxWithInput + 1}-${lastChunkIdx})`}>
-        <ListItemText>
-          <ReactMarkdown>{text}</ReactMarkdown>
-        </ListItemText>
-      </ListItem>
-    );
+    renderedChunks.push(renderMarkdownChunk(lastChunkIdxWithInput + 1, lastChunkIdx, text));
   }
 
   if (valueIdx !== maxIdx) {
@@ -124,7 +120,7 @@ function RepeatableRenderer(props: RepeatableProps) {
 
   debug('postrender');
 
-  return <List>{renderedChunks}</List>;
+  return <List disablePadding>{renderedChunks}</List>;
 }
 
 export default RepeatableRenderer;
