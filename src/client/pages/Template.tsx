@@ -1,8 +1,5 @@
-import { useEffect } from 'react';
+import { ChangeEvent, FormEvent, MouseEvent, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useDispatch, useSelector } from 'react-redux';
-
-import ReactMarkdown from 'react-markdown';
 
 import { Button, ButtonGroup, Grid, MenuItem, TextField } from '@material-ui/core';
 import DeleteIcon from '@material-ui/icons/Delete';
@@ -10,9 +7,13 @@ import DeleteIcon from '@material-ui/icons/Delete';
 import { v4 as uuid } from 'uuid';
 
 import { set as setContext } from '../features/Page/pageSlice';
-import { setTemplate } from '../state/docsSlice';
+import { clearTemplate, setTemplate } from '../state/docsSlice';
+import { Database } from '../db';
+import { useDispatch, useSelector } from '../store';
+import { SlugType, TemplateDoc } from '../../shared/types';
+import RepeatableRenderer from '../features/Repeatable/RepeatableRenderer';
 
-function Template(props) {
+function Template(props: { db: Database }) {
   const template = useSelector((state) => state.docs.template);
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -23,23 +24,26 @@ function Template(props) {
   useEffect(() => {
     async function loadTemplate() {
       if (templateId === 'new') {
-        const template = {
+        const now = Date.now();
+        const template: TemplateDoc = {
           _id: `repeatable:template:${uuid()}:1`,
           title: '',
           slug: {
-            type: 'date',
+            type: SlugType.Date,
             placeholder: '',
           },
           markdown: '',
+          created: now,
+          updated: now,
+          versioned: now,
           values: [],
         };
-        template.created = template.updated = template.versioned = Date.now();
 
         await db.userPut(template);
 
         navigate(`/template/${template._id}`, { replace: true });
       } else {
-        const template = await db.get(templateId);
+        const template: TemplateDoc = await db.get(templateId);
 
         dispatch(setTemplate(template));
       }
@@ -47,7 +51,7 @@ function Template(props) {
 
     loadTemplate();
     return () => {
-      dispatch(setTemplate());
+      dispatch(clearTemplate());
     };
   }, [db, templateId, navigate, dispatch]);
   useEffect(() => {
@@ -60,8 +64,8 @@ function Template(props) {
     );
   });
 
-  async function handleDelete(event) {
-    event?.preventDefault();
+  async function handleDelete(event: MouseEvent<HTMLButtonElement>) {
+    event.preventDefault();
 
     const copy = Object.assign({}, template);
 
@@ -88,8 +92,8 @@ function Template(props) {
     navigate('/');
   }
 
-  async function handleSubmit(event) {
-    event?.preventDefault();
+  async function handleSubmit(event: FormEvent<HTMLFormElement> | MouseEvent<HTMLButtonElement>) {
+    event.preventDefault();
 
     const copy = Object.assign({}, template);
     copy.updated = Date.now();
@@ -104,7 +108,7 @@ function Template(props) {
       copy.versioned = copy.updated;
 
       const splitId = copy._id.split(':');
-      splitId[3] = parseInt(splitId[3]) + 1;
+      splitId[3] = String(Number(splitId[3]) + 1);
       copy._id = splitId.join(':');
       delete copy._rev;
     }
@@ -115,19 +119,20 @@ function Template(props) {
   }
 
   // TODO: replace this with slice actions so we don't have to do dumb (and slow presumably) copies
-  async function handleChange({ target }) {
+  async function handleChange({ target }: ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) {
     const copy = Object.assign({}, template);
-    const value = target.type === 'checkbox' ? target.checked : target.value;
+    const value = target.type === 'checkbox' ? (target as HTMLInputElement).checked : target.value;
     const name = target.name;
 
     if (name === 'slugType') {
       copy.slug = Object.assign({}, copy.slug);
-      copy.slug.type = value;
+      copy.slug.type = value as SlugType;
     } else if (name === 'slugPlaceholder') {
       copy.slug = Object.assign({}, copy.slug);
 
-      copy.slug.placeholder = value;
+      copy.slug.placeholder = value as string;
     } else {
+      // @ts-ignore
       copy[name] = value;
     }
 
@@ -205,8 +210,12 @@ function Template(props) {
           />
         </Grid>
         <Grid item md={6} sm={12}>
-          {/* TODO: correctly render markdown with checkboxes etc */}
-          <ReactMarkdown>{template.markdown}</ReactMarkdown>
+          <RepeatableRenderer
+            markdown={template.markdown}
+            values={[]}
+            hasFocus={() => null}
+            onChange={() => null}
+          />
         </Grid>
         <Grid item xs={12}>
           <ButtonGroup>

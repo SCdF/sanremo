@@ -29,12 +29,16 @@ export interface RepeatableDoc extends Doc {
 }
 
 export interface TemplateDoc extends Doc {
+  deleted?: boolean;
   title: string;
   slug: {
     type: SlugType;
     placeholder?: string;
   };
   markdown: string;
+  created: number;
+  updated: number;
+  versioned: number;
   values: any[];
 }
 
