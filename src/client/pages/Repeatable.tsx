@@ -191,6 +191,7 @@ function Repeatable(props: { db: Database }) {
         values={repeatable.values}
         onChange={repeatable.completed ? undefined : handleToggle}
         hasFocus={setRepeatableHasFocus}
+        takesFocus
       />
       <ButtonGroup>
         {!repeatable?.completed && <CompleteButton hasFocus={!repeatableHasFocus} />}

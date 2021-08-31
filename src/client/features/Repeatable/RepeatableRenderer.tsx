@@ -9,7 +9,10 @@ type RepeatableProps = {
   markdown: string;
   values: any[];
   onChange?: (idx: number) => void;
-  hasFocus: (hasFocus: boolean) => void;
+  /** whether the auto focus is inside the markdown document. Will never be called if takesFocus is false */
+  hasFocus?: (hasFocus: boolean) => void;
+  /** whether we are in focus grabbing mode. Default false */
+  takesFocus?: boolean;
 };
 
 const renderMarkdownChunk = (chunkStart: number, chunkEnd: number, text: string) => (
@@ -22,9 +25,10 @@ const renderMarkdownChunk = (chunkStart: number, chunkEnd: number, text: string)
 
 // FIXME: this re-runs a non-optimal number of times
 function RepeatableRenderer(props: RepeatableProps) {
-  const { markdown, values, onChange: changeValue, hasFocus: hasFocusCb } = props;
+  const { markdown, values, onChange: changeValue, hasFocus: hasFocusCb, takesFocus } = props;
 
   // Initially auto-select the value AFTER whatever the last entered value is
+  // NB: we're going to calculate focus regardless of whether `takesFocus` is true, for readability
   let initialNextIndex = 0;
   for (let i = values.length - 1; i >= 0; i--) {
     if (values[i]) {
@@ -41,14 +45,14 @@ function RepeatableRenderer(props: RepeatableProps) {
   const [hasFocus, setHasFocus] = useState(true);
 
   useEffect(() => {
-    if (nextIdx !== undefined && maxIdx !== undefined) {
+    if (takesFocus && hasFocusCb && nextIdx !== undefined && maxIdx !== undefined) {
       const newHasFocus = nextIdx < maxIdx;
       if (newHasFocus !== hasFocus) {
         hasFocusCb(newHasFocus);
         setHasFocus(newHasFocus);
       }
     }
-  }, [hasFocus, hasFocusCb, maxIdx, nextIdx]);
+  }, [hasFocus, hasFocusCb, maxIdx, nextIdx, takesFocus]);
 
   const handleChange = (idx: number) => {
     // returning the call fn here binds the passed idx
@@ -89,7 +93,7 @@ function RepeatableRenderer(props: RepeatableProps) {
           button
           onClick={handleChange(valueIdx)}
           disabled={!changeValue}
-          autoFocus={valueIdx === nextIdx}
+          autoFocus={takesFocus && valueIdx === nextIdx}
         >
           <ListItemIcon>
             <Checkbox checked={!!value} edge="start" tabIndex={-1} />
