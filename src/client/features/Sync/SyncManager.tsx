@@ -19,8 +19,9 @@ import {
 import { Requests } from '../../../server/sync/types';
 import { useDispatch, useSelector } from '../../store';
 import { Database } from '../../db';
+import { debugClient } from '../../globals';
 
-const debug = require('debug')('sanremo:client:sync');
+const debug = debugClient('sync');
 
 const BATCH_SIZE = 20;
 

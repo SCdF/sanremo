@@ -1,11 +1,11 @@
-import debugModule from 'debug';
+import { debugClient } from '../../globals';
 import { useEffect, useState } from 'react';
 
 import * as serviceWorkerRegistration from '../../serviceWorkerRegistration';
 import { checkForUpdate, noUpdateReady, updateReadyToInstall } from './updateSlice';
 import { useDispatch, useSelector } from '../../store';
 
-const debugUpdate = debugModule('sanremo:update');
+const debug = debugClient('update');
 
 const INITIALIZATION_DELAY = 1000 * 5;
 const UPDATE_CHECK_DELAY = 1000 * 60 * 60 * 4;
@@ -23,7 +23,7 @@ function UpdateManager() {
 
   useEffect(() => {
     if (registration && waitingToInstall && userReadyToUpdate) {
-      debugUpdate('prepped update is set to install');
+      debug('prepped update is set to install');
       // registration.update(); // maybe to get freshest freshest?
       registration.waiting && registration.waiting.postMessage({ type: 'SKIP_WAITING' });
     }
@@ -32,7 +32,7 @@ function UpdateManager() {
   useEffect(() => {
     const updateCheck = async () => {
       if (registration && !lastChecked) {
-        debugUpdate('checking for updates');
+        debug('checking for updates');
         const reg = (await registration.update()) as unknown as ServiceWorkerRegistration;
         if (reg?.waiting) {
           dispatch(updateReadyToInstall());
@@ -54,11 +54,11 @@ function UpdateManager() {
 
       serviceWorkerRegistration.register({
         onUpdate: (reg) => {
-          debugUpdate('update is possible');
+          debug('update is possible');
           dispatch(updateReadyToInstall());
         },
         onReady: (reg) => {
-          debugUpdate('service worker registered successfully');
+          debug('service worker registered successfully');
           dispatch(noUpdateReady());
           setRegistration(reg);
 

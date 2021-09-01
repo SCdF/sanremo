@@ -7,7 +7,8 @@ import DeepDiff from 'deep-diff';
 import { Doc, User } from '../shared/types';
 import { markStale } from './features/Sync/syncSlice';
 import store from './store';
-import debugModule, { Debugger } from 'debug';
+import { Debugger } from 'debug';
+import { debugClient } from './globals';
 
 PouchDB.plugin(Find);
 PouchDB.plugin(indexedDb);
@@ -15,7 +16,7 @@ PouchDB.plugin(indexedDb);
 const debugs = {} as Record<string, Debugger>;
 const debug = (name: string) => {
   if (!debugs[name]) {
-    debugs[name] = debugModule(`sanremo:client:database:${name}`) as Debugger;
+    debugs[name] = debugClient('database', name);
   }
   return debugs[name];
 };
@@ -84,7 +85,8 @@ export default function db(loggedInUser: User): Database {
 
     const diff = DeepDiff.diff(idbResult, indexeddbResult);
     if (diff && diff.length) {
-      console.warn(`sanremo:client:databasec:${name} returned different results`, {
+      debug(name)(`returned different results`, idbResult, indexeddbResult, diff);
+      console.warn(`${name} returned different results`, {
         idbResult,
         indexeddbResult,
         diff,

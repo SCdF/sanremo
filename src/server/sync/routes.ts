@@ -1,12 +1,12 @@
 import { Router } from 'express';
 import { Server as SocketServer } from 'socket.io';
 
-import debugModule from 'debug';
+import { debugServer } from '../globals';
 
 import { ClientToServerEvents, Doc, ServerToClientEvents, User, UserId } from '../../shared/types';
 import sync from './sync';
 
-const debugSocket = debugModule('sanremo:server:socket');
+const debug = debugServer('socket');
 
 /**
  * Sync 0.0: The Worst Possible Implementation
@@ -93,7 +93,7 @@ export default function routes(
 
     for (const socketId of userSockets) {
       if (currentSocketId !== socketId) {
-        debugSocket(`sending ${docs.length} to ${JSON.stringify(user)} as ${socketId}`);
+        debug(`sending ${docs.length} to ${JSON.stringify(user)} as ${socketId}`);
 
         io.to(socketId).emit('docUpdate', docs);
       }
@@ -110,17 +110,17 @@ export default function routes(
     const socketId = socket.id;
 
     socket.on('ready', () => {
-      debugSocket(`${JSON.stringify(user)} connected as ${socketId}`);
+      debug(`${JSON.stringify(user)} connected as ${socketId}`);
       socketSet.add(socketId);
     });
 
     socket.on('disconnect', () => {
-      debugSocket(`${JSON.stringify(user)} as ${socketId} disconnected`);
+      debug(`${JSON.stringify(user)} as ${socketId} disconnected`);
       socketSet.delete(socketId);
     });
 
     socket.on('docUpdate', async (docs) => {
-      debugSocket(`${JSON.stringify(user)} as ${socketId} sent us ${docs.length}`);
+      debug(`${JSON.stringify(user)} as ${socketId} sent us ${docs.length}`);
 
       await sync.update(user, docs);
       broadcastDocUpdate(user, docs, socketId);

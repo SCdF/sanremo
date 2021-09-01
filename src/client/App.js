@@ -1,6 +1,6 @@
 import './App.scss';
 
-import debugModule from 'debug';
+import { debugClient } from './globals';
 
 import cookie from 'cookie';
 import axios, { CancelToken } from 'axios';
@@ -27,7 +27,7 @@ import DebugManager from './features/Debug/DebugManager';
 import UpdateManager from './features/Update/UpdateManager';
 import SyncManager from './features/Sync/SyncManager';
 
-const debugAuth = debugModule('sanremo:client:auth');
+const debug = debugClient('auth');
 
 const theme = createMuiTheme({
   // palette: {
@@ -47,7 +47,7 @@ function App() {
   useEffect(() => {
     // Parse the user from the client-side cookie.
     function localCookieCheck() {
-      debugAuth('local cookie parsing fallback');
+      debug('local cookie parsing fallback');
       try {
         // 's:j:{...json...}.signature'
         const clientCookie = cookie.parse(document.cookie)['sanremo-client'];
@@ -66,7 +66,7 @@ function App() {
       }
     }
     async function networkCheck() {
-      debugAuth('server authentication check');
+      debug('server authentication check');
       const source = CancelToken.source();
       setTimeout(() => source.cancel(), 2000);
       try {
@@ -74,10 +74,10 @@ function App() {
         return response.data;
       } catch (error) {
         if (error.response?.status === 401) {
-          debugAuth('server authentication check failed');
+          debug('server authentication check failed');
           return false; // authentication failed
         }
-        debugAuth('server authentication unavailable');
+        debug('server authentication unavailable');
         console.warn(error);
         return; // service is unavailable
       }
@@ -88,7 +88,7 @@ function App() {
         user = localCookieCheck();
       }
 
-      debugAuth(`setting user to ${JSON.stringify(user)}`);
+      debug(`setting user to ${JSON.stringify(user)}`);
       dispatch(setLoggedInUser(user));
     }
 

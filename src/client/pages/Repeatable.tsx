@@ -16,8 +16,9 @@ import { useDispatch, useSelector } from '../store';
 import { RepeatableDoc, TemplateDoc } from '../../shared/types';
 import { Database } from '../db';
 import RepeatableRenderer from '../features/Repeatable/RepeatableRenderer';
+import { debugClient } from '../globals';
 
-const debug = require('debug')('sanremo:client:repeatable');
+const debug = debugClient('repeatable');
 
 function Repeatable(props: { db: Database }) {
   const navigate = useNavigate();

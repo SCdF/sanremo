@@ -1,6 +1,6 @@
 import { readFileSync } from 'fs';
 
-import debugModule from 'debug';
+import { debugServer } from './globals';
 
 import express, { CookieOptions } from 'express';
 import session from 'express-session';
@@ -19,10 +19,10 @@ import { db } from './db';
 import { ClientToServerEvents, ServerToClientEvents, User } from '../shared/types';
 import { Response } from 'express-serve-static-core';
 
-const debugServer = debugModule('sanremo:server');
-const debugAuth = debugModule('sanremo:server:authentication');
+const debugInit = debugServer('init');
+const debugAuth = debugServer('authentication');
 
-debugServer(`Initializing Sanremo server on ${process.env.NODE_ENV}`);
+debugInit(`Initializing Sanremo server on ${process.env.NODE_ENV}`);
 
 const app = express();
 const server = http.createServer(app);
@@ -223,4 +223,4 @@ app.get('/*', function (req, res, next) {
 const port = process.env.PORT || 80;
 server.listen(port);
 
-debugServer(`Started server on port ${port}`);
+debugInit(`Started server on port ${port}`);
