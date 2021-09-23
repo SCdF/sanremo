@@ -1,6 +1,5 @@
 import {
   AppBar,
-  Badge,
   Container,
   Divider,
   IconButton,
@@ -13,13 +12,10 @@ import {
 } from '@material-ui/core';
 // TODO: configure babel properly so we can use { ArrowBack } etc instead
 // https://material-ui.com/guides/minimizing-bundle-size/#option-2
-import AccountCircle from '@material-ui/icons/AccountCircle';
 import ArrowBack from '@material-ui/icons/ArrowBack';
 import CheckBoxIcon from '@material-ui/icons/CheckBox';
 import HistoryIcon from '@material-ui/icons/History';
 import InfoIcon from '@material-ui/icons/Info';
-import ExitToAppIcon from '@material-ui/icons/ExitToApp';
-import GetAppIcon from '@material-ui/icons/GetApp';
 
 import { useNavigate } from 'react-router-dom';
 import React, { useEffect, useState } from 'react';
@@ -29,8 +25,10 @@ import store, { useSelector } from '../../store';
 import { Database } from '../../db';
 import { PageContext } from './pageSlice';
 import { RepeatableSlug } from '../Repeatable/RepeatableSlug';
-import { userReadyToUpdate } from '../Update/updateSlice';
-import { useDispatch } from 'react-redux';
+import UpdateMenuItem from '../Update/UpdateMenuItem';
+import UserMenuBadge from '../User/UserMenuBadge';
+import UserMenuItem from '../User/UserMenuItem';
+import LogoutMenuItem from '../User/LogoutMenuItem';
 
 const useStyles = makeStyles((theme) => ({
   grow: {
@@ -47,15 +45,12 @@ const useStyles = makeStyles((theme) => ({
 function Page(props: { db: Database; children: React.ReactNode }) {
   const classes = useStyles();
   const rrdNavigate = useNavigate();
-  const dispatch = useDispatch();
 
   const { db, children } = props;
 
   const [anchorEl, setAnchorEl] = useState(null);
 
-  const loggedInUser = useSelector((state) => state.user.value);
   const context: PageContext = useSelector((state) => state.page.value);
-  const updateNeeded = useSelector((state) => state.update.waitingToInstall);
 
   const isMenuOpen = !!anchorEl;
 
@@ -76,33 +71,17 @@ function Page(props: { db: Database; children: React.ReactNode }) {
     rrdNavigate(to);
   }
 
-  // TODO: move this into the user feature
-  async function handleLogout() {
-    document.cookie = 'sanremo-client='; // ugly-wipe client-side cookie
-    await db.destroy();
-    window.location.reload();
-  }
-
-  function handleUpdate() {
-    dispatch(userReadyToUpdate());
-    handleMenuClose();
-  }
-
   const menu = (
     <div>
       <Menu
         anchorEl={anchorEl}
         anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
         transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+        keepMounted
         open={isMenuOpen}
         onClose={handleMenuClose}
       >
-        <MenuItem onClick={() => alert(`TODO! ${JSON.stringify(loggedInUser)}`)}>
-          <ListItemIcon>
-            <AccountCircle />
-          </ListItemIcon>
-          <Typography>{loggedInUser?.name}</Typography>
-        </MenuItem>
+        <UserMenuItem onClick={handleMenuClose} />
         <Divider />
         <MenuItem
           button
@@ -137,22 +116,8 @@ function Page(props: { db: Database; children: React.ReactNode }) {
           </ListItemIcon>
           <Typography>About</Typography>
         </MenuItem>
-        {updateNeeded && (
-          <MenuItem button key="update" onClick={handleUpdate}>
-            <ListItemIcon>
-              <Badge color="secondary" variant="dot" invisible={!updateNeeded}>
-                <GetAppIcon />
-              </Badge>
-            </ListItemIcon>
-            <Typography>Update</Typography>
-          </MenuItem>
-        )}
-        <MenuItem button key="logout" onClick={handleLogout}>
-          <ListItemIcon>
-            <ExitToAppIcon />
-          </ListItemIcon>
-          <Typography>Logout</Typography>
-        </MenuItem>
+        <UpdateMenuItem onClick={handleMenuClose} />
+        <LogoutMenuItem onClick={handleMenuClose} db={db} />
       </Menu>
     </div>
   );
@@ -177,11 +142,9 @@ function Page(props: { db: Database; children: React.ReactNode }) {
           )}
           <Typography variant="h6">{title}</Typography>
           <div className={classes.grow} />
-          {process.env.NODE_ENV !== 'development' && <SyncWidget />}
+          <SyncWidget />
           <IconButton edge="end" color="inherit" onClick={handleMenuOpen}>
-            <Badge color="secondary" variant="dot" invisible={!updateNeeded}>
-              <AccountCircle />
-            </Badge>
+            <UserMenuBadge />
           </IconButton>
         </Toolbar>
       </AppBar>

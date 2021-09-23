@@ -10,6 +10,7 @@ import ErrorOutlineRoundedIcon from '@material-ui/icons/ErrorOutlineRounded';
 
 import { useDispatch, useSelector } from '../../store';
 import { requestSync, State } from './syncSlice';
+import { selectIsGuest } from '../User/userSlice';
 
 const useStyles = makeStyles((theme) => ({
   progress: {
@@ -24,9 +25,15 @@ function SyncWidget() {
 
   const location = useLocation();
 
+  const isGuest = useSelector(selectIsGuest);
+
   const state = useSelector((state) => state.sync.state);
   const error = useSelector((state) => state.sync.error);
   const progress = useSelector((state) => state.sync.progress);
+
+  if (isGuest) {
+    return null;
+  }
 
   const handleVisibilityChange = async function (isVisible: boolean) {
     // TODO: we aren't actually using this right now. Investigate whether or not we should be

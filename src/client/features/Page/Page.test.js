@@ -4,7 +4,7 @@ import { Provider } from 'react-redux';
 
 import Page from './Page';
 import { createStore } from '../../store';
-import { set as setLoggedInUser } from '../User/userSlice';
+import { setUserAsLoggedIn } from '../User/userSlice';
 import { set as setPageContext } from './pageSlice';
 
 jest.mock('react-router-dom');
@@ -19,7 +19,7 @@ describe('Page', () => {
   let store;
   beforeEach(() => {
     store = createStore();
-    store.dispatch(setLoggedInUser({ id: 1, name: 'Tester Test' }));
+    store.dispatch(setUserAsLoggedIn({ user: { id: 1, name: 'Tester Test' } }));
   });
 
   function render(children) {

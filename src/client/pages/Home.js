@@ -134,7 +134,7 @@ function Home(props) {
       {!!repeatableList.length && <List className="repeatables">{repeatableList}</List>}
       {!!!repeatableList.length && (
         <Typography align="center" variant="body2" className={classes.root}>
-          Click on a template below to get started.
+          You're free! For now&hellip;
         </Typography>
       )}
       <Divider />

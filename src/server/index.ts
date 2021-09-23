@@ -36,7 +36,7 @@ if (!process.env.DATABASE_URL) {
   console.error('No DATABASE_URL provided!');
   process.exit(-1);
 }
-const SECRET = (process.env.NODE_ENV === 'production' ? process.env.SECRET : 'devsecret') as string;
+const SECRET = process.env.SECRET || 'devsecret';
 const SECURE = process.env.NODE_ENV === 'production';
 
 // We use two cookies for authentication:
@@ -110,7 +110,14 @@ const clientSideCookie = (res: Response<any, Record<string, any>, number>, user:
 io.use((socket, next) => sesh(socket.request, {}, next)); // TODO: make sure this cares about double cookie middleware
 
 app.post('/api/auth', async function (req, res) {
-  const { username, password } = req.body;
+  const username = req.body?.username?.toLowerCase();
+  const password = req.body?.password;
+
+  if (!(username && password)) {
+    res.status(400);
+    return res.end();
+  }
+
   debugAuth(`/api/auth request for ${username}`);
   const result = await db.query('SELECT id, password FROM users WHERE username = $1::text', [
     username,
@@ -119,7 +126,7 @@ app.post('/api/auth', async function (req, res) {
   if (result?.rows.length === 1) {
     const id = result.rows[0].id;
     const hash = result.rows[0].password;
-    if (bcrypt.compareSync(password, hash)) {
+    if (await bcrypt.compare(password, hash)) {
       debugAuth(`/api/auth request for ${username} successful`);
       req.session.user = { id: id, name: username };
 
@@ -135,6 +142,35 @@ app.post('/api/auth', async function (req, res) {
 
   res.status(401);
   res.end();
+});
+app.put('/api/auth', async function (req, res) {
+  const username = req.body?.username?.toLowerCase();
+  const password = req.body?.password;
+
+  if (!(username && password)) {
+    res.status(400);
+    return res.end();
+  }
+
+  debugAuth(`/api/auth create request for ${username}`);
+  const result = await db.query('SELECT id FROM users WHERE username = $1::text', [username]);
+
+  if (result?.rows.length === 1) {
+    debugAuth(`user ${username} already exists`);
+    res.status(403);
+    res.end();
+  } else {
+    const hash = await bcrypt.hash(password, 10); // TODO: read up and check if 10 is still a fine default
+    await db.query('INSERT INTO users (username, password) VALUES ($1, $2)', [username, hash]);
+    const result = await db.query('SELECT id FROM users WHERE username = $1', [username]);
+
+    debugAuth(`/api/auth create request for ${username} successful`);
+    req.session.user = { id: result.rows[0].id, name: username };
+
+    // write cookie that javascript can clear
+    clientSideCookie(res, req.session.user);
+    return res.json(req.session.user);
+  }
 });
 
 // Validate both cookies for api access

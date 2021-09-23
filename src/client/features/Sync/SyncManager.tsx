@@ -20,6 +20,7 @@ import { Requests } from '../../../server/sync/types';
 import { useDispatch, useSelector } from '../../store';
 import { Database } from '../../db';
 import { debugClient } from '../../globals';
+import { setUserAsUnauthenticated } from '../User/userSlice';
 
 const debug = debugClient('sync');
 
@@ -177,8 +178,14 @@ function SyncManager(props: { db: Database }) {
 
         dispatch(completeSync());
       } catch (e) {
-        console.error('Failed to sync', e);
-        dispatch(syncError(e));
+        if (axios.isAxiosError(e) && e.response?.status === 401) {
+          debug('sync failed as user is no longer authenticated');
+          dispatch(setUserAsUnauthenticated());
+          dispatch(socketDisconnected());
+        } else {
+          console.error('Failed to sync', e);
+          dispatch(syncError(e));
+        }
       } finally {
         debug('finished');
       }

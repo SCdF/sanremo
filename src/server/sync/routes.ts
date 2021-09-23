@@ -1,3 +1,5 @@
+import { DatabaseError } from 'pg-protocol/dist/messages';
+
 import { Router } from 'express';
 import { Server as SocketServer } from 'socket.io';
 
@@ -8,6 +10,7 @@ import sync from './sync';
 
 const debug = debugServer('socket');
 
+const POSTGRES_UNIQUE_VIOLATION = '23505';
 /**
  * Sync 0.0: The Worst Possible Implementation
  *
@@ -39,7 +42,7 @@ export default function routes(
       try {
         results = await sync.begin(req.session.user as User, stubs);
       } catch (error) {
-        if (error.code === '23505') {
+        if (error instanceof DatabaseError && error.code === POSTGRES_UNIQUE_VIOLATION) {
           console.warn('Failed to `/api/sync/begin` the first time, conflict, retrying');
           // duplicate key, implies two syncs from the same client, try again one more time
           // if we rerunit my last or rocky okay a a in1//

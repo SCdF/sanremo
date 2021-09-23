@@ -9,6 +9,7 @@ import { markStale } from './features/Sync/syncSlice';
 import store from './store';
 import { Debugger } from 'debug';
 import { debugClient } from './globals';
+import { Guest } from './features/User/userSlice';
 
 PouchDB.plugin(Find);
 PouchDB.plugin(indexedDb);
@@ -43,7 +44,7 @@ export interface Database {
   destroy(): Promise<void>;
 }
 
-export default function db(loggedInUser: User): Database {
+export default function db(loggedInUser: User | Guest): Database {
   const idb = new PouchDB(`sanremo-${loggedInUser.name}`, {
     auto_compaction: true,
   });

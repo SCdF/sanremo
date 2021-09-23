@@ -18,7 +18,7 @@ function RepeatableListItem(props) {
   const {
     title,
     slug: { type },
-  } = template;
+  } = template || { slug: {} }; // weird reloading edge cases can sometimes generate calls to empty items
 
   let displaySlug;
   if (type === 'string') {
