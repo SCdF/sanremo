@@ -11,17 +11,20 @@ import {
 } from '@material-ui/core';
 import ExitToAppIcon from '@material-ui/icons/ExitToApp';
 import { Fragment, useState } from 'react';
-import { Database } from '../../db';
+import db from '../../db';
 import { useSelector } from '../../store';
 import { selectIsGuest } from './userSlice';
 
-function LogoutMenuItem(props: { onClick: () => void; db: Database }) {
+function LogoutMenuItem(props: { onClick: () => void }) {
   const isGuest = useSelector(selectIsGuest);
   const [open, setOpen] = useState(false);
 
+  const user = useSelector((state) => state.user.value);
+  const handle = db(user);
+
   async function handleLogout() {
     document.cookie = 'sanremo-client='; // ugly-wipe client-side cookie
-    await props.db.destroy();
+    await handle.destroy();
     window.location.reload();
   }
   function showConfirm() {

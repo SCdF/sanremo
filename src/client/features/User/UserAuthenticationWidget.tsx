@@ -11,7 +11,7 @@ export enum Action {
   Create,
   Authenticate,
 }
-function UserAuthentication(props: { username?: string; action: Action }) {
+function UserAuthenticationWidget(props: { username?: string; action: Action }) {
   const dispatch = useDispatch();
 
   const [username, setUsername] = useState(props.username);
@@ -96,4 +96,4 @@ function UserAuthentication(props: { username?: string; action: Action }) {
   );
 }
 
-export default UserAuthentication;
+export default UserAuthenticationWidget;

@@ -6,7 +6,8 @@ export type Guest = User & {
   guest: true;
 };
 
-const GuestUser: Guest = {
+// only exposed for testing matching
+export const GuestUser: Guest = {
   id: -1,
   name: 'guest',
   guest: true,

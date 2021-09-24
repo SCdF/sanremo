@@ -18,7 +18,7 @@ import {
 } from './syncSlice';
 import { Requests } from '../../../server/sync/types';
 import { useDispatch, useSelector } from '../../store';
-import { Database } from '../../db';
+import db, { Database } from '../../db';
 import { debugClient } from '../../globals';
 import { setUserAsUnauthenticated } from '../User/userSlice';
 
@@ -45,20 +45,20 @@ function splitDeletes(batch: Doc[]): { deletes: Doc[]; writes: Doc[] } {
   );
 }
 
-async function writesFromRemote(db: Database, writes: Doc[]) {
+async function writesFromRemote(handle: Database, writes: Doc[]) {
   // To avoid conflicts, AND to write the exact rev we're given, we need both write with
   // `new_edits: false` so we get to specify any _rev we want, AND delete any "conflicts".
   // Unfortunately, `new_edits: false` always creates conflicts, so we preemptively delete
   // the docs and then re-write them with their correct data and remote _rev
-  await deletesFromRemote(db, writes);
+  await deletesFromRemote(handle, writes);
 
-  await db.bulkDocs(writes, {
+  await handle.bulkDocs(writes, {
     new_edits: false,
   });
 }
 
-async function deletesFromRemote(db: Database, deletes: Doc[]) {
-  const deleteResults = await db.allDocs({ keys: deletes.map((d) => d._id) });
+async function deletesFromRemote(handle: Database, deletes: Doc[]) {
+  const deleteResults = await handle.allDocs({ keys: deletes.map((d) => d._id) });
   const deletedDocs = deleteResults.rows.map((row) => ({
     _id: row.key,
     // If the client doesn't have this document, the row will have
@@ -68,11 +68,14 @@ async function deletesFromRemote(db: Database, deletes: Doc[]) {
     _deleted: true,
   }));
 
-  await db.bulkDocs(deletedDocs);
+  await handle.bulkDocs(deletedDocs);
 }
 
-function SyncManager(props: { db: Database }) {
+function SyncManager() {
   const dispatch = useDispatch();
+
+  const user = useSelector((state) => state.user.value);
+  const handle = db(user);
 
   const stale = useSelector((state) => state.sync.stale);
   const state = useSelector((state) => state.sync.state);
@@ -81,15 +84,13 @@ function SyncManager(props: { db: Database }) {
     undefined as unknown as Socket<ServerToClientEvents, ClientToServerEvents>
   );
 
-  const { db } = props;
-
   useEffect(() => {
     // TODO: make this work more in parallel, benchmark it to see if it makes a difference etc
     const handleFullSync = async function () {
       try {
         // Get the docs we have locally. The only way to see deleted documents with PouchDB
         // is with the changes feed to get all ids
-        const changes = await db.changes({ filter: (d: Doc) => !d._id.startsWith('_design/') });
+        const changes = await handle.changes({ filter: (d: Doc) => !d._id.startsWith('_design/') });
         const stubs: DocStub[] = changes.results.map((row) => {
           return {
             _id: row.id,
@@ -123,7 +124,7 @@ function SyncManager(props: { db: Database }) {
             const batch = serverState.server.splice(0, BATCH_SIZE);
             debug(`-> preparing ${batch.length}`);
 
-            const result = await db.allDocs({
+            const result = await handle.allDocs({
               include_docs: true,
               keys: batch.map((d) => d._id),
             });
@@ -149,7 +150,7 @@ function SyncManager(props: { db: Database }) {
 
             let changes: Doc[] = [];
             if (deletes.length) {
-              await deletesFromRemote(db, deletes);
+              await deletesFromRemote(handle, deletes);
               changes = changes.concat(deletes);
               debug('<- deleted deletes');
             }
@@ -162,7 +163,7 @@ function SyncManager(props: { db: Database }) {
                 .then(({ data }) => data);
               debug('<- got server');
 
-              await writesFromRemote(db, result);
+              await writesFromRemote(handle, result);
               debug('<- stored');
 
               changes = changes.concat(result);
@@ -196,7 +197,7 @@ function SyncManager(props: { db: Database }) {
       dispatch(startSync());
       handleFullSync();
     }
-  }, [db, dispatch, state]);
+  }, [handle, dispatch, state]);
 
   useEffect(() => {
     const processStaleQueue = () => {
@@ -247,10 +248,10 @@ function SyncManager(props: { db: Database }) {
 
         // TODO: do these in parallel, see if it's faster
         if (deletes.length) {
-          await deletesFromRemote(db, deletes);
+          await deletesFromRemote(handle, deletes);
         }
         if (writes.length) {
-          await writesFromRemote(db, writes);
+          await writesFromRemote(handle, writes);
         }
 
         dispatch(update(docs));
@@ -266,7 +267,7 @@ function SyncManager(props: { db: Database }) {
 
     initSocket();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [db, dispatch /*socket*/]);
+  }, [handle, dispatch /*socket*/]);
 
   return null;
 }

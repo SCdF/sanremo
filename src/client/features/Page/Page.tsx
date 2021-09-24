@@ -18,11 +18,10 @@ import HistoryIcon from '@material-ui/icons/History';
 import InfoIcon from '@material-ui/icons/Info';
 
 import { useNavigate } from 'react-router-dom';
-import React, { useEffect, useState } from 'react';
+import React, { FC, useEffect, useState } from 'react';
 
 import SyncWidget from '../Sync/SyncWidget';
 import store, { useSelector } from '../../store';
-import { Database } from '../../db';
 import { PageContext } from './pageSlice';
 import { RepeatableSlug } from '../Repeatable/RepeatableSlug';
 import UpdateMenuItem from '../Update/UpdateMenuItem';
@@ -42,11 +41,9 @@ const useStyles = makeStyles((theme) => ({
 /**
  * Wrapper for Pages. Manages headers, sidebar etc
  */
-function Page(props: { db: Database; children: React.ReactNode }) {
+const Page: FC = ({ children }) => {
   const classes = useStyles();
   const rrdNavigate = useNavigate();
-
-  const { db, children } = props;
 
   const [anchorEl, setAnchorEl] = useState(null);
 
@@ -117,14 +114,14 @@ function Page(props: { db: Database; children: React.ReactNode }) {
           <Typography>About</Typography>
         </MenuItem>
         <UpdateMenuItem onClick={handleMenuClose} />
-        <LogoutMenuItem onClick={handleMenuClose} db={db} />
+        <LogoutMenuItem onClick={handleMenuClose} />
       </Menu>
     </div>
   );
 
   let title;
   if (RepeatableSlug.relevant(store.getState())) {
-    title = <RepeatableSlug db={db} />;
+    title = <RepeatableSlug />;
   } else {
     title = context.title;
   }
@@ -152,6 +149,6 @@ function Page(props: { db: Database; children: React.ReactNode }) {
       <main className={classes.main}>{children}</main>
     </Container>
   );
-}
+};
 
 export default Page;

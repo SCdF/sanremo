@@ -46,9 +46,10 @@ describe('Repeatable', () => {
     useLocation.mockReturnValue();
     useParams.mockReturnValue({ repeatableId: '1234' });
 
-    render(<Repeatable db={handle} />);
+    render(<Repeatable />);
 
     await waitFor(() => screen.getByText(/Some text/));
+    expect(handle.get).toBeCalledTimes(2);
   });
 
   it('creates new instance and redirects if "new"', async () => {

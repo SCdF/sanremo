@@ -22,6 +22,10 @@ const debug = (name: string) => {
   return debugs[name];
 };
 
+// This complexity exists entire to allow for:
+// - userPut, which we should do in a more redux'y way and should not exist
+// - having two dbs and comparing for PouchDB testing.
+// TODO: once we're decided on indexeddb or no, drop this complexity!
 export interface Database {
   userPut(doc: Doc): Promise<Doc>;
   changes<Model>(options?: PouchDB.Core.ChangesOptions): PouchDB.Core.Changes<Model>;
@@ -44,18 +48,20 @@ export interface Database {
   destroy(): Promise<void>;
 }
 
-export default function db(loggedInUser: User | Guest): Database {
+// don't subject others to this testing
+const trialingBoth = (user: User) => user.id === 1;
+
+function handle(loggedInUser: User | Guest): Database {
   const idb = new PouchDB(`sanremo-${loggedInUser.name}`, {
     auto_compaction: true,
   });
-  const indexeddb = new PouchDB(`sanremo-${loggedInUser.name}-indexeddb`, {
-    auto_compaction: true,
-    adapter: 'indexeddb',
-  });
-  // @ts-ignore
-  window.IDB = idb;
-  // @ts-ignore
-  window.INDEXEDDB = indexeddb;
+  let indexeddb: PouchDB.Database;
+  if (trialingBoth(loggedInUser)) {
+    indexeddb = new PouchDB(`sanremo-${loggedInUser.name}-indexeddb`, {
+      auto_compaction: true,
+      adapter: 'indexeddb',
+    });
+  }
 
   const every = async function (
     name: string,
@@ -66,8 +72,7 @@ export default function db(loggedInUser: User | Guest): Database {
     const idbResult = await fn(idb);
     idbTime = performance.now() - idbTime;
 
-    if (loggedInUser.id !== 1) {
-      // don't subject others to this testing
+    if (!trialingBoth(loggedInUser)) {
       return idbResult;
     }
 
@@ -166,4 +171,18 @@ export default function db(loggedInUser: User | Guest): Database {
       return every('destroy', (db) => db.destroy());
     },
   };
+}
+
+// we store it here because redux doesn't like non-serializable state, and Context is more trouble than it's worth
+// this way we just keep the user in the store and get the DB from here each time
+//
+// nb: the only time you'll have more than one of these is if you start as a guest and change to a logged in user,
+// switch users without reloading etc.
+let handleCache = {} as Record<number, Database>;
+
+export default function db(loggedInUser: User | Guest): Database {
+  if (!handleCache[loggedInUser.id]) {
+    handleCache[loggedInUser.id] = handle(loggedInUser);
+  }
+  return handleCache[loggedInUser.id];
 }

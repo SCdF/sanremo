@@ -8,17 +8,18 @@ import { v4 as uuid } from 'uuid';
 
 import { set as setContext } from '../features/Page/pageSlice';
 import { clearTemplate, setTemplate } from '../state/docsSlice';
-import { Database } from '../db';
 import { useDispatch, useSelector } from '../store';
 import { SlugType, TemplateDoc } from '../../shared/types';
 import RepeatableRenderer from '../features/Repeatable/RepeatableRenderer';
+import db from '../db';
 
-function Template(props: { db: Database }) {
+function Template() {
   const template = useSelector((state) => state.docs.template);
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const { db } = props;
+  const user = useSelector((state) => state.user.value);
+  const handle = db(user);
   const { templateId } = useParams();
 
   useEffect(() => {
@@ -39,11 +40,11 @@ function Template(props: { db: Database }) {
           values: [],
         };
 
-        await db.userPut(template);
+        await handle.userPut(template);
 
         navigate(`/template/${template._id}`, { replace: true });
-      } else {
-        const template: TemplateDoc = await db.get(templateId);
+      } else if (templateId) {
+        const template: TemplateDoc = await handle.get(templateId);
 
         dispatch(setTemplate(template));
       }
@@ -53,7 +54,7 @@ function Template(props: { db: Database }) {
     return () => {
       dispatch(clearTemplate());
     };
-  }, [db, templateId, navigate, dispatch]);
+  }, [handle, templateId, navigate, dispatch]);
   useEffect(() => {
     dispatch(
       setContext({
@@ -75,7 +76,7 @@ function Template(props: { db: Database }) {
     if (unversionedId > 1) {
       soft = true;
     } else {
-      const used = await db.find({
+      const used = await handle.find({
         selector: { template: { $gt: `${unversionedId}`, $lte: `${unversionedId}\uffff` } },
       });
       soft = !used.docs.length;
@@ -88,7 +89,7 @@ function Template(props: { db: Database }) {
       copy._deleted = true;
     }
 
-    await db.userPut(copy);
+    await handle.userPut(copy);
     navigate('/');
   }
 
@@ -98,7 +99,7 @@ function Template(props: { db: Database }) {
     const copy = Object.assign({}, template);
     copy.updated = Date.now();
 
-    const used = await db.find({
+    const used = await handle.find({
       selector: {
         template: copy._id,
       },
@@ -113,7 +114,7 @@ function Template(props: { db: Database }) {
       delete copy._rev;
     }
 
-    await db.userPut(copy);
+    await handle.userPut(copy);
 
     navigate(-1);
   }
