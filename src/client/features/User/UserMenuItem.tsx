@@ -65,20 +65,22 @@ const UserMenuItem = React.forwardRef<any, { onClick: () => void }>(
 
     // TODO: badge if you need to re authenticate (like update)
     return (
-      <MenuItem onClick={onClick} innerRef={ref}>
-        <ListItemIcon>
-          <Badge color="secondary" variant="dot" invisible={!requiresReauthentication}>
-            <AccountCircle />
-          </Badge>
-        </ListItemIcon>
-        <Typography>{title}</Typography>
+      <Fragment>
+        <MenuItem onClick={onClick} innerRef={ref}>
+          <ListItemIcon>
+            <Badge color="secondary" variant="dot" invisible={!requiresReauthentication}>
+              <AccountCircle />
+            </Badge>
+          </ListItemIcon>
+          <Typography>{title}</Typography>
+        </MenuItem>
         {couldAuthenticate && (
           <Dialog open={open} onClose={dialogClose}>
             <DialogTitle>{title}</DialogTitle>
             <DialogContent>{content}</DialogContent>
           </Dialog>
         )}
-      </MenuItem>
+      </Fragment>
     );
   }
 );

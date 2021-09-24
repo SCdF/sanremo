@@ -45,78 +45,76 @@ const Page: FC = ({ children }) => {
   const classes = useStyles();
   const rrdNavigate = useNavigate();
 
-  const [anchorEl, setAnchorEl] = useState(null);
-
   const context: PageContext = useSelector((state) => state.page.value);
 
+  const [anchorEl, setAnchorEl] = useState(null as unknown as HTMLButtonElement);
   const isMenuOpen = !!anchorEl;
 
   useEffect(() => {
     document.title = context.title ? `${context.title} | Sanremo` : 'Sanremo';
   });
 
-  // @ts-ignore TODO: work out types for this
-  function handleMenuOpen(event) {
+  function handleMenuOpen(event: React.MouseEvent<HTMLButtonElement>) {
     setAnchorEl(event.currentTarget);
   }
   function handleMenuClose() {
-    setAnchorEl(null);
+    setAnchorEl(null!);
   }
   function navigate(to: string | number) {
     handleMenuClose();
-    // @ts-ignore
+    /*
+    export declare type To = string | PartialPath;
+    export interface NavigateFunction {
+      (to: To, options?: NavigateOptions): void;
+      (delta: number): void;
+    }
+    */
+    // @ts-ignore this should work??? See above. Guessing it's because it crosses two definitions
     rrdNavigate(to);
   }
 
   const menu = (
-    <div>
-      <Menu
-        anchorEl={anchorEl}
-        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
-        transformOrigin={{ vertical: 'top', horizontal: 'right' }}
-        keepMounted
-        open={isMenuOpen}
-        onClose={handleMenuClose}
+    <Menu
+      anchorEl={anchorEl}
+      anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+      transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+      keepMounted
+      open={isMenuOpen}
+      onClose={handleMenuClose}
+    >
+      <UserMenuItem onClick={handleMenuClose} />
+      <Divider />
+      <MenuItem button key="home" selected={context.under === 'home'} onClick={() => navigate('/')}>
+        <ListItemIcon>
+          <CheckBoxIcon />
+        </ListItemIcon>
+        <Typography>Active</Typography>
+      </MenuItem>
+      <MenuItem
+        button
+        key="history"
+        selected={context.under === 'history'}
+        onClick={() => navigate('/history')}
       >
-        <UserMenuItem onClick={handleMenuClose} />
-        <Divider />
-        <MenuItem
-          button
-          key="home"
-          selected={context.under === 'home'}
-          onClick={() => navigate('/')}
-        >
-          <ListItemIcon>
-            <CheckBoxIcon />
-          </ListItemIcon>
-          <Typography>Active</Typography>
-        </MenuItem>
-        <MenuItem
-          button
-          key="history"
-          selected={context.under === 'history'}
-          onClick={() => navigate('/history')}
-        >
-          <ListItemIcon>
-            <HistoryIcon />
-          </ListItemIcon>
-          <Typography>History</Typography>
-        </MenuItem>
-        <MenuItem
-          button
-          key="about"
-          selected={context.under === 'about'}
-          onClick={() => navigate('/about')}
-        >
-          <ListItemIcon>
-            <InfoIcon />
-          </ListItemIcon>
-          <Typography>About</Typography>
-        </MenuItem>
-        <UpdateMenuItem onClick={handleMenuClose} />
-        <LogoutMenuItem onClick={handleMenuClose} />
-      </Menu>
-    </div>
+        <ListItemIcon>
+          <HistoryIcon />
+        </ListItemIcon>
+        <Typography>History</Typography>
+      </MenuItem>
+      <MenuItem
+        button
+        key="about"
+        selected={context.under === 'about'}
+        onClick={() => navigate('/about')}
+      >
+        <ListItemIcon>
+          <InfoIcon />
+        </ListItemIcon>
+        <Typography>About</Typography>
+      </MenuItem>
+      <UpdateMenuItem onClick={handleMenuClose} />
+      <LogoutMenuItem onClick={handleMenuClose} />
+    </Menu>
   );
 
   let title;

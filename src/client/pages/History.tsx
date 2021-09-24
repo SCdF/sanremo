@@ -6,12 +6,14 @@ import { set as setContext } from '../features/Page/pageSlice';
 
 import RepeatableListItem from '../features/Repeatable/RepeatableListItem';
 import { useDispatch, useSelector } from '../store';
+import db from '../db';
 
-function History(props) {
-  const [repeatables, setRepeatables] = useState([]);
+function History() {
+  const [repeatables, setRepeatables] = useState([] as Record<string, any>[]);
   const dispatch = useDispatch();
 
-  const { db } = props;
+  const user = useSelector((state) => state.user.value);
+  const handle = db(user);
 
   // we don't actually care about this value, we just use it to trigger list reloading
   const lastSynced = useSelector((state) => state.docs.lastSynced);
@@ -27,8 +29,8 @@ function History(props) {
 
   // NB: this code also exists in Home.js using updated instead of completed
   useEffect(() => {
-    async function go() {
-      const { docs: repeatables } = await db.find({
+    async function loadRepeatables() {
+      const { docs: repeatables } = (await handle.find({
         selector: {
           _id: { $gt: 'repeatable:instance:', $lte: 'repeatable:instance:\uffff' },
           completed: { $exists: true },
@@ -39,18 +41,19 @@ function History(props) {
         // sort doesn't match the selector (as written here it uses a [_id, completed] index).
         // We should see what CouchDB does in this situation and make sure it's the same
         // sort: [{completed: 'desc'}]
-      });
+      })) as { docs: Record<string, any>[] };
 
       // Replace template id with real thing
       const templateIds = [...new Set(repeatables.map((d) => d.template))];
-      const { docs: templates } = await db.find({
+      const { docs: templates } = (await handle.find({
         selector: {
           _id: {
             $in: templateIds,
           },
         },
         fields: ['_id', 'title', 'slug.type'],
-      });
+      })) as { docs: PouchDB.Core.ExistingDocument<{ title: string; slug: { type: string } }>[] };
+
       const templateMap = new Map(templates.map((t) => [t._id, t]));
       repeatables.forEach((r) => {
         r.timestamp = r.completed;
@@ -63,8 +66,8 @@ function History(props) {
     }
 
     // TODO: sort out logging / elevation for errors
-    go();
-  }, [db, lastSynced]);
+    loadRepeatables();
+  }, [handle, lastSynced]);
 
   const repeatableList = repeatables.map((repeatable) => (
     <RepeatableListItem key={repeatable._id} {...repeatable} />
