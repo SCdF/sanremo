@@ -1,3 +1,9 @@
+// This complexity exists entirely to allow for:
+// - userPut, which we should do in a more redux'y way and should not exist
+// - having two dbs and comparing for PouchDB testing.
+// Otherwise this would be basically three lines
+// TODO: once we're decided on indexeddb or no, drop this complexity!
+
 import PouchDB from 'pouchdb-browser';
 import Find from 'pouchdb-find';
 import indexedDb from 'pouchdb-adapter-indexeddb';
@@ -22,10 +28,6 @@ const debug = (name: string) => {
   return debugs[name];
 };
 
-// This complexity exists entire to allow for:
-// - userPut, which we should do in a more redux'y way and should not exist
-// - having two dbs and comparing for PouchDB testing.
-// TODO: once we're decided on indexeddb or no, drop this complexity!
 export interface Database {
   userPut(doc: Doc): Promise<Doc>;
   changes<Model>(options?: PouchDB.Core.ChangesOptions): PouchDB.Core.Changes<Model>;
