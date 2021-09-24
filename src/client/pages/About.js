@@ -9,6 +9,7 @@ import { useSelector } from '../store';
 import UpdatePanel from '../features/Update/UpdatePanel';
 import DebugPanel from '../features/Debug/DebugPanel';
 import SyncPanel from '../features/Sync/SyncPanel';
+import db from '../db';
 
 function mapProps(parent, info) {
   return Object.keys(info)
@@ -20,17 +21,17 @@ function About(props) {
   const dispatch = useDispatch();
 
   const loggedInUser = useSelector((state) => state.user.value);
+  // eslint-disable-next-line no-unused-vars
+  const _db = db(loggedInUser); // pull it in to force the caching to happen if this is a fresh refresh
 
   const [idbInfo, setIdbInfo] = useState([]);
-  const [indexeddbInfo, setIndexeddbInfo] = useState([]);
   const [serverInfo, setServerInfo] = useState([]);
 
-  useEffect(() => window.IDB.info().then((info) => setIdbInfo(mapProps('idb', info))), []);
-  useEffect(() => {
-    if (loggedInUser.id === 1) {
-      window.INDEXEDDB.info().then((info) => setIndexeddbInfo(mapProps('indexeddb', info)));
-    }
-  }, [loggedInUser.id]);
+  // FIXME: get this information correctly
+  useEffect(
+    () => loggedInUser && window.IDB.info().then((info) => setIdbInfo(mapProps('idb', info))),
+    [loggedInUser]
+  );
 
   useEffect(() => {
     if (process.env.NODE_ENV === 'production') {
@@ -81,7 +82,6 @@ function About(props) {
     ...serverInfo,
     [<h4>LOCAL DETAILS</h4>],
     ...idbInfo,
-    ...indexeddbInfo,
   ];
 
   return (

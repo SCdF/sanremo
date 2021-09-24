@@ -51,7 +51,7 @@ export interface Database {
 // don't subject others to this testing
 const trialingBoth = (user: User) => user.id === 1;
 
-function handle(loggedInUser: User | Guest): Database {
+function handle(loggedInUser: User | Guest): { db: Database; _db: PouchDB.Database } {
   const idb = new PouchDB(`sanremo-${loggedInUser.name}`, {
     auto_compaction: true,
   });
@@ -130,46 +130,53 @@ function handle(loggedInUser: User | Guest): Database {
   });
 
   return {
-    // TODO: don't do this
-    // this is a sign that we need to rework our use of redux, such that it does this for us
-    userPut: async (doc: Doc): Promise<Doc> => {
-      const { rev } = await every('userPut', (db) => db.put(doc), doc);
-      doc._rev = rev;
+    db: {
+      // TODO: don't do this
+      // this is a sign that we need to rework our use of redux, such that it does this for us
+      userPut: async (doc: Doc): Promise<Doc> => {
+        const { rev } = await every('userPut', (db) => db.put(doc), doc);
+        doc._rev = rev;
 
-      store.dispatch(markStale(doc));
+        store.dispatch(markStale(doc));
 
-      return doc;
+        return doc;
+      },
+      changes: <Model>(options?: PouchDB.Core.ChangesOptions): PouchDB.Core.Changes<Model> => {
+        return every(
+          'changes',
+          (db) => db.changes(options),
+          options
+        ) as PouchDB.Core.Changes<Model>;
+      },
+      allDocs: <Model>(
+        options?:
+          | PouchDB.Core.AllDocsWithKeyOptions
+          | PouchDB.Core.AllDocsWithKeysOptions
+          | PouchDB.Core.AllDocsWithinRangeOptions
+          | PouchDB.Core.AllDocsOptions
+      ): Promise<PouchDB.Core.AllDocsResponse<Model>> => {
+        return every('allDocs', (db) => db.allDocs(options), options);
+      },
+      bulkDocs: <Model>(
+        docs: Array<PouchDB.Core.PutDocument<Model>>,
+        options?: PouchDB.Core.BulkDocsOptions
+      ): Promise<Array<PouchDB.Core.Response | PouchDB.Core.Error>> => {
+        return every('bulkDocs', (db) => db.bulkDocs(docs, options), [docs, options]);
+      },
+      get: <Model>(
+        docId: PouchDB.Core.DocumentId,
+        options?: PouchDB.Core.GetOptions
+      ): Promise<PouchDB.Core.Document<Model> & PouchDB.Core.GetMeta> => {
+        return every(`get`, (db) => db.get(docId, options || {}), options);
+      },
+      find: (request?: PouchDB.Find.FindRequest<{}>): Promise<PouchDB.Find.FindResponse<{}>> => {
+        return every('find', (db) => db.find(request), request);
+      },
+      destroy: () => {
+        return every('destroy', (db) => db.destroy());
+      },
     },
-    changes: <Model>(options?: PouchDB.Core.ChangesOptions): PouchDB.Core.Changes<Model> => {
-      return every('changes', (db) => db.changes(options), options) as PouchDB.Core.Changes<Model>;
-    },
-    allDocs: <Model>(
-      options?:
-        | PouchDB.Core.AllDocsWithKeyOptions
-        | PouchDB.Core.AllDocsWithKeysOptions
-        | PouchDB.Core.AllDocsWithinRangeOptions
-        | PouchDB.Core.AllDocsOptions
-    ): Promise<PouchDB.Core.AllDocsResponse<Model>> => {
-      return every('allDocs', (db) => db.allDocs(options), options);
-    },
-    bulkDocs: <Model>(
-      docs: Array<PouchDB.Core.PutDocument<Model>>,
-      options?: PouchDB.Core.BulkDocsOptions
-    ): Promise<Array<PouchDB.Core.Response | PouchDB.Core.Error>> => {
-      return every('bulkDocs', (db) => db.bulkDocs(docs, options), [docs, options]);
-    },
-    get: <Model>(
-      docId: PouchDB.Core.DocumentId,
-      options?: PouchDB.Core.GetOptions
-    ): Promise<PouchDB.Core.Document<Model> & PouchDB.Core.GetMeta> => {
-      return every(`get`, (db) => db.get(docId, options || {}), options);
-    },
-    find: (request?: PouchDB.Find.FindRequest<{}>): Promise<PouchDB.Find.FindResponse<{}>> => {
-      return every('find', (db) => db.find(request), request);
-    },
-    destroy: () => {
-      return every('destroy', (db) => db.destroy());
-    },
+    _db: idb,
   };
 }
 
@@ -178,11 +185,15 @@ function handle(loggedInUser: User | Guest): Database {
 //
 // nb: the only time you'll have more than one of these is if you start as a guest and change to a logged in user,
 // switch users without reloading etc.
-let handleCache = {} as Record<number, Database>;
+let handleCache = {} as Record<number, { db: Database; _db: PouchDB.Database }>;
 
 export default function db(loggedInUser: User | Guest): Database {
   if (!handleCache[loggedInUser.id]) {
     handleCache[loggedInUser.id] = handle(loggedInUser);
   }
-  return handleCache[loggedInUser.id];
+
+  const db = handleCache[loggedInUser.id].db;
+  // @ts-ignore
+  window.IDB = handleCache[loggedInUser.id]._db;
+  return db;
 }

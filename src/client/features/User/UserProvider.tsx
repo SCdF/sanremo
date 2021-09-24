@@ -33,8 +33,6 @@ const UserProvider: FC = ({ children }) => {
         debug('got valid server response');
         return response.data;
       } catch (error) {
-        console.log('ERRORROROROROR', error, axios.isCancel(error), axios.isAxiosError(error));
-
         if (axios.isCancel(error)) {
           debug('server authentication check timed out');
           return 'network_error';
