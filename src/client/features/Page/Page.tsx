@@ -26,8 +26,9 @@ import { PageContext } from './pageSlice';
 import { RepeatableSlug } from '../Repeatable/RepeatableSlug';
 import UpdateMenuItem from '../Update/UpdateMenuItem';
 import UserMenuBadge from '../User/UserMenuBadge';
-import UserMenuItem from '../User/UserMenuItem';
+import { UserMenuItem, UserMenuDialog } from '../User/UserMenuItem';
 import LogoutMenuItem from '../User/LogoutMenuItem';
+import { selectIsGuest } from '../User/userSlice';
 
 const useStyles = makeStyles((theme) => ({
   grow: {
@@ -49,6 +50,15 @@ const Page: FC = ({ children }) => {
 
   const [anchorEl, setAnchorEl] = useState(null as unknown as HTMLButtonElement);
   const isMenuOpen = !!anchorEl;
+
+  // Due to a MUI bug, Page has to be aware of the user dialogue, as it cannot be contained
+  // inside the UserMenuItem, as a Dialog cannot be inside a Menu
+  // https://github.com/mui-org/material-ui/issues/20173
+  // This means we've had to pull in a lot more stuff into Page than we wanted
+  const [userDialogOpen, setUserDialogOpen] = useState(false);
+  const isGuest = useSelector(selectIsGuest);
+  const requiresReauthentication = useSelector((state) => state.user.needsServerAuthentication);
+  const canSeeUserDialog = userDialogOpen && (isGuest || requiresReauthentication);
 
   useEffect(() => {
     document.title = context.title ? `${context.title} | Sanremo` : 'Sanremo';
@@ -72,50 +82,10 @@ const Page: FC = ({ children }) => {
     // @ts-ignore this should work??? See above. Guessing it's because it crosses two definitions
     rrdNavigate(to);
   }
-
-  const menu = (
-    <Menu
-      anchorEl={anchorEl}
-      anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
-      transformOrigin={{ vertical: 'top', horizontal: 'right' }}
-      keepMounted
-      open={isMenuOpen}
-      onClose={handleMenuClose}
-    >
-      <UserMenuItem onClick={handleMenuClose} />
-      <Divider />
-      <MenuItem button key="home" selected={context.under === 'home'} onClick={() => navigate('/')}>
-        <ListItemIcon>
-          <CheckBoxIcon />
-        </ListItemIcon>
-        <Typography>Active</Typography>
-      </MenuItem>
-      <MenuItem
-        button
-        key="history"
-        selected={context.under === 'history'}
-        onClick={() => navigate('/history')}
-      >
-        <ListItemIcon>
-          <HistoryIcon />
-        </ListItemIcon>
-        <Typography>History</Typography>
-      </MenuItem>
-      <MenuItem
-        button
-        key="about"
-        selected={context.under === 'about'}
-        onClick={() => navigate('/about')}
-      >
-        <ListItemIcon>
-          <InfoIcon />
-        </ListItemIcon>
-        <Typography>About</Typography>
-      </MenuItem>
-      <UpdateMenuItem onClick={handleMenuClose} />
-      <LogoutMenuItem onClick={handleMenuClose} />
-    </Menu>
-  );
+  function showUserDialog() {
+    handleMenuClose();
+    setUserDialogOpen(true);
+  }
 
   let title;
   if (RepeatableSlug.relevant(store.getState())) {
@@ -143,7 +113,57 @@ const Page: FC = ({ children }) => {
           </IconButton>
         </Toolbar>
       </AppBar>
-      {menu}
+      <Menu
+        anchorEl={anchorEl}
+        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+        transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+        keepMounted
+        open={isMenuOpen}
+        onClose={handleMenuClose}
+      >
+        <UserMenuItem onClick={showUserDialog} />
+        <Divider />
+        <MenuItem
+          button
+          key="home"
+          selected={context.under === 'home'}
+          onClick={() => navigate('/')}
+        >
+          <ListItemIcon>
+            <CheckBoxIcon />
+          </ListItemIcon>
+          <Typography>Active</Typography>
+        </MenuItem>
+        <MenuItem
+          button
+          key="history"
+          selected={context.under === 'history'}
+          onClick={() => navigate('/history')}
+        >
+          <ListItemIcon>
+            <HistoryIcon />
+          </ListItemIcon>
+          <Typography>History</Typography>
+        </MenuItem>
+        <MenuItem
+          button
+          key="about"
+          selected={context.under === 'about'}
+          onClick={() => navigate('/about')}
+        >
+          <ListItemIcon>
+            <InfoIcon />
+          </ListItemIcon>
+          <Typography>About</Typography>
+        </MenuItem>
+        <UpdateMenuItem onClick={handleMenuClose} />
+        <LogoutMenuItem onClick={handleMenuClose} />
+      </Menu>
+      {/*
+      We have to hide / show aggressively (instead of using open) because otherwise once the user logs
+      in there will be a split second where it shows invalid data even though it's set to open=false
+       */}
+      {canSeeUserDialog && <UserMenuDialog open={true} onClose={() => setUserDialogOpen(false)} />}
       <main className={classes.main}>{children}</main>
     </Container>
   );

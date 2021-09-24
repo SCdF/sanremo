@@ -38,9 +38,9 @@ function App() {
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <DebugManager />
+      {process.env.NODE_ENV !== 'development' && <UpdateManager />}
       <UserProvider>
         {process.env.NODE_ENV !== 'development' && !isGuest && <SyncManager />}
-        {process.env.NODE_ENV !== 'development' && <UpdateManager />}
         <Page>
           <Routes>
             <Route path="/" element={<Home />} />

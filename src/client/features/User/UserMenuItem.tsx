@@ -8,7 +8,7 @@ import {
   Typography,
 } from '@material-ui/core';
 import AccountCircle from '@material-ui/icons/AccountCircle';
-import React, { Fragment, useState } from 'react';
+import React, { FC, Fragment } from 'react';
 import { useSelector } from '../../store';
 import UserAuthenticationWidget, { Action } from './UserAuthenticationWidget';
 import { selectIsGuest } from './userSlice';
@@ -16,73 +16,71 @@ import { selectIsGuest } from './userSlice';
 // We are doing a weird forward ref here, due to a leaky MUI menu abstraction:
 // https://stackoverflow.com/questions/56307332/how-to-use-custom-functional-components-within-material-ui-menu
 // tl;dr, we need to forward the menu's ref because we are at the top of the menu
-const UserMenuItem = React.forwardRef<any, { onClick: () => void }>(
-  ({ onClick: outerOnClick }, ref) => {
-    const loggedInUser = useSelector((state) => state.user.value);
+export const UserMenuItem = React.forwardRef<any, { onClick: () => void }>(({ onClick }, ref) => {
+  const loggedInUser = useSelector((state) => state.user.value);
 
-    const isGuest = useSelector(selectIsGuest);
-    const requiresReauthentication = useSelector((state) => state.user.needsServerAuthentication);
-    const couldAuthenticate = isGuest || requiresReauthentication;
+  const isGuest = useSelector(selectIsGuest);
+  const requiresReauthentication = useSelector((state) => state.user.needsServerAuthentication);
 
-    const [open, setOpen] = useState(false);
+  let title;
 
-    const dialogOpen = () => {
-      outerOnClick();
-      setOpen(true);
-    };
-    const dialogClose = () => {
-      setOpen(false);
-    };
+  if (isGuest) {
+    title = 'Create / Login';
+  } else if (requiresReauthentication) {
+    title = 'Login required';
+  } else {
+    title = loggedInUser.name;
+  }
 
-    let title, onClick, content;
+  return (
+    <Fragment>
+      <MenuItem onClick={onClick} innerRef={ref}>
+        <ListItemIcon>
+          <Badge color="secondary" variant="dot" invisible={!requiresReauthentication}>
+            <AccountCircle />
+          </Badge>
+        </ListItemIcon>
+        <Typography>{title}</Typography>
+      </MenuItem>
+    </Fragment>
+  );
+});
 
-    if (couldAuthenticate) {
-      onClick = dialogOpen;
-    } else {
-      onClick = () => alert('todo');
-    }
+export const UserMenuDialog: FC<{ open: boolean; onClose: () => void }> = ({ open, onClose }) => {
+  const loggedInUser = useSelector((state) => state.user.value);
 
-    if (isGuest) {
-      title = 'Create / Login';
+  const isGuest = useSelector(selectIsGuest);
+  const requiresReauthentication = useSelector((state) => state.user.needsServerAuthentication);
 
-      content = (
-        <Fragment>
-          <p>Log into an existing account:</p>
-          <UserAuthenticationWidget action={Action.Authenticate} />
-          <p>Or create a new one:</p>
-          <UserAuthenticationWidget action={Action.Create} />
-        </Fragment>
-      );
-    } else if (requiresReauthentication) {
-      title = 'Login required';
+  let title, content;
 
-      content = (
-        <UserAuthenticationWidget action={Action.Authenticate} username={loggedInUser.name} />
-      );
-    } else {
-      title = loggedInUser.name;
-    }
+  if (isGuest) {
+    title = 'Create / Login';
 
-    // TODO: badge if you need to re authenticate (like update)
-    return (
+    content = (
       <Fragment>
-        <MenuItem onClick={onClick} innerRef={ref}>
-          <ListItemIcon>
-            <Badge color="secondary" variant="dot" invisible={!requiresReauthentication}>
-              <AccountCircle />
-            </Badge>
-          </ListItemIcon>
-          <Typography>{title}</Typography>
-        </MenuItem>
-        {couldAuthenticate && (
-          <Dialog open={open} onClose={dialogClose}>
-            <DialogTitle>{title}</DialogTitle>
-            <DialogContent>{content}</DialogContent>
-          </Dialog>
-        )}
+        <p>Log into an existing account:</p>
+        <UserAuthenticationWidget action={Action.Authenticate} />
+        <p>Or create a new one:</p>
+        <UserAuthenticationWidget action={Action.Create} />
       </Fragment>
     );
-  }
-);
+  } else if (requiresReauthentication) {
+    title = 'Login required';
 
-export default UserMenuItem;
+    content = (
+      <UserAuthenticationWidget action={Action.Authenticate} username={loggedInUser.name} />
+    );
+  } else {
+    title = loggedInUser.name;
+  }
+
+  return (
+    <Fragment>
+      <Dialog open={open} onClose={onClose}>
+        <DialogTitle>{title}</DialogTitle>
+        <DialogContent>{content}</DialogContent>
+      </Dialog>
+    </Fragment>
+  );
+};
