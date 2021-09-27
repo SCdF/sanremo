@@ -2,10 +2,6 @@ import { getDocs, getStubsForUser, putDocs } from './db';
 import { Requests } from './types';
 import { DocStub, Doc, User } from '../../shared/types';
 
-// import * as debugLib from "debug";
-
-// const debug = debugLib.debug("sanremo:server:sync");
-
 async function begin(user: User, clientStubs: DocStub[]): Promise<Requests> {
   const toReturn: Requests = {
     server: [],

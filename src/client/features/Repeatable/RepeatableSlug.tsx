@@ -3,7 +3,7 @@ import React from 'react';
 import { Input, makeStyles } from '@material-ui/core';
 import { setRepeatable } from '../../state/docsSlice';
 import { RootState, useDispatch, useSelector } from '../../store';
-import { Database } from '../../db';
+import db from '../../db';
 
 export const useStyles = makeStyles((theme) => ({
   inputRoot: {
@@ -12,11 +12,12 @@ export const useStyles = makeStyles((theme) => ({
   },
 }));
 
-function RepeatableSlug(props: { db: Database }) {
+function RepeatableSlug() {
   const classes = useStyles();
   const dispatch = useDispatch();
 
-  const { db } = props;
+  const user = useSelector((state) => state.user.value);
+  const handle = db(user);
 
   const repeatable = useSelector((state) => state.docs.repeatable);
   const template = useSelector((state) => state.docs.template);
@@ -37,7 +38,7 @@ function RepeatableSlug(props: { db: Database }) {
   async function storeSlugChange() {
     const copy = Object.assign({}, repeatable);
 
-    await db.userPut(copy);
+    await handle.userPut(copy);
     dispatch(setRepeatable(copy));
   }
 

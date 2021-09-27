@@ -61,7 +61,7 @@ export const syncSlice = createSlice({
       state.state = State.completed;
       delete state.progress;
     },
-    syncError: (state, action: { payload: Error }) => {
+    syncError: (state, action: { payload: any }) => {
       const error = { name: action.payload.name, message: action.payload.message };
       if (error.message === 'Network Error') {
         state.state = State.disconnected;

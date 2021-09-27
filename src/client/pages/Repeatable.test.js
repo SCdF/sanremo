@@ -6,7 +6,7 @@ import db from '../db';
 
 import Repeatable from './Repeatable';
 import { createStore } from '../store';
-import { set as setLoggedInUser } from '../features/User/userSlice';
+import { setUserAsLoggedIn } from '../features/User/userSlice';
 
 jest.mock('react-router-dom');
 jest.mock('../db');
@@ -22,7 +22,7 @@ describe('Repeatable', () => {
     useNavigate.mockReturnValue(navigate);
 
     store = createStore();
-    store.dispatch(setLoggedInUser(user));
+    store.dispatch(setUserAsLoggedIn({ user }));
 
     handle = db(user);
   });
@@ -46,9 +46,10 @@ describe('Repeatable', () => {
     useLocation.mockReturnValue();
     useParams.mockReturnValue({ repeatableId: '1234' });
 
-    render(<Repeatable db={handle} />);
+    render(<Repeatable />);
 
     await waitFor(() => screen.getByText(/Some text/));
+    expect(handle.get).toBeCalledTimes(2);
   });
 
   it('creates new instance and redirects if "new"', async () => {

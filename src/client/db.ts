@@ -1,3 +1,9 @@
+// This complexity exists entirely to allow for:
+// - userPut, which we should do in a more redux'y way and should not exist
+// - having two dbs and comparing for PouchDB testing.
+// Otherwise this would be basically three lines
+// TODO: once we're decided on indexeddb or no, drop this complexity!
+
 import PouchDB from 'pouchdb-browser';
 import Find from 'pouchdb-find';
 import indexedDb from 'pouchdb-adapter-indexeddb';
@@ -7,7 +13,9 @@ import DeepDiff from 'deep-diff';
 import { Doc, User } from '../shared/types';
 import { markStale } from './features/Sync/syncSlice';
 import store from './store';
-import debugModule, { Debugger } from 'debug';
+import { Debugger } from 'debug';
+import { debugClient } from './globals';
+import { Guest } from './features/User/userSlice';
 
 PouchDB.plugin(Find);
 PouchDB.plugin(indexedDb);
@@ -15,7 +23,7 @@ PouchDB.plugin(indexedDb);
 const debugs = {} as Record<string, Debugger>;
 const debug = (name: string) => {
   if (!debugs[name]) {
-    debugs[name] = debugModule(`sanremo:client:database:${name}`) as Debugger;
+    debugs[name] = debugClient('database', name);
   }
   return debugs[name];
 };
@@ -42,18 +50,23 @@ export interface Database {
   destroy(): Promise<void>;
 }
 
-export default function db(loggedInUser: User): Database {
+// don't subject others to this testing
+const trialingBoth = (user: User) => user.id === 1;
+
+// TODO: we don't need to append the database name with the username
+// We delete the database when they user logs out, so there shouldn't be a conflict
+// NB: when logging in versus creating an account we would have to consider taking guest data
+function handle(loggedInUser: User | Guest): { db: Database; _db: PouchDB.Database } {
   const idb = new PouchDB(`sanremo-${loggedInUser.name}`, {
     auto_compaction: true,
   });
-  const indexeddb = new PouchDB(`sanremo-${loggedInUser.name}-indexeddb`, {
-    auto_compaction: true,
-    adapter: 'indexeddb',
-  });
-  // @ts-ignore
-  window.IDB = idb;
-  // @ts-ignore
-  window.INDEXEDDB = indexeddb;
+  let indexeddb: PouchDB.Database;
+  if (trialingBoth(loggedInUser)) {
+    indexeddb = new PouchDB(`sanremo-${loggedInUser.name}-indexeddb`, {
+      auto_compaction: true,
+      adapter: 'indexeddb',
+    });
+  }
 
   const every = async function (
     name: string,
@@ -64,8 +77,7 @@ export default function db(loggedInUser: User): Database {
     const idbResult = await fn(idb);
     idbTime = performance.now() - idbTime;
 
-    if (loggedInUser.id !== 1) {
-      // don't subject others to this testing
+    if (!trialingBoth(loggedInUser)) {
       return idbResult;
     }
 
@@ -84,7 +96,8 @@ export default function db(loggedInUser: User): Database {
 
     const diff = DeepDiff.diff(idbResult, indexeddbResult);
     if (diff && diff.length) {
-      console.warn(`sanremo:client:databasec:${name} returned different results`, {
+      debug(name)(`returned different results`, idbResult, indexeddbResult, diff);
+      console.warn(`${name} returned different results`, {
         idbResult,
         indexeddbResult,
         diff,
@@ -122,45 +135,70 @@ export default function db(loggedInUser: User): Database {
   });
 
   return {
-    // TODO: don't do this
-    // this is a sign that we need to rework our use of redux, such that it does this for us
-    userPut: async (doc: Doc): Promise<Doc> => {
-      const { rev } = await every('userPut', (db) => db.put(doc), doc);
-      doc._rev = rev;
+    db: {
+      // TODO: don't do this
+      // this is a sign that we need to rework our use of redux, such that it does this for us
+      userPut: async (doc: Doc): Promise<Doc> => {
+        const { rev } = await every('userPut', (db) => db.put(doc), doc);
+        doc._rev = rev;
 
-      store.dispatch(markStale(doc));
+        store.dispatch(markStale(doc));
 
-      return doc;
+        return doc;
+      },
+      changes: <Model>(options?: PouchDB.Core.ChangesOptions): PouchDB.Core.Changes<Model> => {
+        return every(
+          'changes',
+          (db) => db.changes(options),
+          options
+        ) as PouchDB.Core.Changes<Model>;
+      },
+      allDocs: <Model>(
+        options?:
+          | PouchDB.Core.AllDocsWithKeyOptions
+          | PouchDB.Core.AllDocsWithKeysOptions
+          | PouchDB.Core.AllDocsWithinRangeOptions
+          | PouchDB.Core.AllDocsOptions
+      ): Promise<PouchDB.Core.AllDocsResponse<Model>> => {
+        return every('allDocs', (db) => db.allDocs(options), options);
+      },
+      bulkDocs: <Model>(
+        docs: Array<PouchDB.Core.PutDocument<Model>>,
+        options?: PouchDB.Core.BulkDocsOptions
+      ): Promise<Array<PouchDB.Core.Response | PouchDB.Core.Error>> => {
+        return every('bulkDocs', (db) => db.bulkDocs(docs, options), [docs, options]);
+      },
+      get: <Model>(
+        docId: PouchDB.Core.DocumentId,
+        options?: PouchDB.Core.GetOptions
+      ): Promise<PouchDB.Core.Document<Model> & PouchDB.Core.GetMeta> => {
+        return every(`get`, (db) => db.get(docId, options || {}), options);
+      },
+      find: (request?: PouchDB.Find.FindRequest<{}>): Promise<PouchDB.Find.FindResponse<{}>> => {
+        return every('find', (db) => db.find(request), request);
+      },
+      destroy: () => {
+        return every('destroy', (db) => db.destroy());
+      },
     },
-    changes: <Model>(options?: PouchDB.Core.ChangesOptions): PouchDB.Core.Changes<Model> => {
-      return every('changes', (db) => db.changes(options), options) as PouchDB.Core.Changes<Model>;
-    },
-    allDocs: <Model>(
-      options?:
-        | PouchDB.Core.AllDocsWithKeyOptions
-        | PouchDB.Core.AllDocsWithKeysOptions
-        | PouchDB.Core.AllDocsWithinRangeOptions
-        | PouchDB.Core.AllDocsOptions
-    ): Promise<PouchDB.Core.AllDocsResponse<Model>> => {
-      return every('allDocs', (db) => db.allDocs(options), options);
-    },
-    bulkDocs: <Model>(
-      docs: Array<PouchDB.Core.PutDocument<Model>>,
-      options?: PouchDB.Core.BulkDocsOptions
-    ): Promise<Array<PouchDB.Core.Response | PouchDB.Core.Error>> => {
-      return every('bulkDocs', (db) => db.bulkDocs(docs, options), [docs, options]);
-    },
-    get: <Model>(
-      docId: PouchDB.Core.DocumentId,
-      options?: PouchDB.Core.GetOptions
-    ): Promise<PouchDB.Core.Document<Model> & PouchDB.Core.GetMeta> => {
-      return every(`get`, (db) => db.get(docId, options || {}), options);
-    },
-    find: (request?: PouchDB.Find.FindRequest<{}>): Promise<PouchDB.Find.FindResponse<{}>> => {
-      return every('find', (db) => db.find(request), request);
-    },
-    destroy: () => {
-      return every('destroy', (db) => db.destroy());
-    },
+    _db: idb,
   };
+}
+
+// we store it here because redux doesn't like non-serializable state, and Context is more trouble than it's worth
+// this way we just keep the user in the store and get the DB from here each time
+//
+// nb: the only time you'll have more than one of these is if you start as a guest and change to a logged in user,
+// switch users without reloading etc.
+let handleCache = {} as Record<number, { db: Database; _db: PouchDB.Database }>;
+
+export default function db(loggedInUser: User | Guest): Database {
+  if (!handleCache[loggedInUser.id]) {
+    handleCache[loggedInUser.id] = handle(loggedInUser);
+  }
+
+  const db = handleCache[loggedInUser.id].db;
+  // @ts-ignore
+  window.IDB = handleCache[loggedInUser.id]._db;
+  return db;
 }

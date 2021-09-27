@@ -14,12 +14,13 @@ import { setTemplate } from '../state/docsSlice';
 import { set as setContext } from '../features/Page/pageSlice';
 import { useDispatch, useSelector } from '../store';
 import { RepeatableDoc, TemplateDoc } from '../../shared/types';
-import { Database } from '../db';
 import RepeatableRenderer from '../features/Repeatable/RepeatableRenderer';
+import { debugClient } from '../globals';
+import db from '../db';
 
-const debug = require('debug')('sanremo:client:repeatable');
+const debug = debugClient('repeatable');
 
-function Repeatable(props: { db: Database }) {
+function Repeatable() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
@@ -35,14 +36,15 @@ function Repeatable(props: { db: Database }) {
   const location = useLocation();
 
   const { repeatableId } = useParams();
-  const { db } = props;
+  const user = useSelector((state) => state.user.value);
+  const handle = db(user);
 
   useEffect(() => {
     async function loadRepeatable() {
       if (repeatableId === 'new') {
         const templateId = qs.parse(location.search, { ignoreQueryPrefix: true })
           .template as string;
-        const template: TemplateDoc = await db.get(templateId);
+        const template: TemplateDoc = await handle.get(templateId);
 
         let created, updated, slug;
         created = updated = Date.now();
@@ -61,13 +63,13 @@ function Repeatable(props: { db: Database }) {
           slug,
         };
 
-        await db.userPut(repeatable);
+        await handle.userPut(repeatable);
         navigate(`/repeatable/${repeatable._id}`, { replace: true });
-      } else {
+      } else if (repeatableId) {
         debug('pre repeatable load');
         let repeatable: RepeatableDoc;
         try {
-          repeatable = await db.get(repeatableId);
+          repeatable = await handle.get(repeatableId);
         } catch (error) {
           console.warn(`Repeatable ${repeatableId} failed to load`, error);
           return navigate('/');
@@ -77,7 +79,7 @@ function Repeatable(props: { db: Database }) {
         repeatable.values = repeatable.values || [];
 
         debug('post repeatable load, pre template load');
-        const template: TemplateDoc = await db.get(repeatable.template);
+        const template: TemplateDoc = await handle.get(repeatable.template);
         debug('post template load');
 
         ReactDOM.unstable_batchedUpdates(() => {
@@ -100,13 +102,13 @@ function Repeatable(props: { db: Database }) {
       dispatch(clearRepeatable());
       dispatch(clearTemplate());
     };
-  }, [dispatch, db, repeatableId, location, navigate]);
+  }, [dispatch, handle, repeatableId, location, navigate]);
 
   async function deleteRepeatable() {
     const copy = Object.assign({}, repeatable);
 
     copy._deleted = true;
-    await db.userPut(copy);
+    await handle.userPut(copy);
 
     navigate('/');
   }
@@ -115,7 +117,7 @@ function Repeatable(props: { db: Database }) {
     const copy = Object.assign({}, repeatable);
 
     copy.completed = Date.now();
-    await db.userPut(copy);
+    await handle.userPut(copy);
 
     if (edited || initiallyOpen) {
       navigate('/');
@@ -128,7 +130,7 @@ function Repeatable(props: { db: Database }) {
     const copy = Object.assign({}, repeatable);
 
     delete copy.completed;
-    await db.userPut(copy);
+    await handle.userPut(copy);
     dispatch(setRepeatable(copy));
   }
 
@@ -141,7 +143,7 @@ function Repeatable(props: { db: Database }) {
 
     copy.updated = now;
 
-    await db.userPut(copy);
+    await handle.userPut(copy);
 
     ReactDOM.unstable_batchedUpdates(() => {
       if (!edited) setEdited(true);

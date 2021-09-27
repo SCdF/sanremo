@@ -1,9 +1,9 @@
 import { Checkbox, List, ListItem, ListItemIcon, ListItemText } from '@material-ui/core';
-import debugModule from 'debug';
 import { useEffect, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
+import { debugClient } from '../../globals';
 
-const debug = debugModule('sanremo:client:repeatable:render');
+const debug = debugClient('repeatable', 'render');
 
 type RepeatableProps = {
   markdown: string;
