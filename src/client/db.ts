@@ -53,6 +53,9 @@ export interface Database {
 // don't subject others to this testing
 const trialingBoth = (user: User) => user.id === 1;
 
+// TODO: we don't need to append the database name with the username
+// We delete the database when they user logs out, so there shouldn't be a conflict
+// NB: when logging in versus creating an account we would have to consider taking guest data
 function handle(loggedInUser: User | Guest): { db: Database; _db: PouchDB.Database } {
   const idb = new PouchDB(`sanremo-${loggedInUser.name}`, {
     auto_compaction: true,
