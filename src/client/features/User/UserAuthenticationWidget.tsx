@@ -1,4 +1,3 @@
-import PouchDB from 'pouchdb-browser';
 import { Button, Container, FormHelperText, TextField } from '@material-ui/core';
 import { FormEvent, useState } from 'react';
 import { useDispatch } from 'react-redux';
@@ -6,6 +5,7 @@ import { useDispatch } from 'react-redux';
 import { setUserAsLoggedIn } from './userSlice';
 import axios from 'axios';
 import { User } from '../../../shared/types';
+import { migrateFromGuest } from '../../db';
 
 export enum Action {
   Create,
@@ -41,12 +41,7 @@ function UserAuthenticationWidget(props: { username?: string; action: Action }) 
       const user: User = response.data;
 
       if (props.action === Action.Create) {
-        // pre-create local database and put existing data in it
-        // TODO: move this elsewhere, db.ts probably
-        const local = new PouchDB(`sanremo-${user.name}`);
-        const guest = new PouchDB('sanremo-guest');
-        await guest.replicate.to(local);
-        await guest.destroy();
+        await migrateFromGuest(user);
       }
       // TODO: consider what to do with guest data when logging in.
       // is it weird that if you've touched local data and then log in, the local data stays but hidden?

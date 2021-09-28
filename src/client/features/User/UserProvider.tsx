@@ -5,19 +5,11 @@ import { debugClient } from '../../globals';
 import { User } from '../../../shared/types';
 import { useDispatch, useSelector } from '../../store';
 import { setUserAsGuest, setUserAsLoggedIn } from './userSlice';
-import { Backdrop, CircularProgress, makeStyles } from '@material-ui/core';
+import Loading from '../../Loading';
 
 const debug = debugClient('auth');
 
-const useStyles = makeStyles((theme) => ({
-  backdrop: {
-    zIndex: theme.zIndex.drawer + 1,
-    color: '#fff',
-  },
-}));
-
 const UserProvider: FC = ({ children }) => {
-  const classes = useStyles();
   const dispatch = useDispatch();
 
   const user = useSelector((state) => state.user.value);
@@ -119,11 +111,7 @@ const UserProvider: FC = ({ children }) => {
   // This will look much nicer as the children will render in the background while we wait for the network
   // However, either we default to a guest while we wait for the network, or we change all components to support no database
   if (user === undefined) {
-    return (
-      <Backdrop open={user === undefined} className={classes.backdrop}>
-        <CircularProgress />
-      </Backdrop>
-    );
+    return <Loading />;
   }
 
   return <Fragment>{children}</Fragment>;

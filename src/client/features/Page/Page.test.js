@@ -8,6 +8,7 @@ import { setUserAsLoggedIn } from '../User/userSlice';
 import { set as setPageContext } from './pageSlice';
 
 jest.mock('react-router-dom');
+jest.mock('../../db');
 
 describe('Page', () => {
   let navigate;

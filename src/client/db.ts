@@ -4,9 +4,9 @@
 // Otherwise this would be basically three lines
 // TODO: once we're decided on indexeddb or no, drop this complexity!
 
-import PouchDB from 'pouchdb-browser';
+import PouchDB from 'pouchdb-core';
+import IdbAdapter from 'pouchdb-adapter-idb';
 import Find from 'pouchdb-find';
-import indexedDb from 'pouchdb-adapter-indexeddb';
 
 import DeepDiff from 'deep-diff';
 
@@ -15,10 +15,10 @@ import { markStale } from './features/Sync/syncSlice';
 import store from './store';
 import { Debugger } from 'debug';
 import { debugClient } from './globals';
-import { Guest } from './features/User/userSlice';
+import { Guest, GuestUser } from './features/User/userSlice';
 
+PouchDB.plugin(IdbAdapter);
 PouchDB.plugin(Find);
-PouchDB.plugin(indexedDb);
 
 const debugs = {} as Record<string, Debugger>;
 const debug = (name: string) => {
@@ -58,13 +58,18 @@ const trialingBoth = (user: User) => user.id === 1;
 // NB: when logging in versus creating an account we would have to consider taking guest data
 function handle(loggedInUser: User | Guest): { db: Database; _db: PouchDB.Database } {
   const idb = new PouchDB(`sanremo-${loggedInUser.name}`, {
+    adapter: 'idb',
     auto_compaction: true,
   });
   let indexeddb: PouchDB.Database;
+  let trial: Promise<any>;
   if (trialingBoth(loggedInUser)) {
-    indexeddb = new PouchDB(`sanremo-${loggedInUser.name}-indexeddb`, {
-      auto_compaction: true,
-      adapter: 'indexeddb',
+    trial = import('pouchdb-adapter-indexeddb').then(({ default: indexeddbAdapter }) => {
+      PouchDB.plugin(indexeddbAdapter);
+      indexeddb = new PouchDB(`sanremo-${loggedInUser.name}-indexeddb`, {
+        auto_compaction: true,
+        adapter: 'indexeddb',
+      });
     });
   }
 
@@ -80,6 +85,8 @@ function handle(loggedInUser: User | Guest): { db: Database; _db: PouchDB.Databa
     if (!trialingBoth(loggedInUser)) {
       return idbResult;
     }
+
+    await trial;
 
     let indexeddbTime = performance.now();
     const indexeddbResult = await fn(indexeddb);
@@ -201,4 +208,11 @@ export default function db(loggedInUser: User | Guest): Database {
   // @ts-ignore
   window.IDB = handleCache[loggedInUser.id]._db;
   return db;
+}
+
+export async function migrateFromGuest(user: User) {
+  const local = handle(user)._db;
+  const guest = handle(GuestUser)._db;
+  await guest.replicate.to(local);
+  await guest.destroy();
 }

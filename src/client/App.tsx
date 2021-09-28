@@ -1,24 +1,28 @@
 import './App.scss';
 
+import { Suspense, lazy } from 'react';
+
 import { Route, Routes } from 'react-router-dom';
 
 import CssBaseline from '@material-ui/core/CssBaseline';
 import { ThemeProvider } from '@material-ui/core/styles';
 import { createTheme, Typography } from '@material-ui/core';
 
+import { useSelector } from './store';
 import { selectIsGuest } from './features/User/userSlice';
 
-import About from './pages/About';
-import History from './pages/History';
-import Home from './pages/Home';
-import Repeatable from './pages/Repeatable';
-import Template from './pages/Template';
 import Page from './features/Page/Page';
 import DebugManager from './features/Debug/DebugManager';
 import UpdateManager from './features/Update/UpdateManager';
 import SyncManager from './features/Sync/SyncManager';
-import { useSelector } from './store';
 import UserProvider from './features/User/UserProvider';
+import Loading from './Loading';
+
+const About = lazy(() => import('./pages/About'));
+const History = lazy(() => import('./pages/History'));
+const Home = lazy(() => import('./pages/Home'));
+const Repeatable = lazy(() => import('./pages/Repeatable'));
+const Template = lazy(() => import('./pages/Template'));
 
 const theme = createTheme({
   // palette: {
@@ -42,13 +46,15 @@ function App() {
       <UserProvider>
         {process.env.NODE_ENV !== 'development' && !isGuest && <SyncManager />}
         <Page>
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/about" element={<About />} />
-            <Route path="repeatable/:repeatableId" element={<Repeatable />} />
-            <Route path="template/:templateId" element={<Template />} />
-            <Route path="history" element={<History />} />
-          </Routes>
+          <Suspense fallback={<Loading />}>
+            <Routes>
+              <Route path="/" element={<Home />} />
+              <Route path="/about" element={<About />} />
+              <Route path="repeatable/:repeatableId" element={<Repeatable />} />
+              <Route path="template/:templateId" element={<Template />} />
+              <Route path="history" element={<History />} />
+            </Routes>
+          </Suspense>
           {isGuest && (
             <Typography align="center" variant="caption" color="textSecondary" display="block">
               Local account. Your data is only stored in this browser. Create an account to allow it
