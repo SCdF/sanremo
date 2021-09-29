@@ -203,11 +203,12 @@ app.use('/api/*', (req, res, next) => {
 io.use((socket, next) => {
   // @ts-ignore https://github.com/socketio/socket.io/issues/3890
   const user = socket.request?.session?.user;
-  debugAuth(`SOCKET: connection with ${JSON.stringify(user)}`);
   if (user) {
     // TODO: also care about the client-side cookie? Or is the server-side enough?
+    debugAuth(`SOCKET: connection with ${JSON.stringify(user)}`);
     next();
   } else {
+    debugAuth('SOCKET: unauthenticated connection attempt');
     next(new Error('no authentication provided'));
   }
 });
