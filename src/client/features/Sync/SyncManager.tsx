@@ -85,7 +85,7 @@ function SyncManager() {
   );
 
   useEffect(() => {
-    // TODO: make this work more in parallel, benchmark it to see if it makes a difference etc
+    // PERF: make this work more in parallel, benchmark it to see if it makes a difference etc
     const handleFullSync = async function () {
       try {
         // Get the docs we have locally. The only way to see deleted documents with PouchDB
@@ -246,7 +246,7 @@ function SyncManager() {
 
         const { writes, deletes } = splitDeletes(docs);
 
-        // TODO: do these in parallel, see if it's faster
+        // PERF: do these in parallel, see if it's faster
         if (deletes.length) {
           await deletesFromRemote(handle, deletes);
         }

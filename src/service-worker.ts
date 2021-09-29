@@ -71,7 +71,6 @@ registerRoute(
 
 self.addEventListener('message', async (event) => {
   if (event.data && event.data.type === 'SKIP_WAITING') {
-    // TODO: this will cause crazy issues if we start lazily loading things. Document this properly
     await self.skipWaiting();
 
     self.clients

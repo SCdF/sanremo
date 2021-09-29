@@ -81,12 +81,12 @@ describe('Repeatable', () => {
 
     expect(handle.get).toBeCalled();
     expect(handle.get.mock.calls[0][0]).toBe('repeatable:template:1234');
-    // FIXME: I have no idea why this doesn't work, it is obviously called, see below
-    // expect(handle.userPut).toBeCalled();
 
     await waitFor(() => expect(navigate.mock.calls.length).toBe(1));
     expect(navigate.mock.calls[0][0]).toMatch(/\/repeatable\/repeatable:instance:/);
 
+    // FIXME: I have no idea why this doesn't work, it is obviously called, see the very next expect succeeding
+    // expect(handle.userPut).toBeCalled();
     const storedRepeatable = handle.userPut.mock.calls[0][0];
     expect(storedRepeatable).toBeTruthy();
     expect(storedRepeatable._id).toMatch(/^repeatable:instance:/);

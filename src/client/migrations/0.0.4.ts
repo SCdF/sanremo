@@ -1,7 +1,8 @@
 import { TemplateDoc } from '../../shared/types';
 
 const doc = {
-  _id: 'repeatable:template:0.0.4',
+  // Making it version 2 so that when the user deletes it's always a soft delete
+  _id: 'repeatable:template:0.0.4:2',
   title: 'Click Me First',
   slug: { type: 'date' },
   created: Date.now(),

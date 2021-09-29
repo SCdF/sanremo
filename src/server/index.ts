@@ -41,13 +41,14 @@ const SECURE = process.env.NODE_ENV === 'production';
 
 // We use two cookies for authentication:
 // - a 'server' cookie that is httpOnly and is used by express-session
-// - a 'client' cookie that is not httpOnly and can be wiped by client-side javascript
-// Both are required for a valid session. This allows an XSS-safe server cookie and an offline-logout-able client cookie
+// - a 'client' cookie that is not httpOnly and thus can be accessed (to be wiped) by client-side javascript
+// Both are required for a valid session. This allows an XSS-safe server cookie and an offline-logout-able client cookie.
+// If we just had the server cookie you could not logoff offline
 //
 // NB: This feels VERY CLOSE TO ROLLING OUR OWN SECURITY. I do not like it.
 //
 // TODO: validate this approach with someone who knows more about security than you
-// we have validated that using the sanremo-client cookie as the sanremo cookie does not work, but that's it
+// We have validated that using the sanremo-client cookie as the sanremo cookie does not work, but that's it
 // session.clientCookie feels really fragile and the wrong approach
 const SERVER_COOKIE = 'sanremo';
 const CLIENT_COOKIE = `${SERVER_COOKIE}-client`;

@@ -12,9 +12,3 @@
 li {
   list-style: none;
 }
-
-// TODO: This is not being used, consider deleting
-input[type='checkbox']:checked + label.strikethrough,
-header.strikethrough {
-  text-decoration: line-through;
-}

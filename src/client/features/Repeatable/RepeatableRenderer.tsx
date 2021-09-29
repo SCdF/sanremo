@@ -23,7 +23,7 @@ const renderMarkdownChunk = (chunkStart: number, chunkEnd: number, text: string)
   </ListItem>
 );
 
-// FIXME: this re-runs a non-optimal number of times
+// PERF: this re-runs a non-optimal number of times
 function RepeatableRenderer(props: RepeatableProps) {
   const { markdown, values, onChange: changeValue, hasFocus: hasFocusCb, takesFocus } = props;
 

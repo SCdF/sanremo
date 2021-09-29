@@ -60,7 +60,6 @@ function UserAuthenticationWidget(props: { username?: string; action: Action }) 
     }
   }
 
-  // FIXME: tab to move between fields doesn't work here for some reason
   return (
     <Container>
       <form onSubmit={submit}>

@@ -5,7 +5,7 @@ import { useEffect } from 'react';
 function RelativeTime(props: { date: number | Date }) {
   const { date } = props;
 
-  // TODO: is it possible to only have ONE interval that propogates an update to each node
+  // PERF: is it possible to only have ONE interval that propogates an update to each node
   // that needs it? This seems like something stupid that doesn't scale.
   const [now, setNow] = useState(Date.now());
 
