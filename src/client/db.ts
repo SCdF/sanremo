@@ -16,6 +16,7 @@ import store from './store';
 import { Debugger } from 'debug';
 import { debugClient } from './globals';
 import { Guest, GuestUser } from './features/User/userSlice';
+import migrate from './migrations/0.0.4';
 
 PouchDB.plugin(IdbAdapter);
 PouchDB.plugin(Find);
@@ -114,7 +115,7 @@ function handle(loggedInUser: User | Guest): { db: Database; _db: PouchDB.Databa
     return idbResult;
   };
 
-  every('index setup', (db) => {
+  every('db setup', async (db) => {
     db.createIndex({
       index: {
         fields: ['updated'],
@@ -131,6 +132,7 @@ function handle(loggedInUser: User | Guest): { db: Database; _db: PouchDB.Databa
       },
     });
     // TODO: add index for finding via slug
+    await migrate(db);
   });
 
   every('conflict check', (db) => {

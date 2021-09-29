@@ -30,7 +30,7 @@ function Template() {
           _id: `repeatable:template:${uuid()}:1`,
           title: '',
           slug: {
-            type: SlugType.Date,
+            type: SlugType.Timestamp,
             placeholder: '',
           },
           markdown: '',
@@ -207,7 +207,7 @@ function Template() {
             variant="filled"
             fullWidth
             multiline
-            rows="10"
+            minRows="10"
             label="Markdown"
             name="markdown"
             value={template.markdown}

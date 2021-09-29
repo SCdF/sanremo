@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 
-import { List } from '@material-ui/core';
+import { List, makeStyles, Typography } from '@material-ui/core';
 
 import { set as setContext } from '../features/Page/pageSlice';
 
@@ -8,7 +8,14 @@ import RepeatableListItem from '../features/Repeatable/RepeatableListItem';
 import { useDispatch, useSelector } from '../store';
 import db from '../db';
 
+const useStyles = makeStyles((theme) => ({
+  root: {
+    padding: theme.spacing(1),
+  },
+}));
+
 function History() {
+  const classes = useStyles();
   const [repeatables, setRepeatables] = useState([] as Record<string, any>[]);
   const dispatch = useDispatch();
 
@@ -73,7 +80,17 @@ function History() {
     <RepeatableListItem key={repeatable._id} {...repeatable} />
   ));
 
-  return <List>{repeatableList}</List>;
+  return (
+    <List>
+      {repeatableList.length ? (
+        repeatableList
+      ) : (
+        <Typography align="center" variant="body2" className={classes.root}>
+          Nothing here yet&hellip;
+        </Typography>
+      )}
+    </List>
+  );
 }
 
 export default History;

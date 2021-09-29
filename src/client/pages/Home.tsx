@@ -31,7 +31,7 @@ function Home() {
   useEffect(() => {
     dispatch(
       setContext({
-        title: 'Project Sanremo',
+        title: 'Repeatable Checklists',
         under: 'home',
       })
     );

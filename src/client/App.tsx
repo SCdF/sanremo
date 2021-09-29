@@ -55,13 +55,12 @@ function App() {
               <Route path="history" element={<History />} />
             </Routes>
           </Suspense>
-          {isGuest && (
-            <Typography align="center" variant="caption" color="textSecondary" display="block">
-              Local account. Your data is only stored in this browser. Create an account to allow it
-              to be accessed on multiple devices.
-            </Typography>
-          )}
         </Page>
+        {isGuest && (
+          <Typography align="center" variant="caption" color="textSecondary" display="block">
+            Data only stored in this browser. Create an account to enable access from other devices.
+          </Typography>
+        )}
       </UserProvider>
     </ThemeProvider>
   );
