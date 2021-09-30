@@ -96,10 +96,11 @@ function About(props) {
           ))}
         </tbody>
       </table>
+      <h4>DATA SYNC</h4>
+      <SyncPanel />
+      {/* 'development' === `npm run dev`, so auto-reloading */}
       {process.env.NODE_ENV !== 'development' && (
         <Fragment>
-          <h4>DATA SYNC</h4>
-          <SyncPanel />
           <h4>SOFTWARE VERSION</h4>
           <UpdatePanel />
         </Fragment>

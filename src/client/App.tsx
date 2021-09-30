@@ -42,9 +42,10 @@ function App() {
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <DebugManager />
+      {/* 'development' === `npm run dev`, so auto-reloading */}
       {process.env.NODE_ENV !== 'development' && <UpdateManager />}
       <UserProvider>
-        {process.env.NODE_ENV !== 'development' && !isGuest && <SyncManager />}
+        <SyncManager />
         <Page>
           <Suspense fallback={<Loading />}>
             <Routes>

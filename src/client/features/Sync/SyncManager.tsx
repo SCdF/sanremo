@@ -20,7 +20,7 @@ import { Requests } from '../../../server/sync/types';
 import { useDispatch, useSelector } from '../../store';
 import db, { Database } from '../../db';
 import { debugClient } from '../../globals';
-import { setUserAsUnauthenticated } from '../User/userSlice';
+import { selectIsGuest, setUserAsUnauthenticated } from '../User/userSlice';
 
 const debug = debugClient('sync');
 
@@ -75,6 +75,7 @@ function SyncManager() {
   const dispatch = useDispatch();
 
   const user = useSelector((state) => state.user.value);
+  const isGuest = useSelector(selectIsGuest);
   const handle = db(user);
 
   const stale = useSelector((state) => state.sync.stale);
@@ -233,6 +234,10 @@ function SyncManager() {
         socket.close();
       }
 
+      if (isGuest) {
+        return;
+      }
+
       debug('initializing server socket');
       const localSocket = io();
 
@@ -267,7 +272,7 @@ function SyncManager() {
 
     initSocket();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [handle, dispatch /*socket*/]);
+  }, [isGuest, handle, dispatch /*socket*/]);
 
   return null;
 }

@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "start": "node --es-module-specifier-resolution=node ./server-build/src/server",
-    "serverLocal": "DATABASE_URL=postgres://scdf@localhost PORT=5000 npm start",
+    "serverLocal": "DATABASE_URL=postgres://$USER@localhost PORT=5000 npm start",
     "build": "npm run buildClient && npm run buildServer",
     "buildClient": "react-scripts build",
     "buildServer": "rm -r ./server-build; tsc --build tsconfig.server.json",
