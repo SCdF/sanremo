@@ -25,6 +25,10 @@ psql < 'whatever is in src/server/sql, in order'
 
 Then the local server can be built with `npm run buildServer` (no continuous build here sorry) and started with either `npm run serverLocal` or `npm start` with custom `DATABASE_URL` and `PORT` environment variables. Note that if you change the `PORT` variable `npm run dev` will not proxy correctly without changing the `proxy` value in `package.json`.
 
+## Testing
+
+So far unit tests only, run via `npm test`
+
 ## Building
 
 The production build is achieved with `npm run build` and started with `npm start`
