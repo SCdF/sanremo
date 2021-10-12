@@ -17,8 +17,7 @@ import { selectIsGuest } from './userSlice';
 // https://stackoverflow.com/questions/56307332/how-to-use-custom-functional-components-within-material-ui-menu
 // tl;dr, we need to forward the menu's ref because we are at the top of the menu
 export const UserMenuItem = React.forwardRef<any, { onClick: () => void }>(({ onClick }, ref) => {
-  const loggedInUser = useSelector((state) => state.user.value);
-
+  const username = useSelector((state) => state.user.value?.name);
   const isGuest = useSelector(selectIsGuest);
   const requiresReauthentication = useSelector((state) => state.user.needsServerAuthentication);
 
@@ -29,7 +28,7 @@ export const UserMenuItem = React.forwardRef<any, { onClick: () => void }>(({ on
   } else if (requiresReauthentication) {
     title = 'Login required';
   } else {
-    title = loggedInUser.name;
+    title = username;
   }
 
   return (
@@ -47,8 +46,7 @@ export const UserMenuItem = React.forwardRef<any, { onClick: () => void }>(({ on
 });
 
 export const UserMenuDialog: FC<{ open: boolean; onClose: () => void }> = ({ open, onClose }) => {
-  const loggedInUser = useSelector((state) => state.user.value);
-
+  const username = useSelector((state) => state.user.value?.name);
   const isGuest = useSelector(selectIsGuest);
   const requiresReauthentication = useSelector((state) => state.user.needsServerAuthentication);
 
@@ -68,11 +66,9 @@ export const UserMenuDialog: FC<{ open: boolean; onClose: () => void }> = ({ ope
   } else if (requiresReauthentication) {
     title = 'Login required';
 
-    content = (
-      <UserAuthenticationWidget action={Action.Authenticate} username={loggedInUser.name} />
-    );
+    content = <UserAuthenticationWidget action={Action.Authenticate} username={username} />;
   } else {
-    title = loggedInUser.name;
+    title = username;
   }
 
   return (
