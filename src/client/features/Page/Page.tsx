@@ -62,7 +62,7 @@ const Page: FC = ({ children }) => {
 
   useEffect(() => {
     document.title = context.title ? `${context.title} | Sanremo` : 'Sanremo';
-  });
+  }, [context]);
 
   function handleMenuOpen(event: React.MouseEvent<HTMLButtonElement>) {
     setAnchorEl(event.currentTarget);
