@@ -16,7 +16,7 @@ const UserProvider: FC = ({ children }) => {
 
   useEffect(() => {
     // Check the server for authentication against the server-side cookie
-    async function networkCheck(): Promise<User | 'network_error' | void> {
+    async function networkCheck(): Promise<User | 'auth_error' | void> {
       debug('server authentication check');
       const source = axios.CancelToken.source();
       setTimeout(() => source.cancel(), 1000);
@@ -27,21 +27,17 @@ const UserProvider: FC = ({ children }) => {
       } catch (error) {
         if (axios.isCancel(error)) {
           debug('server authentication check timed out');
-          return 'network_error';
         } else if (axios.isAxiosError(error)) {
           if (error.response?.status === 401) {
             // authentication failed, either because they have no cookie or because it's wrong / outdated
             debug('server authentication check failed');
-          } else if (error.response?.status === 404) {
-            debug('could not find server');
-            return 'network_error';
+            return 'auth_error';
           } else {
-            debug('unknown axios error');
-            console.warn(error);
+            debug('network (axios) issues');
+            console.debug(error);
           }
         } else {
           console.error('unexpected error in networkCheck', error, source);
-          throw error;
         }
       }
     }
@@ -79,11 +75,11 @@ const UserProvider: FC = ({ children }) => {
         // Intentionally not logged in
         debug('not logged in, proceeding as guest');
         dispatch(setUserAsGuest());
-      } else if (serverUserCheck === 'network_error') {
+      } else if (!serverUserCheck) {
         // Offline with a valid local user
         debug('probably offline with valid local user, proceeding as user');
         dispatch(setUserAsLoggedIn({ user: localUserCheck }));
-      } else if (!serverUserCheck) {
+      } else if (serverUserCheck === 'auth_error') {
         // Server auth was unsuccessful, but we have a valid local (and thus insecure) cookie:
         //     This could imply normal things: the user being offline for weeks, the server changing secrets
         //     Or it could imply someone trying to log in with a stolen local cookie

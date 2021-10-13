@@ -50,6 +50,7 @@ describe('user authentication', () => {
     await waitFor(() => screen.getByText(/some text/));
 
     expect(store.getState().user.value).toStrictEqual(serverUser);
+    expect(store.getState().user.needsServerAuthentication).toBeFalse();
   });
   it('loads user with invalid server credentials but valid client cookie', async () => {
     document.cookie = CLIENT_COOKIE;
@@ -59,6 +60,7 @@ describe('user authentication', () => {
     await waitFor(() => screen.getByText(/some text/));
 
     expect(store.getState().user.value).toStrictEqual(clientUser);
+    expect(store.getState().user.needsServerAuthentication).toBeTrue();
   });
   it('loads user with a down server but valid client cookie', async () => {
     document.cookie = CLIENT_COOKIE;
@@ -68,6 +70,17 @@ describe('user authentication', () => {
     await waitFor(() => screen.getByText(/some text/));
 
     expect(store.getState().user.value).toStrictEqual(clientUser);
+    expect(store.getState().user.needsServerAuthentication).toBeFalse();
+  });
+  it('loads user with network issues but valid client cookie', async () => {
+    document.cookie = CLIENT_COOKIE;
+    mockedAxios.get.mockRejectedValue({ who: 'knows', isAxiosError: true });
+
+    render(<UserProvider>some text</UserProvider>);
+    await waitFor(() => screen.getByText(/some text/));
+
+    expect(store.getState().user.value).toStrictEqual(clientUser);
+    expect(store.getState().user.needsServerAuthentication).toBeFalse();
   });
   it('loads user with an unresponsive server but valid client cookie', async () => {
     document.cookie = CLIENT_COOKIE;
@@ -77,6 +90,7 @@ describe('user authentication', () => {
     await waitFor(() => screen.getByText(/some text/));
 
     expect(store.getState().user.value).toStrictEqual(clientUser);
+    expect(store.getState().user.needsServerAuthentication).toBeFalse();
   });
   it('treats no client cookie as the user being a guest', async () => {
     document.cookie = NO_CLIENT_COOKIE;
@@ -86,6 +100,7 @@ describe('user authentication', () => {
     await waitFor(() => screen.getByText(/some text/));
 
     expect(store.getState().user.value).toStrictEqual(GuestUser);
+    expect(store.getState().user.needsServerAuthentication).toBeFalse();
   });
   it('for now, treat to corrupted client cookie as the user being a guest', async () => {
     document.cookie = 'sanremo-client=blah';
@@ -95,5 +110,6 @@ describe('user authentication', () => {
     await waitFor(() => screen.getByText(/some text/));
 
     expect(store.getState().user.value).toStrictEqual(GuestUser);
+    expect(store.getState().user.needsServerAuthentication).toBeFalse();
   });
 });
