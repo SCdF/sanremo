@@ -11,6 +11,7 @@
     "buildServer": "rm -r ./server-build; tsc --build tsconfig.server.json",
     "dev": "react-scripts start",
     "test": "react-scripts test",
+    "coverage": "npm test -- --coverage --watchAll=false",
     "analyze": "source-map-explorer 'build/static/js/*.js' --html result.html",
     "eject": "react-scripts eject"
   },
@@ -19,6 +20,12 @@
     "extends": [
       "react-app",
       "react-app/jest"
+    ]
+  },
+  "jest": {
+    "coverageReporters": [
+      "text",
+      "text-summary"
     ]
   },
   "browserslist": {
