@@ -103,12 +103,14 @@ describe('user authentication', () => {
     expect(store.getState().user.needsServerAuthentication).toBeFalse();
   });
   it('for now, treat to corrupted client cookie as the user being a guest', async () => {
+    jest.spyOn(console, 'error').mockImplementation(() => {});
     document.cookie = 'sanremo-client=blah';
     mockedAxios.get.mockResolvedValueOnce({ data: serverUser });
 
     render(<UserProvider>some text</UserProvider>);
     await waitFor(() => screen.getByText(/some text/));
 
+    expect(console.error).toBeCalledTimes(1);
     expect(store.getState().user.value).toStrictEqual(GuestUser);
     expect(store.getState().user.needsServerAuthentication).toBeFalse();
   });

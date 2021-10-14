@@ -34,7 +34,7 @@ const UserProvider: FC = ({ children }) => {
             return 'auth_error';
           } else {
             debug('network (axios) issues');
-            console.debug(error);
+            debug(error);
           }
         } else {
           console.error('unexpected error in networkCheck', error, source);
