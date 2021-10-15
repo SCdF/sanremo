@@ -89,7 +89,11 @@ const Page: FC = ({ children }) => {
 
   let title;
   if (RepeatableSlug.relevant(store.getState())) {
-    title = <RepeatableSlug />;
+    title = (
+      <div>
+        {context.title} <i>for</i> <RepeatableSlug />
+      </div>
+    );
   } else {
     title = context.title;
   }

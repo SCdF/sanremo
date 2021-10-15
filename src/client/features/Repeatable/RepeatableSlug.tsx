@@ -72,13 +72,15 @@ function RepeatableSlug() {
     slug = (
       <Input
         type="date"
+        // TODO: make sure this works for accessibility
+        inputProps={{ role: 'entry' }}
         classes={{ root: classes.inputRoot }}
         value={awkwardlyFormattedSlug}
         onChange={changeSlug}
         onBlur={storeSlugChange}
       />
     );
-  } else if ('timestamp' === template.slug.type) {
+  } /*if ('timestamp' === template.slug.type)*/ else {
     // FIXME: Clean This Up! The format required for the native date input type cannot
     // be manufactured from the native JavaScript date type. If we were in raw HTML
     // we could post-set it with Javascript by using valueAsNumber, but not in situ
@@ -98,6 +100,8 @@ function RepeatableSlug() {
     slug = (
       <Input
         type="datetime-local"
+        // TODO: make sure this works for accessibility
+        inputProps={{ role: 'entry' }}
         classes={{ root: classes.inputRoot }}
         value={awkwardlyFormattedSlug}
         onChange={changeSlug}
@@ -106,15 +110,9 @@ function RepeatableSlug() {
     );
   }
 
-  return (
-    <div>
-      {template.title}
-      <i> for </i>
-      {slug}
-    </div>
-  );
+  return slug;
 }
 RepeatableSlug.relevant = (state: RootState) => {
-  return state.docs.repeatable && state.docs.template;
+  return state.docs.repeatable && state.docs.template?.slug?.type;
 };
 export { RepeatableSlug };
