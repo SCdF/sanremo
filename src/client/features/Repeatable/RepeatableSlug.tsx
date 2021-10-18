@@ -1,4 +1,4 @@
-import { ChangeEvent } from 'react';
+import { ChangeEvent, useState } from 'react';
 import React from 'react';
 import { Input, makeStyles } from '@material-ui/core';
 import { setRepeatable } from '../../state/docsSlice';
@@ -20,23 +20,24 @@ function RepeatableSlug() {
   const handle = db(user);
 
   const repeatable = useSelector((state) => state.docs.repeatable);
+  const [slug, setSlug] = useState(repeatable!.slug);
+
   const template = useSelector((state) => state.docs.template);
 
   function changeSlug({ target }: ChangeEvent) {
-    const copy = Object.assign({}, repeatable);
     // @ts-ignore FIXME: check if nodeValue works
     const targetValue = target.value;
     const value = ['date', 'timestamp'].includes(template!.slug.type)
       ? new Date(targetValue).getTime()
       : targetValue;
 
-    copy.slug = value;
-
-    dispatch(setRepeatable(copy));
+    setSlug(value);
   }
 
   async function storeSlugChange() {
     const copy = Object.assign({}, repeatable);
+
+    copy.slug = slug;
 
     await handle.userPut(copy);
     dispatch(setRepeatable(copy));
@@ -46,14 +47,14 @@ function RepeatableSlug() {
     return null;
   }
 
-  let slug;
+  let slugInput;
   if (['url', 'string'].includes(template.slug.type)) {
-    slug = (
+    slugInput = (
       <Input
         type="text"
         classes={{ root: classes.inputRoot }}
         placeholder={template.slug.placeholder}
-        value={repeatable.slug}
+        value={slug}
         onChange={changeSlug}
         onBlur={storeSlugChange}
       />
@@ -62,14 +63,14 @@ function RepeatableSlug() {
     // FIXME: Clean This Up! The format required for the native date input type cannot
     // be manufactured from the native JavaScript date type. If we were in raw HTML
     // we could post-set it with Javascript by using valueAsNumber, but not in situ
-    const slugDate = new Date(repeatable.slug);
+    const slugDate = new Date(slug);
     const awkwardlyFormattedSlug = [
       slugDate.getFullYear(),
       (slugDate.getMonth() + 1 + '').padStart(2, '0'),
       (slugDate.getDate() + '').padStart(2, '0'),
     ].join('-');
 
-    slug = (
+    slugInput = (
       <Input
         type="date"
         // TODO: make sure this works for accessibility
@@ -84,7 +85,7 @@ function RepeatableSlug() {
     // FIXME: Clean This Up! The format required for the native date input type cannot
     // be manufactured from the native JavaScript date type. If we were in raw HTML
     // we could post-set it with Javascript by using valueAsNumber, but not in situ
-    const slugDate = new Date(repeatable.slug);
+    const slugDate = new Date(slug);
     const awkwardlyFormattedSlug =
       [
         slugDate.getFullYear(),
@@ -97,7 +98,7 @@ function RepeatableSlug() {
         (slugDate.getMinutes() + '').padStart(2, '0'),
       ].join(':');
 
-    slug = (
+    slugInput = (
       <Input
         type="datetime-local"
         // TODO: make sure this works for accessibility
@@ -110,7 +111,7 @@ function RepeatableSlug() {
     );
   }
 
-  return slug;
+  return slugInput;
 }
 RepeatableSlug.relevant = (state: RootState) => {
   return state.docs.repeatable && state.docs.template?.slug?.type;
