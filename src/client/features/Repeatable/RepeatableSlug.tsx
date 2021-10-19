@@ -20,7 +20,7 @@ function RepeatableSlug() {
   const handle = db(user);
 
   const repeatable = useSelector((state) => state.docs.repeatable);
-  const [slug, setSlug] = useState(repeatable!.slug);
+  const [slug, setSlug] = useState(repeatable?.slug!);
 
   const template = useSelector((state) => state.docs.template);
 
