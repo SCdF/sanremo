@@ -132,10 +132,9 @@ function handle(loggedInUser: User | Guest): { db: Database; _db: PouchDB.Databa
       },
     });
     // TODO: add index for finding via slug
-    await migrate(db);
-  });
 
-  every('conflict check', (db) => {
+    migrate(db);
+
     db.changes({ live: true, conflicts: true, include_docs: true }).on('change', (change) => {
       if (change.doc?._conflicts?.length) {
         console.error(`Conflict detected in write to ${db.name}`, change);
