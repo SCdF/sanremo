@@ -92,6 +92,10 @@ function Home() {
   // - Date of last usage
   useEffect(() => {
     type TemplateStub = { _id: string; title: string; deleted: boolean };
+    const splitId = (id: string) => {
+      const split = id.lastIndexOf(':');
+      return [id.substring(0, split), Number(id.substring(split + 1))];
+    };
 
     async function loadTemplates() {
       const { docs: allTemplates } = (await handle.find({
@@ -102,21 +106,20 @@ function Home() {
       };
 
       const latestTemplateByRoot: Record<string, TemplateStub> = {};
-      allTemplates.forEach((t) => {
-        const rootId = t._id.substring(0, t._id.lastIndexOf(':'));
+      for (let template of allTemplates) {
+        const [rootId, tVersion] = splitId(template._id);
 
         const existing = latestTemplateByRoot[rootId];
         if (existing) {
-          const eVersion = parseInt(existing._id.substring(existing._id.lastIndexOf(':') + 1));
-          const tVersion = parseInt(t._id.substring(t._id.lastIndexOf(':') + 1));
+          const [, eVersion] = splitId(existing._id);
 
           if (eVersion > tVersion) {
             return;
           }
         }
 
-        latestTemplateByRoot[rootId] = t;
-      });
+        latestTemplateByRoot[rootId] = template;
+      }
 
       // We are using `deleted` (no underscore) as a soft delete, for when the user deletes a
       // template but has instances against it already.
