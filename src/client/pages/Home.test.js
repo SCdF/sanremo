@@ -141,6 +141,9 @@ describe('Home', () => {
       expect(() => screen.getByText(/New template version/)).toThrowError(
         /Unable to find an element/
       );
+      expect(() => screen.getByText(/Old template version/)).toThrowError(
+        /Unable to find an element/
+      );
     });
   });
 });
