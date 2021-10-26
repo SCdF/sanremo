@@ -21,6 +21,10 @@ const debug = (name: string) => {
   return debugs[name];
 };
 
+// <+-10ms show as μs
+const displayTime = (t: number) =>
+  Math.abs(t) > 10 ? `${Math.round(t)}ms` : `${Math.round(t * 1000)}μs`;
+
 export default function mirrored(db: Database, loggedInUser: User | Guest): Database {
   // we want the laziness to be encapsulated here so that handle() can be synchronous
   const indexeddbPromise = import('pouchdb-adapter-indexeddb').then(
@@ -43,6 +47,8 @@ export default function mirrored(db: Database, loggedInUser: User | Guest): Data
         return Reflect.get(idb, prop, receiver);
       }
 
+      const dbg = debug(String(prop));
+
       return function () {
         const args = arguments;
         return indexeddbPromise.then(async (indexeddb: Database) => {
@@ -56,13 +62,19 @@ export default function mirrored(db: Database, loggedInUser: User | Guest): Data
           const indexeddbResult = await indexeddb[prop](...args);
           indexeddbTime = performance.now() - indexeddbTime;
 
-          const timeDiff = idbTime - indexeddbTime;
-          debug(String(prop))(
-            `indexeddb ${timeDiff >= 0 ? '<' : '> (!!!)'} idb (~${Math.round(
-              Math.abs(timeDiff) * 1000
-            )}μs)`,
-            timeDiff
-          );
+          if (indexeddbTime < idbTime) {
+            dbg(
+              `indexeddb (${displayTime(indexeddbTime)}) was faster by ${displayTime(
+                idbTime - indexeddbTime
+              )}`
+            );
+          } else {
+            dbg(
+              `indexeddb (${displayTime(indexeddbTime)}) was SLOWER by ${displayTime(
+                indexeddbTime - idbTime
+              )}`
+            );
+          }
 
           const diff = DeepDiff.diff(idbResult, indexeddbResult);
           if (diff && diff.length) {
