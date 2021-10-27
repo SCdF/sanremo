@@ -9,7 +9,7 @@ test('renders without crashing', async () => {
 });
 
 test('updates as now changes', async () => {
-  render(<RelativeTime date={Date.now() - 1000 * 29} />);
+  render(<RelativeTime date={Date.now() - 1000 * 29} interval={1000} />);
 
   expect(screen.getByText('less than a minute ago')).toBeInTheDocument();
 
