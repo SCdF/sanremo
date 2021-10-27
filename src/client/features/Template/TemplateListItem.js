@@ -2,6 +2,7 @@ import { Button, ButtonGroup, ListItem } from '@material-ui/core';
 import EditIcon from '@material-ui/icons/Edit';
 import { makeStyles } from '@material-ui/core/styles';
 import { Link } from 'react-router-dom';
+import React from 'react';
 
 const useStyles = makeStyles((theme) => ({
   horizontal: {
@@ -11,14 +12,14 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-export default function TemplateListItem(props) {
+function TemplateListItem(props) {
   const classes = useStyles();
 
   const { _id, title } = props;
 
   if (!_id) {
     return (
-      <ListItem key="new" className={classes.horizontal}>
+      <ListItem className={classes.horizontal}>
         <Button component={Link} to="/template/new" variant="contained" color="secondary">
           New
         </Button>
@@ -44,3 +45,5 @@ export default function TemplateListItem(props) {
     </ListItem>
   );
 }
+
+export default React.memo(TemplateListItem);
