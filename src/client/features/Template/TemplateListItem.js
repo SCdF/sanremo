@@ -20,9 +20,13 @@ function TemplateListItem(props) {
   if (!_id) {
     return (
       <ListItem className={classes.horizontal}>
-        <Button component={Link} to="/template/new" variant="contained" color="secondary">
-          New
-        </Button>
+        {/* If we don't have this ButtonGroup the New button is like 1px off vertically compared to
+            template links (which do you ButtonGroups)*/}
+        <ButtonGroup>
+          <Button component={Link} to="/template/new" variant="contained" color="secondary">
+            New
+          </Button>
+        </ButtonGroup>
       </ListItem>
     );
   }
