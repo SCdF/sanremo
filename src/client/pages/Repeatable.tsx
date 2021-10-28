@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useState } from 'react';
+import { Fragment, useCallback, useEffect, useState } from 'react';
 import React from 'react';
 import ReactDOM from 'react-dom';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
@@ -134,22 +134,27 @@ function Repeatable() {
     dispatch(setRepeatable(copy));
   }
 
-  async function handleToggle(idx: number) {
-    const now = Date.now();
-    const copy = Object.assign({}, repeatable);
-    copy.values = Array.from(copy.values);
+  // PERF: stop this from referencing the repeatable or its values
+  // if we can do that (ie just call changes onto redux) this func won't regenerate and force unneccessary rerenders
+  const handleToggle = useCallback(
+    async function (idx: number) {
+      const now = Date.now();
+      const copy = Object.assign({}, repeatable);
+      copy.values = Array.from(copy.values);
 
-    copy.values[idx] = !!!copy.values[idx];
+      copy.values[idx] = !!!copy.values[idx];
 
-    copy.updated = now;
+      copy.updated = now;
 
-    await handle.userPut(copy);
+      await handle.userPut(copy);
 
-    ReactDOM.unstable_batchedUpdates(() => {
-      if (!edited) setEdited(true);
-      dispatch(setRepeatable(copy));
-    });
-  }
+      ReactDOM.unstable_batchedUpdates(() => {
+        setEdited(true);
+        dispatch(setRepeatable(copy));
+      });
+    },
+    [dispatch, handle, repeatable]
+  );
 
   if (!(repeatable && template)) {
     return null;
