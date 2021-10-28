@@ -8,6 +8,7 @@
     "serverLocal": "DATABASE_URL=postgres://$USER@localhost PORT=5000 npm start",
     "build": "npm run buildClient && npm run buildServer",
     "buildClient": "react-scripts build",
+    "buildClientProfile": "react-scripts build --profile",
     "buildServer": "rm -r ./server-build; tsc --build tsconfig.server.json",
     "dev": "react-scripts start",
     "test": "react-scripts test",
