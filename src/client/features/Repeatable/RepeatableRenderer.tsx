@@ -2,17 +2,17 @@ import { Checkbox, List, ListItem, ListItemIcon, ListItemText } from '@material-
 import React, { useCallback, useEffect, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { debugClient } from '../../globals';
+import { useSelector } from '../../store';
 
 const debug = debugClient('repeatable', 'render');
 
 type RepeatableProps = {
-  markdown: string;
-  values: any[];
   onChange?: (idx: number) => void;
   /** whether the auto focus is inside the markdown document. Will never be called if takesFocus is false */
   hasFocus?: (hasFocus: boolean) => void;
   /** whether we are in focus grabbing mode. Default false */
   takesFocus?: boolean;
+  initialFocusIdx?: number;
 };
 
 type RenderableMarkdown = {
@@ -40,13 +40,15 @@ const MarkdownChunk = React.memo((props: { text: string }) => (
 type MarkdownCheckboxType = {
   handleChange: any;
   valueIdx: number;
-  value: boolean;
   disabled: boolean;
   focused: boolean;
   text: string;
 };
 const MarkdownCheckbox = React.memo((props: MarkdownCheckboxType) => {
-  const { handleChange, valueIdx, value, disabled, focused, text } = props;
+  const { handleChange, valueIdx, disabled, focused, text } = props;
+
+  const value = useSelector((state) => state.docs.repeatable?.values[valueIdx]);
+
   return (
     <ListItem
       button
@@ -64,21 +66,14 @@ const MarkdownCheckbox = React.memo((props: MarkdownCheckboxType) => {
   );
 });
 
+// PERF: this re-runs a non-optimal number of times
 function RepeatableRenderer(props: RepeatableProps) {
-  const { markdown, values, onChange: changeValue, hasFocus: hasFocusCb, takesFocus } = props;
+  const { onChange: changeValue, hasFocus: hasFocusCb, takesFocus, initialFocusIdx } = props;
 
-  // Initially auto-select the value AFTER whatever the last entered value is
-  // NB: we're going to calculate focus regardless of whether `takesFocus` is true, for readability
-  let initialNextIndex = 0;
-  for (let i = values.length - 1; i >= 0; i--) {
-    if (values[i]) {
-      initialNextIndex = i + 1;
-      break;
-    }
-  }
+  const markdown = useSelector((state) => state.docs.template?.markdown);
 
   // Used for auto-focus (hammer spacebar to tick everything and close)
-  const [nextIdx, setNextIdx] = useState(initialNextIndex); // the next index that the user should focus on
+  const [nextIdx, setNextIdx] = useState(initialFocusIdx); // the next index that the user should focus on
   const [maxIdx, setMaxIdx] = useState(undefined as unknown as number); // the maximum index of fields the user can focus on
 
   // Caching this value internally
@@ -170,7 +165,6 @@ function RepeatableRenderer(props: RepeatableProps) {
           key={`value[${renderable.valueIdx}]chunk(${renderable.chunkIdx})`}
           handleChange={handleChange}
           valueIdx={renderable.valueIdx}
-          value={values[renderable.valueIdx]}
           disabled={!changeValue}
           focused={!!takesFocus && renderable.valueIdx === nextIdx}
           text={renderable.text}

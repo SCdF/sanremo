@@ -32,6 +32,7 @@ function Repeatable() {
   const [edited, setEdited] = useState(false); // Have we made changes to the repeatable
 
   const [repeatableHasFocus, setRepeatableHasFocus] = useState(true);
+  const [initialFocusIdx, setInitialFocusIdx] = useState(0);
 
   const location = useLocation();
 
@@ -78,6 +79,15 @@ function Repeatable() {
         // repeatable.values ??= [];
         repeatable.values = repeatable.values || [];
 
+        // Initially auto-select the value AFTER whatever the last entered value is
+        let initialFocusIdx = 0;
+        for (let i = repeatable.values.length - 1; i >= 0; i--) {
+          if (repeatable.values[i]) {
+            initialFocusIdx = i + 1;
+            break;
+          }
+        }
+
         debug('post repeatable load, pre template load');
         const template: TemplateDoc = await handle.get(repeatable.template);
         debug('post template load');
@@ -92,6 +102,7 @@ function Repeatable() {
           );
           dispatch(setRepeatable(repeatable));
           dispatch(setTemplate(template));
+          setInitialFocusIdx(initialFocusIdx);
           setInitiallyOpen(!repeatable.completed);
         });
       }
@@ -194,10 +205,9 @@ function Repeatable() {
   return (
     <Fragment>
       <RepeatableRenderer
-        markdown={template.markdown}
-        values={repeatable.values}
         onChange={repeatable.completed ? undefined : handleToggle}
         hasFocus={setRepeatableHasFocus}
+        initialFocusIdx={initialFocusIdx}
         takesFocus
       />
       <ButtonGroup>

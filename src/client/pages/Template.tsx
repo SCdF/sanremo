@@ -215,12 +215,7 @@ function Template() {
           />
         </Grid>
         <Grid item md={6} sm={12} xs={12}>
-          <RepeatableRenderer
-            markdown={template.markdown}
-            values={[]}
-            hasFocus={() => null}
-            onChange={() => null}
-          />
+          <RepeatableRenderer hasFocus={() => null} onChange={() => null} />
         </Grid>
         <Grid item xs={12}>
           <ButtonGroup>
