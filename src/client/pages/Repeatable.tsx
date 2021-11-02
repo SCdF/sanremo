@@ -9,8 +9,14 @@ import DeleteIcon from '@material-ui/icons/Delete';
 import { v4 as uuid } from 'uuid';
 import qs from 'qs';
 
-import { clearRepeatable, clearTemplate, setRepeatable } from '../state/docsSlice';
-import { setTemplate } from '../state/docsSlice';
+import {
+  clear as clearRepeatable,
+  complete,
+  deleteIt,
+  set as setRepeatable,
+  uncomplete,
+} from '../features/Repeatable/repeatableSlice';
+import { clear as clearTemplate, set as setTemplate } from '../features/Template/templateSlice';
 import { set as setContext } from '../features/Page/pageSlice';
 import { useDispatch, useSelector } from '../store';
 import { RepeatableDoc, TemplateDoc } from '../../shared/types';
@@ -24,8 +30,9 @@ function Repeatable() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  const repeatable = useSelector((state) => state.docs.repeatable);
-  const template = useSelector((state) => state.docs.template);
+  const hydrated = useSelector((state) => state.repeatable.doc && state.template.doc);
+  const deleted = useSelector((state) => state.repeatable.doc?._deleted);
+  const completed = useSelector((state) => state.repeatable.doc?.completed);
 
   // Used for determining how complete / uncomplete function
   const [initiallyOpen, setInitiallyOpen] = useState(false); // On first load, was the repeatable uncompleted?
@@ -64,7 +71,8 @@ function Repeatable() {
           slug,
         };
 
-        await handle.userPut(repeatable);
+        // FIXME: Can we write to the DB directly? Have this as a custom (non-redux-update-reactionary) Saga action?
+        await handle.userPutDeleteMe(repeatable);
         navigate(`/repeatable/${repeatable._id}`, { replace: true });
       } else if (repeatableId) {
         debug('pre repeatable load');
@@ -115,63 +123,32 @@ function Repeatable() {
     };
   }, [dispatch, handle, repeatableId, location, navigate]);
 
-  async function deleteRepeatable() {
-    const copy = Object.assign({}, repeatable);
+  const handleChange = useCallback(() => setEdited(true), []);
 
-    copy._deleted = true;
-    await handle.userPut(copy);
+  async function handleDelete() {
+    dispatch(deleteIt({ now: Date.now() }));
 
+    // TODO: TEST THIS (if we navigate away, clearRepeatable gets called as a destructor)
     navigate('/');
   }
 
-  async function complete() {
-    const copy = Object.assign({}, repeatable);
-
-    copy.completed = Date.now();
-    await handle.userPut(copy);
+  async function handleComplete() {
+    dispatch(complete({ now: Date.now() }));
 
     if (edited || initiallyOpen) {
       navigate('/');
-    } else {
-      dispatch(setRepeatable(copy));
     }
   }
 
-  async function uncomplete() {
-    const copy = Object.assign({}, repeatable);
-
-    delete copy.completed;
-    await handle.userPut(copy);
-    dispatch(setRepeatable(copy));
+  async function handleUncomplete() {
+    dispatch(uncomplete({ now: Date.now() }));
   }
 
-  // PERF: stop this from referencing the repeatable or its values
-  // if we can do that (ie just call changes onto redux) this func won't regenerate and force unneccessary rerenders
-  const handleToggle = useCallback(
-    async function (idx: number) {
-      const now = Date.now();
-      const copy = Object.assign({}, repeatable);
-      copy.values = Array.from(copy.values);
-
-      copy.values[idx] = !!!copy.values[idx];
-
-      copy.updated = now;
-
-      await handle.userPut(copy);
-
-      ReactDOM.unstable_batchedUpdates(() => {
-        setEdited(true);
-        dispatch(setRepeatable(copy));
-      });
-    },
-    [dispatch, handle, repeatable]
-  );
-
-  if (!(repeatable && template)) {
+  if (!hydrated) {
     return null;
   }
 
-  if (repeatable?._deleted) {
+  if (deleted) {
     navigate('/');
     return null;
   }
@@ -190,7 +167,7 @@ function Repeatable() {
     render() {
       return (
         <Button
-          onClick={complete}
+          onClick={handleComplete}
           color="primary"
           variant="contained"
           //@ts-ignore
@@ -205,19 +182,19 @@ function Repeatable() {
   return (
     <Fragment>
       <RepeatableRenderer
-        onChange={repeatable.completed ? undefined : handleToggle}
+        onChange={completed ? undefined : handleChange}
         hasFocus={setRepeatableHasFocus}
         initialFocusIdx={initialFocusIdx}
         takesFocus
       />
       <ButtonGroup>
-        {!repeatable?.completed && <CompleteButton hasFocus={!repeatableHasFocus} />}
-        {repeatable?.completed && (
-          <Button onClick={uncomplete} color="primary" variant="contained">
+        {!completed && <CompleteButton hasFocus={!repeatableHasFocus} />}
+        {completed && (
+          <Button onClick={handleUncomplete} color="primary" variant="contained">
             Un-complete
           </Button>
         )}
-        <Button onClick={deleteRepeatable}>
+        <Button onClick={handleDelete}>
           <DeleteIcon />
         </Button>
       </ButtonGroup>

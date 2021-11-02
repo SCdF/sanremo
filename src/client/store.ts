@@ -1,25 +1,40 @@
 import * as RR from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
+import createSagaMiddleware from 'redux-saga';
+
+import storage from './features/Sync/StorageSaga';
 
 import userReducer from './features/User/userSlice';
-import docsSlice from './state/docsSlice';
+import templateSlice from './features/Template/templateSlice';
 import pageSlice from './features/Page/pageSlice';
 import syncSlice from './features/Sync/syncSlice';
 import debugSlice from './features/Debug/debugSlice';
 import updateSlice from './features/Update/updateSlice';
+import repeatableSlice from './features/Repeatable/repeatableSlice';
 
 function createStore() {
-  return configureStore({
+  const sagaMiddleware = createSagaMiddleware();
+
+  const middlewares = [sagaMiddleware];
+
+  const store = configureStore({
     reducer: {
       user: userReducer,
-      docs: docsSlice,
       page: pageSlice,
       sync: syncSlice,
       debug: debugSlice,
       update: updateSlice,
+      template: templateSlice,
+      repeatable: repeatableSlice,
     },
+    middleware: (getDefaultMiddleware) =>
+      getDefaultMiddleware({ thunk: false }).concat(middlewares),
     // devTools: process.env.NODE_ENV !== 'production',
   });
+
+  sagaMiddleware.run(storage);
+
+  return store;
 }
 const store = createStore();
 

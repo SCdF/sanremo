@@ -14,7 +14,7 @@ PouchDB.plugin(Find);
 
 export interface Database extends PouchDB.Database {
   // FIXME: we should be using redux for this. ie listen for redux changes and write to pouch in one place
-  userPut(doc: Doc): Promise<Doc>;
+  userPutDeleteMe(doc: Doc): Promise<Doc>;
 }
 
 // TODO: we don't need to append the database name with the username
@@ -30,7 +30,7 @@ function handle(loggedInUser: User | Guest): Database {
     db = mirrored(db, loggedInUser);
   }
 
-  db.userPut = async (doc: Doc): Promise<Doc> => {
+  db.userPutDeleteMe = async (doc: Doc): Promise<Doc> => {
     const { rev } = await db.put(doc);
     doc._rev = rev;
 

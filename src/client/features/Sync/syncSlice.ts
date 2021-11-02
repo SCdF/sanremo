@@ -32,7 +32,7 @@ export const syncSlice = createSlice({
     state: State.disconnected,
   } as SyncState,
   reducers: {
-    // TODO: refactor only mark stale when connected
+    // TODO: refactor only mark stale when connected?
     markStale: (state, action: { payload: Doc }) => {
       state.stale[action.payload._id] = action.payload;
     },

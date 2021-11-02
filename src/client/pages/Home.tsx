@@ -22,8 +22,9 @@ function Home() {
   const user = useSelector((state) => state.user.value);
   const handle = db(user);
 
+  // FIXME: rewrite list reloading!
   // we don't actually care about this value, we just use it to trigger list reloading
-  const lastSynced = useSelector((state) => state.docs.lastSynced);
+  const lastSynced = 'TODO:'; //useSelector((state) => state.docs.lastSynced);
 
   const [templates, setTemplates] = useState([] as Record<string, any>[]);
   const [repeatables, setRepeatables] = useState([] as Record<string, any>[]);

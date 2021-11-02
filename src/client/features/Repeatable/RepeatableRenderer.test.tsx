@@ -3,7 +3,9 @@ import RepeatableRenderer from './RepeatableRenderer';
 import { Provider } from 'react-redux';
 import { createStore, RootState } from '../../store';
 import { AnyAction, Store } from 'redux';
-import { setRepeatable, setTemplate } from '../../state/docsSlice';
+import { set as setTemplate } from '../Template/templateSlice';
+import { set as setRepeatable } from '../Repeatable/repeatableSlice';
+import { GuestUser, setUserAsLoggedIn } from '../User/userSlice';
 
 const NOOP = () => {};
 
@@ -12,6 +14,7 @@ describe('Repeatable Renderer', () => {
 
   beforeEach(() => {
     store = createStore();
+    store.dispatch(setUserAsLoggedIn({ user: GuestUser }));
   });
 
   function render(children: React.ReactElement) {
@@ -71,21 +74,6 @@ describe('Repeatable Renderer', () => {
       fireEvent.click(cb);
 
       expect(onChange).toBeCalledTimes(1);
-      expect(onChange).toBeCalledWith(0);
-    });
-    it('onChange fires to the right checkbox when it is clicked', async () => {
-      partials({ markdown: '- [ ] do not check me\n- [ ] check me instead' }, { values: [] });
-      const onChange = jest.fn();
-      render(<RepeatableRenderer hasFocus={NOOP} onChange={onChange} />);
-
-      const cbs: HTMLInputElement[] = (await screen.findAllByRole(
-        'checkbox'
-      )) as HTMLInputElement[];
-
-      fireEvent.click(cbs[1]);
-
-      expect(onChange).toBeCalledTimes(1);
-      expect(onChange).toBeCalledWith(1);
     });
   });
 });

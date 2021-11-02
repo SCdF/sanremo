@@ -2,12 +2,13 @@ import { Checkbox, List, ListItem, ListItemIcon, ListItemText } from '@material-
 import React, { useCallback, useEffect, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { debugClient } from '../../globals';
-import { useSelector } from '../../store';
+import { useDispatch, useSelector } from '../../store';
+import { toggleValue } from './repeatableSlice';
 
 const debug = debugClient('repeatable', 'render');
 
 type RepeatableProps = {
-  onChange?: (idx: number) => void;
+  onChange?: () => void;
   /** whether the auto focus is inside the markdown document. Will never be called if takesFocus is false */
   hasFocus?: (hasFocus: boolean) => void;
   /** whether we are in focus grabbing mode. Default false */
@@ -38,24 +39,25 @@ const MarkdownChunk = React.memo((props: { text: string }) => (
 ));
 
 type MarkdownCheckboxType = {
-  handleChange: any;
+  onChange: (idx: number, value: any) => void;
   valueIdx: number;
   disabled: boolean;
   focused: boolean;
   text: string;
 };
 const MarkdownCheckbox = React.memo((props: MarkdownCheckboxType) => {
-  const { handleChange, valueIdx, disabled, focused, text } = props;
+  const { onChange: parentOnChange, valueIdx, disabled, focused, text } = props;
+  const dispatch = useDispatch();
 
-  const value = useSelector((state) => state.docs.repeatable?.values[valueIdx]);
+  const value = useSelector((state) => state.repeatable.doc?.values[valueIdx]);
+
+  function onChange() {
+    dispatch(toggleValue({ idx: valueIdx, now: Date.now() }));
+    parentOnChange(valueIdx, value);
+  }
 
   return (
-    <ListItem
-      button
-      onClick={handleChange(valueIdx, value)}
-      disabled={disabled}
-      autoFocus={focused}
-    >
+    <ListItem button onClick={onChange} disabled={disabled} autoFocus={focused}>
       <ListItemIcon>
         <Checkbox checked={!!value} edge="start" tabIndex={-1} />
       </ListItemIcon>
@@ -66,11 +68,10 @@ const MarkdownCheckbox = React.memo((props: MarkdownCheckboxType) => {
   );
 });
 
-// PERF: this re-runs a non-optimal number of times
 function RepeatableRenderer(props: RepeatableProps) {
-  const { onChange: changeValue, hasFocus: hasFocusCb, takesFocus, initialFocusIdx } = props;
+  const { onChange: parentOnChange, hasFocus: hasFocusCb, takesFocus, initialFocusIdx } = props;
 
-  const markdown = useSelector((state) => state.docs.template?.markdown);
+  const markdown = useSelector((state) => state.template.doc?.markdown);
 
   // Used for auto-focus (hammer spacebar to tick everything and close)
   const [nextIdx, setNextIdx] = useState(initialFocusIdx); // the next index that the user should focus on
@@ -91,16 +92,13 @@ function RepeatableRenderer(props: RepeatableProps) {
 
   const handleChange = useCallback(
     (idx: number, currentValue: boolean) => {
-      // returning the call fn here binds the passed idx
-      return () => {
-        if (changeValue) {
-          changeValue(idx);
-          // Toggling a checkbox, with true -> false not advancing focus
-          setNextIdx(currentValue ? idx : idx + 1);
-        }
-      };
+      if (parentOnChange) {
+        parentOnChange();
+        // Toggling a checkbox, with true -> false not advancing focus
+        setNextIdx(currentValue ? idx : idx + 1);
+      }
     },
-    [changeValue]
+    [parentOnChange]
   );
 
   const [renderables, setRenderables] = useState([] as Renderable[]);
@@ -163,9 +161,9 @@ function RepeatableRenderer(props: RepeatableProps) {
       renderedChunks.push(
         <MarkdownCheckbox
           key={`value[${renderable.valueIdx}]chunk(${renderable.chunkIdx})`}
-          handleChange={handleChange}
+          onChange={handleChange}
           valueIdx={renderable.valueIdx}
-          disabled={!changeValue}
+          disabled={!parentOnChange}
           focused={!!takesFocus && renderable.valueIdx === nextIdx}
           text={renderable.text}
         />

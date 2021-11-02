@@ -7,14 +7,14 @@ import DeleteIcon from '@material-ui/icons/Delete';
 import { v4 as uuid } from 'uuid';
 
 import { set as setContext } from '../features/Page/pageSlice';
-import { clearTemplate, setTemplate } from '../state/docsSlice';
+import { clear as clearTemplate, set as setTemplate } from '../features/Template/templateSlice';
 import { useDispatch, useSelector } from '../store';
 import { SlugType, TemplateDoc } from '../../shared/types';
 import RepeatableRenderer from '../features/Repeatable/RepeatableRenderer';
 import db from '../db';
 
 function Template() {
-  const template = useSelector((state) => state.docs.template);
+  const template = useSelector((state) => state.template.doc);
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
@@ -40,7 +40,8 @@ function Template() {
           values: [],
         };
 
-        await handle.userPut(template);
+        // FIXME: Can we write to the DB directly? Have this as a custom (non-redux-update-reactionary) Saga action?
+        await handle.userPutDeleteMe(template);
 
         navigate(`/template/${template._id}`, { replace: true });
       } else if (templateId) {
@@ -55,6 +56,7 @@ function Template() {
       dispatch(clearTemplate());
     };
   }, [handle, templateId, navigate, dispatch]);
+
   useEffect(() => {
     dispatch(
       setContext({
@@ -63,7 +65,7 @@ function Template() {
         under: 'home',
       })
     );
-  });
+  }, [dispatch, template?.title]);
 
   async function handleDelete(event: MouseEvent<HTMLButtonElement>) {
     event.preventDefault();
@@ -89,7 +91,8 @@ function Template() {
       copy._deleted = true;
     }
 
-    await handle.userPut(copy);
+    // FIXME: work out how to make this a redux / redux-saga action, we have data querying above
+    await handle.userPutDeleteMe(copy);
     navigate('/');
   }
 
@@ -114,7 +117,8 @@ function Template() {
       delete copy._rev;
     }
 
-    await handle.userPut(copy);
+    // FIXME: work out how to make this a redux / redux-saga action, we have data querying above
+    await handle.userPutDeleteMe(copy);
 
     navigate(-1);
   }

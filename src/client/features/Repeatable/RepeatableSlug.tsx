@@ -1,9 +1,8 @@
-import { ChangeEvent, useState } from 'react';
-import React from 'react';
+import React, { ChangeEvent, useState } from 'react';
 import { Input, makeStyles } from '@material-ui/core';
-import { setRepeatable } from '../../state/docsSlice';
+
 import { RootState, useDispatch, useSelector } from '../../store';
-import db from '../../db';
+import { updateSlug } from './repeatableSlice';
 
 export const useStyles = makeStyles((theme) => ({
   inputRoot: {
@@ -16,13 +15,11 @@ function RepeatableSlug() {
   const classes = useStyles();
   const dispatch = useDispatch();
 
-  const user = useSelector((state) => state.user.value);
-  const handle = db(user);
+  const reduxSlug = useSelector((state) => state.repeatable.doc?.slug);
+  const [localSlug, setLocalSlug] = useState(reduxSlug!);
 
-  const repeatable = useSelector((state) => state.docs.repeatable);
-  const [slug, setSlug] = useState(repeatable?.slug!);
-
-  const template = useSelector((state) => state.docs.template);
+  const hydrated = useSelector((state) => state.repeatable.doc && state.template.doc);
+  const template = useSelector((state) => state.template.doc);
 
   function changeSlug({ target }: ChangeEvent) {
     // @ts-ignore FIXME: check if nodeValue works
@@ -31,19 +28,15 @@ function RepeatableSlug() {
       ? new Date(targetValue).getTime()
       : targetValue;
 
-    setSlug(value);
+    setLocalSlug(value);
   }
 
-  async function storeSlugChange() {
-    const copy = Object.assign({}, repeatable);
-
-    copy.slug = slug;
-
-    await handle.userPut(copy);
-    dispatch(setRepeatable(copy));
+  function storeSlugChange() {
+    dispatch(updateSlug(localSlug));
   }
 
-  if (!(repeatable && template)) {
+  // using both hydrated and template here to force TypeScript to realise that template is not optional past this point
+  if (!(hydrated && template)) {
     return null;
   }
 
@@ -54,7 +47,7 @@ function RepeatableSlug() {
         type="text"
         classes={{ root: classes.inputRoot }}
         placeholder={template.slug.placeholder}
-        value={slug}
+        value={localSlug}
         onChange={changeSlug}
         onBlur={storeSlugChange}
       />
@@ -63,7 +56,7 @@ function RepeatableSlug() {
     // FIXME: Clean This Up! The format required for the native date input type cannot
     // be manufactured from the native JavaScript date type. If we were in raw HTML
     // we could post-set it with Javascript by using valueAsNumber, but not in situ
-    const slugDate = new Date(slug);
+    const slugDate = new Date(localSlug);
     const awkwardlyFormattedSlug = [
       slugDate.getFullYear(),
       (slugDate.getMonth() + 1 + '').padStart(2, '0'),
@@ -85,7 +78,7 @@ function RepeatableSlug() {
     // FIXME: Clean This Up! The format required for the native date input type cannot
     // be manufactured from the native JavaScript date type. If we were in raw HTML
     // we could post-set it with Javascript by using valueAsNumber, but not in situ
-    const slugDate = new Date(slug);
+    const slugDate = new Date(localSlug);
     const awkwardlyFormattedSlug =
       [
         slugDate.getFullYear(),
@@ -114,6 +107,6 @@ function RepeatableSlug() {
   return slugInput;
 }
 RepeatableSlug.relevant = (state: RootState) => {
-  return state.docs.repeatable && state.docs.template?.slug?.type;
+  return state.repeatable.doc && state.template.doc?.slug.type;
 };
 export { RepeatableSlug };

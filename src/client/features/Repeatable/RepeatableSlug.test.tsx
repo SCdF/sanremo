@@ -1,9 +1,10 @@
 import { EnhancedStore } from '@reduxjs/toolkit';
-import { render as renderRtl, screen, waitFor } from '@testing-library/react';
+import { render as renderRtl, screen } from '@testing-library/react';
 import { Provider } from 'react-redux';
 import { RepeatableDoc, SlugType, TemplateDoc } from '../../../shared/types';
 import { createStore, RootState } from '../../store';
-import { setRepeatable, setTemplate } from '../../state/docsSlice';
+import { set as setTemplate } from '../Template/templateSlice';
+import { set as setRepeatable } from '../Repeatable/repeatableSlice';
 import { RepeatableSlug } from './RepeatableSlug';
 import { setUserAsLoggedIn } from '../User/userSlice';
 
@@ -99,53 +100,35 @@ describe('relevance', () => {
   it('is relevant if it has a repeatable and a template', () => {
     expect(
       RepeatableSlug.relevant({
-        docs: {
-          // @ts-ignore
-          repeatable: { _id: 'abc' },
-          // @ts-ignore
-          template: {
+        repeatable: { doc: { _id: 'abc' } },
+        template: {
+          doc: {
             _id: 'def',
             slug: { type: SlugType.Date },
           },
         },
-      })
+      } as RootState)
     ).toBeTruthy();
-  });
-  it('is not relevant if the template has no slug', () => {
-    expect(
-      RepeatableSlug.relevant({
-        docs: {
-          // @ts-ignore
-          repeatable: { _id: 'abc' },
-          // @ts-ignore
-          template: {
-            _id: 'def',
-          },
-        },
-      })
-    ).toBeFalsy();
   });
   it('is not relevant if there is no repeatable', () => {
     expect(
       RepeatableSlug.relevant({
-        docs: {
-          // @ts-ignore
-          template: {
+        template: {
+          doc: {
             _id: 'def',
             slug: { type: SlugType.Date },
           },
         },
-      })
+        repeatable: { doc: undefined },
+      } as RootState)
     ).toBeFalsy();
   });
   it('is not relevant if there is no template', () => {
     expect(
       RepeatableSlug.relevant({
-        docs: {
-          // @ts-ignore
-          repeatable: { _id: 'abc' },
-        },
-      })
+        template: { doc: undefined },
+        repeatable: { doc: { _id: 'abc' } },
+      } as RootState)
     ).toBeFalsy();
   });
 });

@@ -4,7 +4,6 @@ import { io, Socket } from 'socket.io-client';
 import { useEffect, useState } from 'react';
 
 import { ClientToServerEvents, Doc, DocStub, ServerToClientEvents } from '../../../shared/types';
-import { update } from '../../state/docsSlice';
 import {
   cleanStale,
   completeSync,
@@ -170,7 +169,8 @@ function SyncManager() {
               changes = changes.concat(result);
             }
 
-            dispatch(update(changes));
+            //FIXME: Write a new Update function!
+            // dispatch(update(changes));
             debug('<- state updated');
 
             docCount += batch.length;
@@ -259,7 +259,8 @@ function SyncManager() {
           await writesFromRemote(handle, writes);
         }
 
-        dispatch(update(docs));
+        //FIXME: Write a new Update function!
+        // dispatch(update(docs));
       });
 
       localSocket.on('disconnect', () => {
