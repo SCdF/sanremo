@@ -11,8 +11,7 @@ import { setUserAsLoggedIn } from '../features/User/userSlice';
 jest.mock('react-router-dom');
 jest.mock('../db');
 
-// FIXME: fix these!
-describe.skip('Repeatable', () => {
+describe('Repeatable', () => {
   const user = { id: 1, name: 'Tester Test' };
   let navigate;
   let store;
@@ -68,7 +67,7 @@ describe.skip('Repeatable', () => {
         slug: 'test',
         values: [],
       });
-    handle.userPut.mockResolvedValue({ id: '4321' });
+    handle.userPutDeleteMe.mockResolvedValue({ id: '4321' });
     useLocation.mockReturnValue({
       search: '?template=repeatable:template:1234',
     });
@@ -87,8 +86,8 @@ describe.skip('Repeatable', () => {
     expect(navigate.mock.calls[0][0]).toMatch(/\/repeatable\/repeatable:instance:/);
 
     // FIXME: I have no idea why this doesn't work, it is obviously called, see the very next expect succeeding
-    // expect(handle.userPut).toBeCalled();
-    const storedRepeatable = handle.userPut.mock.calls[0][0];
+    // expect(handle.userPutDeleteMe).toBeCalled();
+    const storedRepeatable = handle.userPutDeleteMe.mock.calls[0][0];
     expect(storedRepeatable).toBeTruthy();
     expect(storedRepeatable._id).toMatch(/^repeatable:instance:/);
     expect(storedRepeatable._rev).not.toBeTruthy();
@@ -124,7 +123,7 @@ describe.skip('Repeatable', () => {
       });
       useLocation.mockReturnValue();
       useParams.mockReturnValue({ repeatableId: 'repeatable:instance:1234' });
-      handle.userPut.mockResolvedValue({ rev: '2-abc' });
+      handle.userPutDeleteMe.mockResolvedValue({ rev: '2-abc' });
     });
 
     it('redirects when completing a fresh repeatable', async () => {
@@ -133,6 +132,7 @@ describe.skip('Repeatable', () => {
 
       fireEvent.click(screen.getByText(/Complete/));
       await waitFor(() => expect(navigate.mock.calls[0][0]).toBe('/'));
+      expect(store.getState().repeatable.doc?.completed).toBeGreaterThan(0);
     });
     it('doesnt redirect when uncompleting a repeatable', async () => {
       repeatable.completed = 123456789;
@@ -141,10 +141,9 @@ describe.skip('Repeatable', () => {
       await waitFor(() => screen.getByText(/Some text/));
 
       fireEvent.click(screen.getByText(/Un-complete/));
-      await waitFor(() => expect(handle.userPut.mock.calls.length).toBe(1));
-
+      await waitFor(() => screen.getByText(/Complete/));
       expect(navigate.mock.calls.length).toBe(0);
-      expect(handle.userPut.mock.calls[0][0].completed).not.toBeTruthy();
+      expect(store.getState().repeatable.doc?.completed).toBeUndefined();
     });
     it('doesnt redirect when completing a just uncompleted repeatable', async () => {
       repeatable.completed = 123456789;
@@ -153,14 +152,14 @@ describe.skip('Repeatable', () => {
       await waitFor(() => screen.getByText(/Some text/));
 
       fireEvent.click(screen.getByText(/Un-complete/));
-      await waitFor(() => expect(handle.userPut.mock.calls.length).toBe(1));
+      await waitFor(() => screen.getByText(/Complete/));
       expect(navigate.mock.calls.length).toBe(0);
-      expect(handle.userPut.mock.calls[0][0].completed).not.toBeTruthy();
+      expect(store.getState().repeatable.doc?.completed).toBeUndefined();
 
       fireEvent.click(screen.getByText(/Complete/));
-      await waitFor(() => expect(handle.userPut.mock.calls.length).toBe(2));
+      await waitFor(() => screen.getByText(/Un-complete/));
       expect(navigate.mock.calls.length).toBe(0);
-      expect(handle.userPut.mock.calls[1][0].completed).toBeTruthy();
+      expect(store.getState().repeatable.doc?.completed).toBeGreaterThan(0);
     });
     it('does redirect when completing a just uncompleted repeatable if you change something', async () => {
       repeatable.completed = 123456789;
@@ -169,17 +168,15 @@ describe.skip('Repeatable', () => {
       await waitFor(() => screen.getByText(/Something to change/));
 
       fireEvent.click(screen.getByText(/Un-complete/));
-      await waitFor(() => expect(handle.userPut.mock.calls.length).toBe(1));
-      expect(navigate.mock.calls.length).toBe(0);
-      expect(handle.userPut.mock.calls[0][0].completed).not.toBeTruthy();
+      await waitFor(() => screen.getByText(/Complete/));
 
+      expect(store.getState().repeatable.doc?.values[0]).toBeFalsy();
       fireEvent.click(screen.getByText(/Something to change/));
-      await waitFor(() => expect(handle.userPut.mock.calls.length).toBe(2));
+      expect(store.getState().repeatable.doc?.values[0]).toBeTrue();
 
       fireEvent.click(screen.getByText(/Complete/));
-      await waitFor(() => expect(handle.userPut.mock.calls.length).toBe(3));
+      await waitFor(() => expect(store.getState().repeatable.doc?.completed).toBeGreaterThan(0));
       expect(navigate.mock.calls.length).toBe(1);
-      expect(handle.userPut.mock.calls[2][0].completed).toBeTruthy();
       expect(navigate.mock.calls[0][0]).toBe('/');
     });
   });

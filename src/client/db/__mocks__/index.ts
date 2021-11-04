@@ -1,7 +1,8 @@
 const mockDb = {
   find: jest.fn(),
   get: jest.fn(),
-  userPut: jest.fn(),
+  userPutDeleteMe: jest.fn(),
+  put: jest.fn(),
 };
 
 const db = () => mockDb;
