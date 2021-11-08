@@ -18,7 +18,6 @@ import {
 const UserWrites = [toggleValue, updateSlug, complete, uncomplete, deleteIt].map(getType);
 
 async function write(user: User, doc: Doc) {
-  // FIXME: this angers unit tests. Work out how to mock out / not run Sagas in unit tests
   const handle = db(user);
   const { rev } = await handle.put(doc);
   return rev;

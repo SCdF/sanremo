@@ -12,7 +12,7 @@ import debugSlice from './features/Debug/debugSlice';
 import updateSlice from './features/Update/updateSlice';
 import repeatableSlice from './features/Repeatable/repeatableSlice';
 
-function createStore() {
+function createStore(sagas = false) {
   const sagaMiddleware = createSagaMiddleware();
 
   const middlewares = [sagaMiddleware];
@@ -32,11 +32,13 @@ function createStore() {
     // devTools: process.env.NODE_ENV !== 'production',
   });
 
-  sagaMiddleware.run(storage);
+  if (sagas) {
+    sagaMiddleware.run(storage);
+  }
 
   return store;
 }
-const store = createStore();
+const store = createStore(true);
 
 export default store;
 
