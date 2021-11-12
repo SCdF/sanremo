@@ -1,6 +1,6 @@
 import { getType } from '@reduxjs/toolkit';
 import { buffers, eventChannel, SagaIterator } from 'redux-saga';
-import { actionChannel, take, call, put, select, fork, takeEvery } from 'redux-saga/effects';
+import { actionChannel, take, call, put, select, fork } from 'redux-saga/effects';
 import { Doc, RepeatableDoc, TemplateDoc } from '../../../shared/types';
 import { Database } from '../../db';
 import {
@@ -70,26 +70,27 @@ function* localUserWrites(handle: Database): SagaIterator {
  * Catches changes brought in by another user (ie the same "user", but on a different instance
  * via sync or socket))
  */
-function* foreignUserWrites(
-  handle: Database,
-  { payload }: { payload: Doc[]; type: string }
-): SagaIterator {
-  debug(`got ${payload.length} foreign user writes`);
+function* foreignUserWrites(handle: Database): SagaIterator {
+  const bufferedWrites = yield actionChannel(externalWrite);
+  while (true) {
+    const { payload } = yield take(bufferedWrites);
+    debug(`got ${payload.length} foreign user writes`);
 
-  const { writes, deletes } = splitDeletes(payload);
-  yield fork(deletesFromRemote, handle, deletes);
-  yield fork(writesFromRemote, handle, writes);
+    const { writes, deletes } = splitDeletes(payload);
+    yield fork(deletesFromRemote, handle, deletes);
+    yield fork(writesFromRemote, handle, writes);
 
-  const { rId, tId } = yield select((state) => ({
-    rId: state.repeatable.doc?._id,
-    tId: state.template.doc?._id,
-  }));
+    const { rId, tId } = yield select((state) => ({
+      rId: state.repeatable.doc?._id,
+      tId: state.template.doc?._id,
+    }));
 
-  for (const doc of payload) {
-    if (doc._id === tId) {
-      yield put(setTemplate(doc as TemplateDoc));
-    } else if (doc._id === rId) {
-      yield put(setRepeatable(doc as RepeatableDoc));
+    for (const doc of payload) {
+      if (doc._id === tId) {
+        yield put(setTemplate(doc as TemplateDoc));
+      } else if (doc._id === rId) {
+        yield put(setRepeatable(doc as RepeatableDoc));
+      }
     }
   }
 }
@@ -98,7 +99,7 @@ function* local(handle: Database): SagaIterator {
   debug('Initializing');
   yield fork(dataChangeWatcher, handle);
   yield fork(localUserWrites, handle);
-  yield takeEvery(externalWrite, foreignUserWrites, handle);
+  yield fork(foreignUserWrites, handle);
 }
 
 export default local;
