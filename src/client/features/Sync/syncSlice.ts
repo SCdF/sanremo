@@ -1,7 +1,6 @@
 import { createSlice } from '@reduxjs/toolkit';
-import { Doc, DocId } from '../../../shared/types';
+import { Doc } from '../../../shared/types';
 
-type DocMap = Record<DocId, Doc>;
 type SerializableError = { name: string; message: string };
 // giving them strings makes redux easier to debug
 export enum State {
@@ -19,31 +18,23 @@ export enum State {
   error = 'error',
 }
 type SyncState = {
-  stale: DocMap;
   state: State;
-  progress?: number;
+  progress?: {
+    count: number;
+    total: number;
+  };
   error?: SerializableError;
+  // Just a cheap way to trigger list updating without having to actually know if the list is affected
+  writeCount: number;
 };
 
 export const syncSlice = createSlice({
   name: 'sync',
   initialState: {
-    stale: {} as DocMap,
     state: State.disconnected,
+    writeCount: 0,
   } as SyncState,
   reducers: {
-    // TODO: refactor only mark stale when connected?
-    markStale: (state, action: { payload: Doc }) => {
-      state.stale[action.payload._id] = action.payload;
-    },
-    cleanStale: (state, action: { payload: Doc[] }) => {
-      action.payload.forEach((doc: Doc) => {
-        const dirty = state.stale[doc._id];
-        if (dirty?._rev === doc._rev) {
-          delete state.stale[doc._id];
-        }
-      });
-    },
     requestSync: (state) => {
       state.state = State.requested;
     },
@@ -51,11 +42,15 @@ export const syncSlice = createSlice({
       state.state = State.syncing;
       delete state.progress;
       delete state.error;
-      state.stale = {};
     },
-    // TODO: should we store the count and total, do this math on display?
-    updateProgress: (state, action: { payload: { count: number; total: number } }) => {
-      state.progress = Math.floor((action.payload.count / action.payload.total) * 100);
+    resetProgress: (state, action: { payload: number }) => {
+      state.progress = {
+        count: 0,
+        total: action.payload,
+      };
+    },
+    updateProgress: (state, action: { payload: number }) => {
+      state.progress!.count += action.payload;
     },
     completeSync: (state) => {
       state.state = State.completed;
@@ -76,18 +71,30 @@ export const syncSlice = createSlice({
     socketDisconnected: (state) => {
       state.state = State.disconnected;
     },
+    dataChanged: (state) => {
+      state.writeCount += 1;
+    },
+    // TODO: should I be defining these actions elsewhere?
+    internalWrite: (state, action: { payload: Doc[] }) => {
+      // We don't use the docs here, but sagas (ie socket.ts) can grab them
+    },
+    externalWrite: (state, action: { payload: Doc[] }) => {
+      // We don't use the docs here, but sagas (ie local.ts) can grab them
+    },
   },
 });
 
 export const {
-  markStale,
-  cleanStale,
   requestSync,
   startSync,
+  resetProgress,
   updateProgress,
   completeSync,
   syncError,
   socketConnected,
   socketDisconnected,
+  dataChanged,
+  internalWrite,
+  externalWrite,
 } = syncSlice.actions;
 export default syncSlice.reducer;

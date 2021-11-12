@@ -14,7 +14,6 @@ import { selectIsGuest } from './features/User/userSlice';
 import Page from './features/Page/Page';
 import DebugManager from './features/Debug/DebugManager';
 import UpdateManager from './features/Update/UpdateManager';
-import SyncManager from './features/Sync/SyncManager';
 import UserProvider from './features/User/UserProvider';
 import Loading from './Loading';
 
@@ -45,7 +44,6 @@ function App() {
       {/* 'development' === `npm run dev`, so auto-reloading */}
       {process.env.NODE_ENV !== 'development' && <UpdateManager />}
       <UserProvider>
-        <SyncManager />
         <Page>
           <Suspense fallback={<Loading />}>
             <Routes>

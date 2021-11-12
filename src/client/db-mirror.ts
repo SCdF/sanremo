@@ -43,7 +43,7 @@ export default function mirrored(db: Database, loggedInUser: User | Guest): Data
       //   userPut: our own function, just calls db.put which will be caught later
       //   changes: not a promise and not really possible to bench, only used in setup.ts as of writing
       //   info: not a promise or interested inperf of, read only and pulls db specific data back
-      if (['userPut', 'changes', 'info'].includes(String(prop))) {
+      if (['userPutDeleteMe', 'changes', 'info'].includes(String(prop))) {
         return Reflect.get(idb, prop, receiver);
       }
 

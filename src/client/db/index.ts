@@ -3,14 +3,17 @@ import IdbAdapter from 'pouchdb-adapter-idb';
 import Find from 'pouchdb-find';
 
 import { Doc, User } from '../../shared/types';
-import { markStale } from '../features/Sync/syncSlice';
 import store from '../store';
 import { Guest, GuestUser } from '../features/User/userSlice';
 import setup from './setup';
 import mirrored from '../db-mirror';
+import { debugClient } from '../globals';
+import { internalWrite } from '../features/Sync/syncSlice';
 
 PouchDB.plugin(IdbAdapter);
 PouchDB.plugin(Find);
+
+const debug = debugClient('db');
 
 export interface Database extends PouchDB.Database {
   // FIXME: we should be using redux for this. ie listen for redux changes and write to pouch in one place
@@ -26,15 +29,18 @@ function handle(loggedInUser: User | Guest): Database {
     auto_compaction: true,
   }) as Database;
 
-  if (loggedInUser.id === 1) {
-    db = mirrored(db, loggedInUser);
-  }
+  // DONOTMERGE: work out why this no longer works
+  // if (loggedInUser.id === 1) {
+  //   db = mirrored(db, loggedInUser);
+  // }
 
+  // DONOTMERGE: get rid of this completely
   db.userPutDeleteMe = async (doc: Doc): Promise<Doc> => {
     const { rev } = await db.put(doc);
     doc._rev = rev;
 
-    store.dispatch(markStale(doc));
+    // DONOTMERGE: fwiw this is probably wrong
+    store.dispatch(internalWrite([doc]));
 
     return doc;
   };
@@ -52,6 +58,7 @@ let lastHandle: Database;
 
 export default function db(user: User | Guest): Database {
   if (lastUserId !== user.id) {
+    debug(`new db handle for ${user.id}`);
     lastUserId = user.id;
     lastHandle = handle(user);
     setup(lastHandle);

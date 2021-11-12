@@ -2,7 +2,7 @@ import * as RR from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
 import createSagaMiddleware from 'redux-saga';
 
-import storage from './features/Sync/StorageSaga';
+import StorageSaga from './sagas/storage';
 
 import userReducer from './features/User/userSlice';
 import templateSlice from './features/Template/templateSlice';
@@ -33,7 +33,7 @@ function createStore(sagas = false) {
   });
 
   if (sagas) {
-    sagaMiddleware.run(storage);
+    sagaMiddleware.run(StorageSaga);
   }
 
   return store;

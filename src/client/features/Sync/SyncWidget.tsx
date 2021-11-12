@@ -29,7 +29,13 @@ function SyncWidget() {
 
   const state = useSelector((state) => state.sync.state);
   const error = useSelector((state) => state.sync.error);
-  const progress = useSelector((state) => state.sync.progress);
+  const progress = useSelector(({ sync: { progress } }) => {
+    if (progress) {
+      return Math.floor((progress.count / progress.total) * 100);
+    } else {
+      return 0;
+    }
+  });
 
   if (isGuest) {
     return null;

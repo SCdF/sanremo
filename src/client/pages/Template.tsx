@@ -91,7 +91,7 @@ function Template() {
       copy._deleted = true;
     }
 
-    // FIXME: work out how to make this a redux / redux-saga action, we have data querying above
+    // DONOTMERGE: work out how to make this a redux / redux-saga action, we have data querying above
     await handle.userPutDeleteMe(copy);
     navigate('/');
   }
@@ -117,7 +117,7 @@ function Template() {
       delete copy._rev;
     }
 
-    // FIXME: work out how to make this a redux / redux-saga action, we have data querying above
+    // DONOTMERGE: work out how to make this a redux / redux-saga action, we have data querying above
     await handle.userPutDeleteMe(copy);
 
     navigate(-1);
