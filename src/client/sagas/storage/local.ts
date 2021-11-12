@@ -21,7 +21,7 @@ const debug = debugClient('saga:storage:local');
 
 function dataChangeChan(handle: Database) {
   return eventChannel((emitter) => {
-    const change = handle.changes({ live: true }).on('change', emitter);
+    const change = handle.changes({ live: true, since: 'now' }).on('change', emitter);
     return change.cancel;
   });
 }
