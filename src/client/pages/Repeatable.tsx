@@ -156,6 +156,7 @@ function Repeatable() {
   // There is actually an autoFocus property on button, but it doesn't work.
   // Instead, this is the current workaround. See the following:
   // https://github.com/mui-org/material-ui/issues/3008#issuecomment-284223777
+  // TODO: use https://kentcdodds.com/blog/useeffect-vs-uselayouteffect#uselayouteffect and write this as a fn
   class CompleteButton extends React.Component<{ hasFocus: boolean }> {
     componentDidMount() {
       if (this.props.hasFocus) {

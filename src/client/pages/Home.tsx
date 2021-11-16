@@ -8,6 +8,9 @@ import RepeatableListItem from '../features/Repeatable/RepeatableListItem';
 import TemplateListItem from '../features/Template/TemplateListItem';
 import { useDispatch, useSelector } from '../store';
 import db from '../db';
+import { debugClient } from '../globals';
+
+const debug = debugClient('home');
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -40,6 +43,7 @@ function Home() {
   // NB: this code also exists in History.js using completed instead of updated
   useEffect(() => {
     async function loadRepeatables() {
+      debug('loading repeatable list');
       const { docs: repeatables } = (await handle.find({
         selector: {
           _id: { $gt: 'repeatable:instance:', $lte: 'repeatable:instance:\uffff' },
@@ -54,6 +58,7 @@ function Home() {
       })) as {
         docs: Record<string, any>[];
       };
+      debug(`found ${repeatables.length} active repeatables`);
 
       if (repeatables.length === 0) {
         setRepeatables([]);
@@ -62,6 +67,7 @@ function Home() {
 
       // Replace template id with real thing
       const templateIds = [...new Set(repeatables.map((d) => d.template))];
+      debug('hydrating repeatable templates');
       const { docs: templates } = (await handle.find({
         selector: {
           _id: {
@@ -70,6 +76,7 @@ function Home() {
         },
         fields: ['_id', 'title', 'slug.type'],
       })) as { docs: PouchDB.Core.ExistingDocument<{ title: string; slug: { type: string } }>[] };
+      debug(`found ${templates.length} templates for active repeatables`);
 
       const templateMap = new Map(templates.map((t) => [t._id, t]));
       repeatables.forEach((r) => {
@@ -98,12 +105,14 @@ function Home() {
     };
 
     async function loadTemplates() {
+      debug('loading template list');
       const { docs: allTemplates } = (await handle.find({
         selector: { _id: { $gt: 'repeatable:template:', $lte: 'repeatable:template:\uffff' } },
         fields: ['_id', 'title', 'deleted'],
       })) as {
         docs: PouchDB.Core.ExistingDocument<TemplateStub>[];
       };
+      debug(`found ${allTemplates.length} active templates`);
 
       const latestTemplateByRoot: Record<string, TemplateStub> = {};
       for (let template of allTemplates) {

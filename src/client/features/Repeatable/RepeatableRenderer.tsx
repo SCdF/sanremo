@@ -30,10 +30,18 @@ type RenderableCheckbox = {
 };
 type Renderable = RenderableMarkdown | RenderableCheckbox;
 
+const Markdown = React.memo((props: { children: string; span?: boolean }) =>
+  props.span ? (
+    <ReactMarkdown children={props.children} renderers={{ paragraph: 'span' }} />
+  ) : (
+    <ReactMarkdown children={props.children} />
+  )
+);
+
 const MarkdownChunk = React.memo((props: { text: string }) => (
   <ListItem>
     <ListItemText>
-      <ReactMarkdown>{props.text}</ReactMarkdown>
+      <Markdown>{props.text}</Markdown>
     </ListItemText>
   </ListItem>
 ));
@@ -62,7 +70,7 @@ const MarkdownCheckbox = React.memo((props: MarkdownCheckboxType) => {
         <Checkbox checked={!!value} edge="start" tabIndex={-1} />
       </ListItemIcon>
       <ListItemText>
-        <ReactMarkdown renderers={{ paragraph: 'span' }}>{text}</ReactMarkdown>
+        <Markdown span={true}>{text}</Markdown>
       </ListItemText>
     </ListItem>
   );

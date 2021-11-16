@@ -39,7 +39,6 @@ function handle(loggedInUser: User | Guest): Database {
     const { rev } = await db.put(doc);
     doc._rev = rev;
 
-    // DONOTMERGE: fwiw this is probably wrong
     store.dispatch(internalWrite([doc]));
 
     return doc;
@@ -62,6 +61,10 @@ export default function db(user: User | Guest): Database {
     lastUserId = user.id;
     lastHandle = handle(user);
     setup(lastHandle);
+    if (process.env.NODE_ENV === 'development') {
+      // @ts-ignore
+      window.db = lastHandle;
+    }
   }
 
   return lastHandle;
