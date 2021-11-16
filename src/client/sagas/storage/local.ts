@@ -1,6 +1,6 @@
 import { getType } from '@reduxjs/toolkit';
 import { buffers, eventChannel, SagaIterator } from 'redux-saga';
-import { actionChannel, take, call, put, select, fork } from 'redux-saga/effects';
+import { actionChannel, take, call, put, select, fork, all, takeEvery } from 'redux-saga/effects';
 import { Doc, RepeatableDoc, TemplateDoc } from '../../../shared/types';
 import { Database } from '../../db';
 import {
@@ -28,9 +28,9 @@ function dataChangeChan(handle: Database) {
 
 function* dataChangeWatcher(handle: Database): SagaIterator {
   const chan = yield call(dataChangeChan, handle);
-  while (yield take(chan)) {
+  yield takeEvery(chan, function* () {
     yield put(dataChanged());
-  }
+  });
 }
 
 // Actions that the user performs.
@@ -41,7 +41,7 @@ const RepeatableWritesByUser = [toggleValue, updateSlug, complete, uncomplete, d
 );
 
 async function writeToLocal(handle: Database, doc: Doc) {
-  debug(`writeToLocal ${doc._id}`);
+  debug(`local pouch write for ${doc._id}`);
   const { rev } = await handle.put(doc);
   return rev;
 }
@@ -56,12 +56,14 @@ function* localUserWrites(handle: Database): SagaIterator {
   // DONOTMERGE: also do template changes
 
   while (yield take(userModifiedRepeatable)) {
-    debug('Got user write');
-
-    const repeatable = yield select((state) => state.repeatable.doc);
+    let repeatable = yield select((state) => state.repeatable.doc);
 
     const rev = yield call(writeToLocal, handle, repeatable);
     yield put(updateRev(rev));
+
+    // pulling again to get the new rev. We could just clone here and set the rev ourselves,
+    // but if updateRev does more in the future that will break, so let's be safe
+    repeatable = yield select((state) => state.repeatable.doc);
     yield put(internalWrite([repeatable])); // triggers the manageSocket saga to write to the socket
   }
 }
@@ -77,8 +79,9 @@ function* foreignUserWrites(handle: Database): SagaIterator {
     debug(`got ${payload.length} foreign user writes`);
 
     const { writes, deletes } = splitDeletes(payload);
-    yield fork(deletesFromRemote, handle, deletes);
-    yield fork(writesFromRemote, handle, writes);
+    debug(`writing ${writes.map((d) => d._id)}; deleting ${deletes.map((d) => d._id)}`);
+    yield all([call(deletesFromRemote, handle, deletes), call(writesFromRemote, handle, writes)]);
+    debug('finished writing');
 
     const { rId, tId } = yield select((state) => ({
       rId: state.repeatable.doc?._id,
