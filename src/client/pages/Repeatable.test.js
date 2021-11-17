@@ -7,6 +7,7 @@ import db from '../db';
 import Repeatable from './Repeatable';
 import { createStore } from '../store';
 import { setUserAsLoggedIn } from '../features/User/userSlice';
+import { writeComplete } from '../features/Repeatable/repeatableSlice';
 
 jest.mock('react-router-dom');
 jest.mock('../db');
@@ -131,8 +132,11 @@ describe('Repeatable', () => {
       await waitFor(() => screen.getByText(/Some text/));
 
       fireEvent.click(screen.getByText(/Complete/));
+      await waitFor(() => expect(store.getState().repeatable.doc?.completed).toBeGreaterThan(0));
+
+      store.dispatch(writeComplete('2-abc')); // mocked write
+
       await waitFor(() => expect(navigate.mock.calls[0][0]).toBe('/'));
-      expect(store.getState().repeatable.doc?.completed).toBeGreaterThan(0);
     });
     it('doesnt redirect when uncompleting a repeatable', async () => {
       repeatable.completed = 123456789;
@@ -142,8 +146,13 @@ describe('Repeatable', () => {
 
       fireEvent.click(screen.getByText(/Un-complete/));
       await waitFor(() => screen.getByText(/Complete/));
-      expect(navigate.mock.calls.length).toBe(0);
       expect(store.getState().repeatable.doc?.completed).toBeUndefined();
+
+      store.dispatch(writeComplete('2-abc')); // mocked write
+      await waitFor(() => expect(store.getState().repeatable.dirty).toBeFalse());
+      // it's not clear how to wait to make sure nothing happens here. Ideally we want to know that dirty has caused a rerender
+
+      expect(navigate.mock.calls.length).toBe(0);
     });
     it('doesnt redirect when completing a just uncompleted repeatable', async () => {
       repeatable.completed = 123456789;
@@ -153,11 +162,16 @@ describe('Repeatable', () => {
 
       fireEvent.click(screen.getByText(/Un-complete/));
       await waitFor(() => screen.getByText(/Complete/));
+      store.dispatch(writeComplete('2-abc')); // mocked write
+      await waitFor(() => expect(store.getState().repeatable.dirty).toBeFalse());
       expect(navigate.mock.calls.length).toBe(0);
       expect(store.getState().repeatable.doc?.completed).toBeUndefined();
 
       fireEvent.click(screen.getByText(/Complete/));
       await waitFor(() => screen.getByText(/Un-complete/));
+      store.dispatch(writeComplete('2-abc')); // mocked write
+      await waitFor(() => expect(store.getState().repeatable.dirty).toBeFalse());
+
       expect(navigate.mock.calls.length).toBe(0);
       expect(store.getState().repeatable.doc?.completed).toBeGreaterThan(0);
     });
@@ -169,6 +183,8 @@ describe('Repeatable', () => {
 
       fireEvent.click(screen.getByText(/Un-complete/));
       await waitFor(() => screen.getByText(/Complete/));
+      store.dispatch(writeComplete('2-abc')); // mocked write
+      await waitFor(() => expect(store.getState().repeatable.dirty).toBeFalse());
 
       expect(store.getState().repeatable.doc?.values[0]).toBeFalsy();
       fireEvent.click(screen.getByText(/Something to change/));
@@ -176,6 +192,9 @@ describe('Repeatable', () => {
 
       fireEvent.click(screen.getByText(/Complete/));
       await waitFor(() => expect(store.getState().repeatable.doc?.completed).toBeGreaterThan(0));
+      store.dispatch(writeComplete('2-abc')); // mocked write
+      await waitFor(() => expect(store.getState().repeatable.dirty).toBeFalse());
+
       expect(navigate.mock.calls.length).toBe(1);
       expect(navigate.mock.calls[0][0]).toBe('/');
     });

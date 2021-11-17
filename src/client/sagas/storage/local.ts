@@ -8,7 +8,7 @@ import {
   complete,
   uncomplete,
   deleteIt,
-  updateRev,
+  writeComplete,
   updateSlug,
 } from '../../features/Repeatable/repeatableSlice';
 import { dataChanged, externalWrite, internalWrite } from '../../features/Sync/syncSlice';
@@ -59,10 +59,11 @@ function* localUserWrites(handle: Database): SagaIterator {
     let repeatable = yield select((state) => state.repeatable.doc);
 
     const rev = yield call(writeToLocal, handle, repeatable);
-    yield put(updateRev(rev));
+    yield put(writeComplete(rev));
 
     // pulling again to get the new rev. We could just clone here and set the rev ourselves,
     // but if updateRev does more in the future that will break, so let's be safe
+    // TODO: drop this and have the socket also listen to writeComplete :thumbsup:
     repeatable = yield select((state) => state.repeatable.doc);
     yield put(internalWrite([repeatable])); // triggers the manageSocket saga to write to the socket
   }

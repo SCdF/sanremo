@@ -33,6 +33,7 @@ function Repeatable() {
   const hydrated = useSelector((state) => state.repeatable.doc && state.template.doc);
   const deleted = useSelector((state) => state.repeatable.doc?._deleted);
   const completed = useSelector((state) => state.repeatable.doc?.completed);
+  const dirty = useSelector((state) => state.repeatable.dirty);
 
   // Used for determining how complete / uncomplete function
   const [initiallyOpen, setInitiallyOpen] = useState(false); // On first load, was the repeatable uncompleted?
@@ -127,17 +128,15 @@ function Repeatable() {
 
   async function handleDelete() {
     dispatch(deleteIt({ now: Date.now() }));
-
-    // TODO: TEST THIS (if we navigate away, clearRepeatable gets called as a destructor)
-    navigate('/');
   }
 
-  async function handleComplete() {
-    dispatch(complete({ now: Date.now() }));
-
-    if (edited || initiallyOpen) {
+  useEffect(() => {
+    if (completed && !dirty && (edited || initiallyOpen)) {
       navigate('/');
     }
+  }, [completed, dirty, edited, initiallyOpen, navigate]);
+  async function handleComplete() {
+    dispatch(complete({ now: Date.now() }));
   }
 
   async function handleUncomplete() {
@@ -148,7 +147,7 @@ function Repeatable() {
     return null;
   }
 
-  if (deleted) {
+  if (deleted && !dirty) {
     navigate('/');
     return null;
   }
