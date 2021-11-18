@@ -19,20 +19,6 @@ import { splitDeletes, deletesFromRemote, writesFromRemote } from './utils';
 
 const debug = debugClient('saga:storage:local');
 
-function dataChangeChan(handle: Database) {
-  return eventChannel((emitter) => {
-    const change = handle.changes({ live: true, since: 'now' }).on('change', emitter);
-    return change.cancel;
-  });
-}
-
-function* dataChangeWatcher(handle: Database): SagaIterator {
-  const chan = yield call(dataChangeChan, handle);
-  yield takeEvery(chan, function* () {
-    yield put(dataChanged());
-  });
-}
-
 // Actions that the user performs.
 // These need to be stored to pouch, and propagated To the server if the socket is functioning
 // (this is not all actions against repeatableSlice, just the user initiated ones)
@@ -66,6 +52,7 @@ function* localUserWrites(handle: Database): SagaIterator {
     // TODO: drop this and have the socket also listen to writeComplete :thumbsup:
     repeatable = yield select((state) => state.repeatable.doc);
     yield put(internalWrite([repeatable])); // triggers the manageSocket saga to write to the socket
+    yield put(dataChanged());
   }
 }
 
@@ -96,12 +83,12 @@ function* foreignUserWrites(handle: Database): SagaIterator {
         yield put(setRepeatable(doc as RepeatableDoc));
       }
     }
+    yield put(dataChanged());
   }
 }
 
 function* local(handle: Database): SagaIterator {
   debug('Initializing');
-  yield fork(dataChangeWatcher, handle);
   yield fork(localUserWrites, handle);
   yield fork(foreignUserWrites, handle);
 }

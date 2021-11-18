@@ -29,7 +29,6 @@ function handle(loggedInUser: User | Guest): Database {
     auto_compaction: true,
   }) as Database;
 
-  // DONOTMERGE: work out why this no longer works
   if (loggedInUser.id === 1) {
     db = mirrored(db, loggedInUser);
   }
