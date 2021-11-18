@@ -30,9 +30,9 @@ function handle(loggedInUser: User | Guest): Database {
   }) as Database;
 
   // DONOTMERGE: work out why this no longer works
-  // if (loggedInUser.id === 1) {
-  //   db = mirrored(db, loggedInUser);
-  // }
+  if (loggedInUser.id === 1) {
+    db = mirrored(db, loggedInUser);
+  }
 
   // DONOTMERGE: get rid of this completely
   db.userPutDeleteMe = async (doc: Doc): Promise<Doc> => {

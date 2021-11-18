@@ -92,7 +92,7 @@ function* getWhatClientNeeds(handle: Database, stubs: DocStub[]): SagaIterator {
 
     let updates = deletes; // we don't need to request deletes, the stub is enough
     if (writes.length) {
-      const result: Doc[] = yield call(getServerDocs, batch);
+      const result: Doc[] = yield call(getServerDocs, writes);
       updates = updates.concat(result);
       debug('<- got server');
     }
