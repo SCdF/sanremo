@@ -72,7 +72,7 @@ function Repeatable() {
           slug,
         };
 
-        // FIXME: Can we write to the DB directly? Have this as a custom (non-redux-update-reactionary) Saga action?
+        // DONOTMERGE: Can we write to the DB directly? Have this as a custom (non-redux-update-reactionary) Saga action?
         await handle.userPutDeleteMe(repeatable);
         navigate(`/repeatable/${repeatable._id}`, { replace: true });
       } else if (repeatableId) {

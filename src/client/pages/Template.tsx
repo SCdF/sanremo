@@ -40,7 +40,7 @@ function Template() {
           values: [],
         };
 
-        // FIXME: Can we write to the DB directly? Have this as a custom (non-redux-update-reactionary) Saga action?
+        // DONOTMERGE: Can we write to the DB directly? Have this as a custom (non-redux-update-reactionary) Saga action?
         await handle.userPutDeleteMe(template);
 
         navigate(`/template/${template._id}`, { replace: true });
