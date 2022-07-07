@@ -114,7 +114,7 @@ function Home() {
           const [, eVersion] = splitId(existing._id);
 
           if (eVersion > tVersion) {
-            break;
+            continue;
           }
         }
 
