@@ -68,7 +68,7 @@ describe('Repeatable', () => {
     };
 
     render(<RepeatableListItem {...params} />);
-    expect(screen.getByText('1/1/2020')).toBeInTheDocument();
+    expect(screen.getByText('01/01/2020')).toBeInTheDocument();
   });
 
   it('timestamp slug', async () => {
@@ -85,7 +85,7 @@ describe('Repeatable', () => {
     };
 
     render(<RepeatableListItem {...params} />);
-    expect(screen.getByText('1/1/2020, 10:20:00 AM')).toBeInTheDocument();
+    expect(screen.getByText('01/01/2020, 10:20:00')).toBeInTheDocument();
   });
   it('plain text slug', async () => {
     const params = {

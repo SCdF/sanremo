@@ -1,4 +1,5 @@
 {
   "editor.tabSize": 2,
-  "todo-tree.tree.showBadges": true
+  "todo-tree.tree.showBadges": true,
+  "jest.jestCommandLine": "yarn jest"
 }

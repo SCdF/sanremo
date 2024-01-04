@@ -5,4 +5,6 @@ module.exports = {
     TextDecoder: TextDecoder,
     TextEncoder: TextEncoder,
   },
+  clearMocks: true,
+  setupFilesAfterEnv: ['<rootDir>/setupTests.ts'],
 };
