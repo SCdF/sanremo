@@ -64,7 +64,7 @@ describe('begin', () => {
   });
 
   describe('deletes', () => {
-    it('rights deletes for new documents', async () => {
+    it('writes deletes for new documents', async () => {
       const clientDocs = [{ _id: 'to be deleted', _rev: '1-abc', _deleted: true }];
       mockGetStubsForUser.mockResolvedValue([]);
 

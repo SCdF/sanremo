@@ -218,9 +218,7 @@ app.get('/api/auth', function (req, res) {
 });
 
 app.get('/api/deployment', async function (req, res) {
-  const releaseVersion = JSON.parse(
-    readFileSync(new URL('../../../package.json', import.meta.url).pathname, 'utf-8')
-  ).version;
+  const releaseVersion = JSON.parse(readFileSync('../../../package.json').toString()).version;
 
   const toReturn: Record<string, any> = {
     release_version: releaseVersion,
@@ -253,9 +251,8 @@ app.get('/api/deployment', async function (req, res) {
 
 syncRoutes(app, io);
 
-const index = new URL('../../../build/index.html', import.meta.url).pathname;
 app.get('/*', function (req, res, next) {
-  res.sendFile(index);
+  res.sendFile('../../index.html');
 });
 
 const port = process.env.PORT || 80;

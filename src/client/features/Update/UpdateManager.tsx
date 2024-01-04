@@ -1,7 +1,7 @@
 import { debugClient } from '../../globals';
 import { useEffect, useState } from 'react';
 
-import * as serviceWorkerRegistration from '../../serviceWorkerRegistration';
+import * as serviceWorkerRegistration from '../../service-workers/serviceWorkerRegistration';
 import { checkForUpdate, noUpdateReady, updateReadyToInstall } from './updateSlice';
 import { useDispatch, useSelector } from '../../store';
 
