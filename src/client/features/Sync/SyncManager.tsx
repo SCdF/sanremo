@@ -1,3 +1,4 @@
+// TODO: drop axios and just use fetch
 import axios from 'axios';
 import { io, Socket } from 'socket.io-client';
 
