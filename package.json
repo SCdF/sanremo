@@ -2,16 +2,22 @@
   "name": "sanremo",
   "packageManager": "yarn@4.0.2",
   "scripts": {
-    "start": "node ./dist/src/server",
+    "start": "node ./dist/backend",
     "serverLocal": "DATABASE_URL=postgres://$USER@localhost PORT=5000 yarn start",
-    "clean": "rm -r dist || true",
-    "build": "yarn clean && yarn build:client && yarn build:server",
-    "build:client": "parcel build ./src/index.html",
-    "build:server": "tsc --build tsconfig.server.json",
-    "dev": "parcel ./src/index.html",
+    "build": "parcel build",
+    "dev": "parcel --target frontend",
     "test:client": "jest src/client",
     "test:server": "jest src/server",
     "test": "yarn test:client && yarn test:server"
+  },
+  "targets": {
+    "frontend": {
+      "source": "./src/client/index.html"
+    },
+    "backend": {
+      "context": "node",
+      "source": "./src/server/index.ts"
+    }
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
