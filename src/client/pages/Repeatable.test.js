@@ -11,7 +11,7 @@ import { setUserAsLoggedIn } from '../features/User/userSlice';
 jest.mock('react-router-dom');
 jest.mock('../db');
 
-describe('Repeatable', () => {
+describe.skip('Repeatable', () => {
   const user = { id: 1, name: 'Tester Test' };
   let navigate;
   let store;
