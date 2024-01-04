@@ -13,7 +13,7 @@ async function begin(user: User, clientStubs: DocStub[]): Promise<Requests> {
   const serverStubsById = new Map(serverStubs.map((d) => [d._id, d]));
   const clientStubsById = new Map(clientStubs.map((d) => [d._id, d]));
 
-  const toDelete = [];
+  const toDelete: Doc[] = [];
 
   for (const serverStub of serverStubs) {
     if (!clientStubsById.has(serverStub._id)) {
