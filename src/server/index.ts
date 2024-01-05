@@ -218,7 +218,9 @@ app.get('/api/auth', function (req, res) {
 });
 
 app.get('/api/deployment', async function (req, res) {
-  const releaseVersion = JSON.parse(readFileSync('../../../package.json').toString()).version;
+  const releaseVersion = JSON.parse(
+    readFileSync(new URL('../../package.json', import.meta.url).pathname, 'utf-8')
+  ).version;
 
   const toReturn: Record<string, any> = {
     release_version: releaseVersion,
