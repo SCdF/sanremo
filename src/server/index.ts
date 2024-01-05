@@ -95,7 +95,7 @@ if (process.env.NODE_ENV === 'production') {
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(compression()); // TODO: use static compression instead for assets (so it only happens once)
-app.use(express.static('dist')); // i.e. these should be compressed on disk
+app.use(express.static('.')); // i.e. these should be compressed on disk
 app.use(sesh);
 app.use(cookieParser(SECRET));
 
@@ -249,9 +249,9 @@ app.get('/api/deployment', async function (req, res) {
 
 syncRoutes(app, io);
 
-app.get('/*', function (req, res, next) {
-  res.sendFile('../../index.html');
-});
+// app.get('/*', function (req, res, next) {
+//   res.sendFile('../../index.html');
+// });
 
 const port = process.env.PORT || 80;
 server.listen(port);
