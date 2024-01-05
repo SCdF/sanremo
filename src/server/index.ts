@@ -95,7 +95,7 @@ if (process.env.NODE_ENV === 'production') {
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(compression()); // TODO: use static compression instead for assets (so it only happens once)
-app.use(express.static('build')); // i.e. these should be compressed on disk
+app.use(express.static('dist')); // i.e. these should be compressed on disk
 app.use(sesh);
 app.use(cookieParser(SECRET));
 
