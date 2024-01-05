@@ -249,10 +249,6 @@ app.get('/api/deployment', async function (req, res) {
 
 syncRoutes(app, io);
 
-// app.get('/*', function (req, res, next) {
-//   res.sendFile('../../index.html');
-// });
-
 const port = process.env.PORT || 80;
 server.listen(port);
 
