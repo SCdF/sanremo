@@ -1,5 +1,6 @@
 {
   "editor.tabSize": 2,
   "todo-tree.tree.showBadges": true,
-  "jest.jestCommandLine": "yarn jest"
+  "jest.jestCommandLine": "yarn jest",
+  "typescript.tsdk": "node_modules/typescript/lib"
 }
