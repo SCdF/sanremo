@@ -22,7 +22,7 @@ import { Response } from 'express-serve-static-core';
 const debugInit = debugServer('init');
 const debugAuth = debugServer('authentication');
 
-debugInit(`Initializing Sanremo server on ${process.env.NODE_ENV}`);
+debugInit(`Initializing Sanremo ${process.env.npm_package_version} on ${process.env.NODE_ENV}`);
 
 const app = express();
 const server = http.createServer(app);
@@ -218,12 +218,8 @@ app.get('/api/auth', function (req, res) {
 });
 
 app.get('/api/deployment', async function (req, res) {
-  const releaseVersion = JSON.parse(
-    readFileSync(new URL('../../package.json', import.meta.url).pathname, 'utf-8')
-  ).version;
-
   const toReturn: Record<string, any> = {
-    release_version: releaseVersion,
+    release_version: process.env.npm_package_version,
   };
 
   if (process.env.NODE_ENV === 'production') {
