@@ -2,5 +2,9 @@
   "editor.tabSize": 2,
   "todo-tree.tree.showBadges": true,
   "jest.jestCommandLine": "yarn jest",
-  "typescript.tsdk": "node_modules/typescript/lib"
+  "typescript.tsdk": "node_modules/typescript/lib",
+  "editor.codeActionsOnSave": {
+    "source.organizeImports.biome": "explicit",
+    "quickfix.biome": "explicit"
+  }
 }
