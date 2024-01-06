@@ -42,9 +42,7 @@ function App() {
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <DebugManager />
-      {/* 'development' === `npm run dev`, so auto-reloading */}
-      {/* {process.env.NODE_ENV !== 'development' && <UpdateManager />} */}
-      <UpdateManager />
+      {process.env.NODE_ENV !== 'development' && <UpdateManager />}
       <UserProvider>
         <SyncManager />
         <Page>
