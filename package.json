@@ -41,6 +41,7 @@
     "@material-ui/icons": "^4.11.2",
     "@parcel/packager-raw-url": "^2.11.0",
     "@parcel/reporter-bundle-analyzer": "^2.11.0",
+    "@parcel/service-worker": "^2.11.0",
     "@parcel/transformer-sass": "^2.11.0",
     "@parcel/transformer-webmanifest": "^2.11.0",
     "@reduxjs/toolkit": "^1.6.1",

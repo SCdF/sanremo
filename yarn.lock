@@ -2698,6 +2698,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@parcel/service-worker@npm:^2.11.0":
+  version: 2.11.0
+  resolution: "@parcel/service-worker@npm:2.11.0"
+  checksum: 02bc7f72b475cdcfacf9eed89954aeaaa062de6ef5e6556eb2225b6239c83e4c969a826800d8b6d8f509ec1828d4052c5c66bd2145d9003e564bfb28b3b1bd98
+  languageName: node
+  linkType: hard
+
 "@parcel/source-map@npm:^2.1.1":
   version: 2.1.1
   resolution: "@parcel/source-map@npm:2.1.1"
@@ -10399,6 +10406,7 @@ __metadata:
     "@material-ui/icons": "npm:^4.11.2"
     "@parcel/packager-raw-url": "npm:^2.11.0"
     "@parcel/reporter-bundle-analyzer": "npm:^2.11.0"
+    "@parcel/service-worker": "npm:^2.11.0"
     "@parcel/transformer-sass": "npm:^2.11.0"
     "@parcel/transformer-webmanifest": "npm:^2.11.0"
     "@reduxjs/toolkit": "npm:^1.6.1"

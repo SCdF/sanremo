@@ -46,33 +46,35 @@ function UpdateManager() {
     updateCheck();
   }, [dispatch, lastChecked, registration]);
 
-  // FIXME: add back the service worker
-  // useEffect(() => {
-  //   const initializeServiceWorker = () => {
-  //     navigator.serviceWorker.onmessage = (event) => {
-  //       if (event?.data?.type === 'reload_ready') {
-  //         window.location.reload();
-  //       }
-  //     };
+  useEffect(() => {
+    const initializeServiceWorker = () => {
+      navigator.serviceWorker.onmessage = (event) => {
+        if (event?.data?.type === 'reload_ready') {
+          window.location.reload();
+        }
+      };
 
-  //     serviceWorkerRegistration.register({
-  //       onUpdate: (reg) => {
-  //         debug('update is possible');
-  //         dispatch(updateReadyToInstall());
-  //       },
-  //       onReady: (reg) => {
-  //         debug('service worker registered successfully');
-  //         dispatch(noUpdateReady());
-  //         setRegistration(reg);
+      navigator.serviceWorker
+        .register(new URL('service-worker.js', import.meta.url), {
+          type: 'module',
+        })
+        .then((swr) => {
+          debug('service worker registered successfully');
+          dispatch(noUpdateReady());
+          setRegistration(swr);
 
-  //         setInterval(() => {
-  //           dispatch(checkForUpdate());
-  //         }, UPDATE_CHECK_INTERVAL);
-  //       },
-  //     });
-  //   };
-  //   setTimeout(initializeServiceWorker, INITIALIZATION_DELAY);
-  // }, [dispatch]);
+          setInterval(() => {
+            dispatch(checkForUpdate());
+          }, UPDATE_CHECK_INTERVAL);
+
+          swr.addEventListener('updatefound', () => {
+            debug('update is possible');
+            dispatch(updateReadyToInstall());
+          });
+        });
+    };
+    setTimeout(initializeServiceWorker, INITIALIZATION_DELAY);
+  }, [dispatch]);
 
   return null;
 }
