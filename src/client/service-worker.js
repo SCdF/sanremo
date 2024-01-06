@@ -13,7 +13,7 @@ async function activate() {
   const keys = await caches.keys();
   await Promise.all(keys.map((key) => key !== version && caches.delete(key)));
 }
-addEventListener('activate', (e) => e.waitUntil(activate()));
+// addEventListener('activate', (e) => e.waitUntil(activate()));
 
 addEventListener('fetch', async (event) => {
   const url = event.request.url;
