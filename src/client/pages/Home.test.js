@@ -1,10 +1,10 @@
-import { MemoryRouter } from 'react-router-dom';
-import { Provider } from 'react-redux';
 import { render as renderRtl, screen, waitFor } from '@testing-library/react';
+import { Provider } from 'react-redux';
+import { MemoryRouter } from 'react-router-dom';
 
-import Home from './Home';
-import { createStore } from '../store';
 import { setUserAsLoggedIn } from '../features/User/userSlice';
+import { createStore } from '../store';
+import Home from './Home';
 
 import db from '../db';
 
@@ -68,7 +68,7 @@ describe('Home', () => {
     render(
       <MemoryRouter>
         <Home db={handle} />
-      </MemoryRouter>
+      </MemoryRouter>,
     );
 
     await waitFor(() => screen.getByText(/Template in template list/));
@@ -100,13 +100,13 @@ describe('Home', () => {
       render(
         <MemoryRouter>
           <Home db={handle} />
-        </MemoryRouter>
+        </MemoryRouter>,
       );
 
       await waitFor(() => screen.getByText(/New template version/));
       await waitFor(() => screen.getByText(/Another template/));
       expect(() => screen.getByText(/Old template version/)).toThrowError(
-        /Unable to find an element/
+        /Unable to find an element/,
       );
     });
 
@@ -134,15 +134,15 @@ describe('Home', () => {
       render(
         <MemoryRouter>
           <Home db={handle} />
-        </MemoryRouter>
+        </MemoryRouter>,
       );
 
       await waitFor(() => screen.getByText(/Another template/));
       expect(() => screen.getByText(/New template version/)).toThrowError(
-        /Unable to find an element/
+        /Unable to find an element/,
       );
       expect(() => screen.getByText(/Old template version/)).toThrowError(
-        /Unable to find an element/
+        /Unable to find an element/,
       );
     });
   });

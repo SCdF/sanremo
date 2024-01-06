@@ -1,9 +1,10 @@
+import { Input, makeStyles } from '@material-ui/core';
 import { ChangeEvent, useState } from 'react';
 import React from 'react';
-import { Input, makeStyles } from '@material-ui/core';
+import { RepeatableDoc, TemplateDoc } from '../../../shared/types';
+import db from '../../db';
 import { setRepeatable } from '../../state/docsSlice';
 import { RootState, useDispatch, useSelector } from '../../store';
-import db from '../../db';
 
 export const useStyles = makeStyles((theme) => ({
   inputRoot: {
@@ -19,15 +20,16 @@ function RepeatableSlug() {
   const user = useSelector((state) => state.user.value);
   const handle = db(user);
 
-  const repeatable = useSelector((state) => state.docs.repeatable);
-  const [slug, setSlug] = useState(repeatable?.slug!);
+  // TODO should we drop 'as' here and below?
+  const repeatable = useSelector((state) => state.docs.repeatable) as RepeatableDoc;
+  const [slug, setSlug] = useState(repeatable.slug);
 
-  const template = useSelector((state) => state.docs.template);
+  const template = useSelector((state) => state.docs.template) as TemplateDoc;
 
   function changeSlug({ target }: ChangeEvent) {
     // @ts-ignore FIXME: check if nodeValue works
     const targetValue = target.value;
-    const value = ['date', 'timestamp'].includes(template!.slug.type)
+    const value = ['date', 'timestamp'].includes(template.slug.type)
       ? new Date(targetValue).getTime()
       : targetValue;
 
@@ -66,8 +68,8 @@ function RepeatableSlug() {
     const slugDate = new Date(slug);
     const awkwardlyFormattedSlug = [
       slugDate.getFullYear(),
-      (slugDate.getMonth() + 1 + '').padStart(2, '0'),
-      (slugDate.getDate() + '').padStart(2, '0'),
+      `${slugDate.getMonth() + 1}`.padStart(2, '0'),
+      `${slugDate.getDate()}`.padStart(2, '0'),
     ].join('-');
 
     slugInput = (
@@ -86,17 +88,14 @@ function RepeatableSlug() {
     // be manufactured from the native JavaScript date type. If we were in raw HTML
     // we could post-set it with Javascript by using valueAsNumber, but not in situ
     const slugDate = new Date(slug);
-    const awkwardlyFormattedSlug =
-      [
-        slugDate.getFullYear(),
-        (slugDate.getMonth() + 1 + '').padStart(2, '0'),
-        (slugDate.getDate() + '').padStart(2, '0'),
-      ].join('-') +
-      'T' +
-      [
-        (slugDate.getHours() + '').padStart(2, '0'),
-        (slugDate.getMinutes() + '').padStart(2, '0'),
-      ].join(':');
+    const awkwardlyFormattedSlug = `${[
+      slugDate.getFullYear(),
+      `${slugDate.getMonth() + 1}`.padStart(2, '0'),
+      `${slugDate.getDate()}`.padStart(2, '0'),
+    ].join('-')}T${[
+      `${slugDate.getHours()}`.padStart(2, '0'),
+      `${slugDate.getMinutes()}`.padStart(2, '0'),
+    ].join(':')}`;
 
     slugInput = (
       <Input

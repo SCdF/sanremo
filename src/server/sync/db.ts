@@ -1,10 +1,10 @@
-import { db } from '../db';
 import { Doc, DocId, DocStub, User } from '../../shared/types';
+import { db } from '../db';
 
 export async function getStubsForUser(user: User): Promise<DocStub[]> {
   const result = await db.query(
     'SELECT _id, _rev, _deleted FROM raw_client_documents WHERE user_id = $1',
-    [user.id]
+    [user.id],
   );
   return result.rows;
 }
@@ -12,7 +12,7 @@ export async function getStubsForUser(user: User): Promise<DocStub[]> {
 export async function getDocs(user: User, ids: DocId[]): Promise<Doc[]> {
   const result = await db.query(
     'SELECT data FROM raw_client_documents WHERE user_id = $1 AND _id = ANY($2)',
-    [user.id, ids]
+    [user.id, ids],
   );
   return result.rows.map(({ data }) => JSON.parse(data));
 }
@@ -27,7 +27,7 @@ export async function putDocs(user: User, docs: Doc[]): Promise<void> {
         'ON CONFLICT ON CONSTRAINT raw_client_documents_pkey DO UPDATE SET',
         '  _rev = $3, _deleted = $4, data = $5',
       ].join(' '),
-      [user.id, doc._id, doc._rev, !!doc._deleted, Buffer.from(JSON.stringify(doc))]
+      [user.id, doc._id, doc._rev, !!doc._deleted, Buffer.from(JSON.stringify(doc))],
     );
   }
 }

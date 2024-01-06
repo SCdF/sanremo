@@ -4,19 +4,19 @@ import { Suspense, lazy } from 'react';
 
 import { Route, Routes } from 'react-router-dom';
 
+import { Typography, createTheme } from '@material-ui/core';
 import CssBaseline from '@material-ui/core/CssBaseline';
 import { ThemeProvider } from '@material-ui/core/styles';
-import { createTheme, Typography } from '@material-ui/core';
 
-import { useSelector } from './store';
 import { selectIsGuest } from './features/User/userSlice';
+import { useSelector } from './store';
 
-import Page from './features/Page/Page';
-import DebugManager from './features/Debug/DebugManager';
-import UpdateManager from './features/Update/UpdateManager';
-import SyncManager from './features/Sync/SyncManager';
-import UserProvider from './features/User/UserProvider';
 import Loading from './Loading';
+import DebugManager from './features/Debug/DebugManager';
+import Page from './features/Page/Page';
+import SyncManager from './features/Sync/SyncManager';
+import UpdateManager from './features/Update/UpdateManager';
+import UserProvider from './features/User/UserProvider';
 
 const About = lazy(() => import('./pages/About'));
 const History = lazy(() => import('./pages/History'));

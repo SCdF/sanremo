@@ -35,7 +35,9 @@ function LogoutMenuItem(props: { onClick: () => void }) {
     setOpen(false);
   }
 
-  let menuTitle, dialogTitle, dialogSentence;
+  let menuTitle;
+  let dialogTitle;
+  let dialogSentence;
   if (isGuest) {
     menuTitle = 'Wipe Local';
     dialogTitle = 'Wipe local data?';

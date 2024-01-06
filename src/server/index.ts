@@ -2,11 +2,11 @@ import { readFileSync } from 'fs';
 
 import { debugServer } from './globals';
 
+import compression from 'compression';
+import cookieParser from 'cookie-parser';
 import express, { CookieOptions } from 'express';
 import session from 'express-session';
 import { SessionOptions } from 'express-session';
-import cookieParser from 'cookie-parser';
-import compression from 'compression';
 
 import http from 'http';
 import { Server as SocketServer } from 'socket.io';
@@ -14,10 +14,10 @@ import { Server as SocketServer } from 'socket.io';
 import bcrypt from 'bcryptjs';
 import pgConnect from 'connect-pg-simple';
 
-import syncRoutes from './sync/routes';
-import { db } from './db';
-import { ClientToServerEvents, ServerToClientEvents, User } from '../shared/types';
 import { Response } from 'express-serve-static-core';
+import { ClientToServerEvents, ServerToClientEvents, User } from '../shared/types';
+import { db } from './db';
+import syncRoutes from './sync/routes';
 
 const debugInit = debugServer('init');
 const debugAuth = debugServer('authentication');
@@ -81,7 +81,7 @@ declare module 'express-session' {
 if (process.env.NODE_ENV === 'production') {
   app.set('trust proxy', 1);
 
-  app.use(function (req, res, next) {
+  app.use((req, res, next) => {
     if (req.headers['x-forwarded-proto'] !== 'https') {
       res.set('location', `https://${req.hostname}${req.url}`);
       res.status(301);
@@ -99,7 +99,7 @@ app.use(express.static('dist/frontend')); // i.e. these should be compressed on 
 app.use(sesh);
 app.use(cookieParser(SECRET));
 
-const clientSideCookie = (res: Response<any, Record<string, any>, number>, user: User) => {
+const clientSideCookie = (res: Response<unknown, Record<string, unknown>, number>, user: User) => {
   const cookie = Object.assign({}, sess.cookie) as CookieOptions;
   cookie.httpOnly = false;
   cookie.signed = true;
@@ -110,7 +110,7 @@ const clientSideCookie = (res: Response<any, Record<string, any>, number>, user:
 // @ts-ignore TODO: make sure this works and if it does fix this ignore
 io.use((socket, next) => sesh(socket.request, {}, next)); // TODO: make sure this cares about double cookie middleware
 
-app.post('/api/auth', async function (req, res) {
+app.post('/api/auth', async (req, res) => {
   const username = req.body?.username?.toLowerCase();
   const password = req.body?.password;
 
@@ -134,9 +134,9 @@ app.post('/api/auth', async function (req, res) {
       // write cookie that javascript can clear
       clientSideCookie(res, req.session.user);
       return res.json(req.session.user);
-    } else {
-      debugAuth(`/api/auth request for ${username} denied, incorrect password`);
     }
+
+    debugAuth(`/api/auth request for ${username} denied, incorrect password`);
   } else {
     debugAuth(`/api/auth request for ${username} denied, no user by that name`);
   }
@@ -144,7 +144,7 @@ app.post('/api/auth', async function (req, res) {
   res.status(401);
   res.end();
 });
-app.put('/api/auth', async function (req, res) {
+app.put('/api/auth', async (req, res) => {
   const username = req.body?.username?.toLowerCase();
   const password = req.body?.password;
 
@@ -181,8 +181,8 @@ app.use('/api/*', (req, res, next) => {
 
   debugAuth(
     `${req.method}: ${req.originalUrl} with server: ${JSON.stringify(
-      serverUser
-    )}, client:${JSON.stringify(clientUser)}`
+      serverUser,
+    )}, client:${JSON.stringify(clientUser)}`,
   );
 
   if (
@@ -213,12 +213,10 @@ io.use((socket, next) => {
   }
 });
 
-app.get('/api/auth', function (req, res) {
-  return res.json(req.session.user);
-});
+app.get('/api/auth', (req, res) => res.json(req.session.user));
 
-app.get('/api/deployment', async function (req, res) {
-  const toReturn: Record<string, any> = {
+app.get('/api/deployment', async (req, res) => {
+  const toReturn: Record<string, unknown> = {
     release_version: process.env.npm_package_version,
   };
 

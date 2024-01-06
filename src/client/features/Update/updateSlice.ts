@@ -27,7 +27,7 @@ export const updateSlice = createSlice({
       state.lastChecked = Date.now();
     },
     checkForUpdate: (state) => {
-      delete state.lastChecked;
+      state.lastChecked = undefined;
     },
   },
 });

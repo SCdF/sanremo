@@ -19,7 +19,7 @@ export const userSlice = createSlice({
   reducers: {
     setUserAsLoggedIn: (
       state,
-      action: { payload: { user: User; needsServerAuthentication?: boolean } }
+      action: { payload: { user: User; needsServerAuthentication?: boolean } },
     ) => {
       state.value = action.payload.user;
       state.needsServerAuthentication = !!action.payload.needsServerAuthentication;
@@ -38,6 +38,6 @@ export const { setUserAsLoggedIn, setUserAsGuest, setUserAsUnauthenticated } = u
 //       Can we somehow hook this up to just the userSlice?
 export const selectIsGuest = createSelector(
   (state: RootState) => state.user.value,
-  (user) => user && 'guest' in user && user.guest
+  (user) => user && 'guest' in user && user.guest,
 );
 export default userSlice.reducer;

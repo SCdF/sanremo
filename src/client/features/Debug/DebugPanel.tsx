@@ -1,7 +1,7 @@
+import { TextField } from '@material-ui/core';
 import { ChangeEvent } from 'react';
 import { useDispatch, useSelector } from '../../store';
 import { set as setDebug } from './debugSlice';
-import { TextField } from '@material-ui/core';
 
 function DebugPanel() {
   const dispatch = useDispatch();

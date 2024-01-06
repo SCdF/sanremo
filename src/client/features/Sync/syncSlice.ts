@@ -37,20 +37,20 @@ export const syncSlice = createSlice({
       state.stale[action.payload._id] = action.payload;
     },
     cleanStale: (state, action: { payload: Doc[] }) => {
-      action.payload.forEach((doc: Doc) => {
+      for (const doc of action.payload) {
         const dirty = state.stale[doc._id];
         if (dirty?._rev === doc._rev) {
           delete state.stale[doc._id];
         }
-      });
+      }
     },
     requestSync: (state) => {
       state.state = State.requested;
     },
     startSync: (state) => {
       state.state = State.syncing;
-      delete state.progress;
-      delete state.error;
+      state.progress = undefined;
+      state.error = undefined;
       state.stale = {};
     },
     // TODO: should we store the count and total, do this math on display?
@@ -59,8 +59,9 @@ export const syncSlice = createSlice({
     },
     completeSync: (state) => {
       state.state = State.completed;
-      delete state.progress;
+      state.progress = undefined;
     },
+    // biome-ignore lint/suspicious/noExplicitAny: TODO type this properly
     syncError: (state, action: { payload: any }) => {
       const error = { name: action.payload.name, message: action.payload.message };
       if (error.message === 'Network Error') {

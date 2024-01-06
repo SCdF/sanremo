@@ -1,5 +1,5 @@
-import GetAppIcon from '@material-ui/icons/GetApp';
 import { Badge, ListItemIcon, MenuItem, Typography } from '@material-ui/core';
+import GetAppIcon from '@material-ui/icons/GetApp';
 import { useDispatch, useSelector } from '../../store';
 import { userReadyToUpdate } from './updateSlice';
 
@@ -23,9 +23,8 @@ function UpdateMenuItem(props: { onClick: () => void }) {
         <Typography>Update</Typography>
       </MenuItem>
     );
-  } else {
-    return null;
   }
+  return null;
 }
 
 export default UpdateMenuItem;

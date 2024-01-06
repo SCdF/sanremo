@@ -2,8 +2,8 @@ import { Fragment } from 'react';
 
 import { Button, ButtonGroup, CircularProgress, Tooltip } from '@material-ui/core';
 
-import { checkForUpdate, userReadyToUpdate } from './updateSlice';
 import { useDispatch, useSelector } from '../../store';
+import { checkForUpdate, userReadyToUpdate } from './updateSlice';
 
 import RelativeTime from '../../components/RelativeTime';
 

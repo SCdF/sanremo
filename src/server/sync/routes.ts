@@ -33,9 +33,9 @@ const POSTGRES_UNIQUE_VIOLATION = '23505';
  */
 export default function routes(
   app: Router,
-  io: SocketServer<ClientToServerEvents, ServerToClientEvents>
+  io: SocketServer<ClientToServerEvents, ServerToClientEvents>,
 ) {
-  app.post('/api/sync/begin', async function (req, res) {
+  app.post('/api/sync/begin', async (req, res) => {
     try {
       const stubs = req.body.docs || [];
       let results;
@@ -59,7 +59,7 @@ export default function routes(
       res.end();
     }
   });
-  app.post('/api/sync/request', async function (req, res) {
+  app.post('/api/sync/request', async (req, res) => {
     try {
       const stubs = req.body.docs || [];
       const results = await sync.request(req.session.user as User, stubs);
@@ -70,9 +70,10 @@ export default function routes(
       res.end();
     }
   });
-  app.post('/api/sync/update', async function (req, res) {
+  app.post('/api/sync/update', async (req, res) => {
     try {
       const docs = req.body.docs || [];
+      // biome-ignore lint/style/noNonNullAssertion: TODO do this right
       const user = req.session.user!;
 
       await sync.update(user, docs);
@@ -91,7 +92,7 @@ export default function routes(
   type SocketIdMap = Map<UserId, Set<string>>;
   const socketIds: SocketIdMap = new Map();
 
-  const broadcastDocUpdate = function (user: User, docs: Doc[], currentSocketId?: string) {
+  const broadcastDocUpdate = (user: User, docs: Doc[], currentSocketId?: string) => {
     const userSockets = Array.from(socketIds.get(user.id) || []);
 
     for (const socketId of userSockets) {
@@ -109,6 +110,7 @@ export default function routes(
     if (!socketIds.has(user.id)) {
       socketIds.set(user.id, new Set());
     }
+    // biome-ignore lint/style/noNonNullAssertion: TODO do this right
     const socketSet = socketIds.get(user.id)!;
     const socketId = socket.id;
 

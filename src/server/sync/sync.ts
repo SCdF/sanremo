@@ -1,6 +1,6 @@
+import { Doc, DocStub, User } from '../../shared/types';
 import { getDocs, getStubsForUser, putDocs } from './db';
 import { Requests } from './types';
-import { DocStub, Doc, User } from '../../shared/types';
 
 async function begin(user: User, clientStubs: DocStub[]): Promise<Requests> {
   const toReturn: Requests = {
@@ -21,6 +21,7 @@ async function begin(user: User, clientStubs: DocStub[]): Promise<Requests> {
       continue;
     }
 
+    // biome-ignore lint/style/noNonNullAssertion: FIXME really think about this
     const clientStub: DocStub = clientStubsById.get(serverStub._id)!;
 
     if (clientStub._deleted) {
@@ -62,7 +63,7 @@ async function begin(user: User, clientStubs: DocStub[]): Promise<Requests> {
 async function request(user: User, stubs: DocStub[]): Promise<Doc[]> {
   const serverDocs = await getDocs(
     user,
-    stubs.map((s) => s._id)
+    stubs.map((s) => s._id),
   );
 
   // TODO: make sure that the revision matches

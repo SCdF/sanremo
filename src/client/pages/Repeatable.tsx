@@ -1,22 +1,22 @@
 import { Fragment, useCallback, useEffect, useState } from 'react';
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { useParams, useNavigate, useLocation } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 
 import { Button, ButtonGroup } from '@material-ui/core';
 import DeleteIcon from '@material-ui/icons/Delete';
 
-import { v4 as uuid } from 'uuid';
 import qs from 'qs';
+import { v4 as uuid } from 'uuid';
 
-import { clearRepeatable, clearTemplate, setRepeatable } from '../state/docsSlice';
-import { setTemplate } from '../state/docsSlice';
-import { set as setContext } from '../features/Page/pageSlice';
-import { useDispatch, useSelector } from '../store';
 import { RepeatableDoc, TemplateDoc } from '../../shared/types';
+import db from '../db';
+import { set as setContext } from '../features/Page/pageSlice';
 import RepeatableRenderer from '../features/Repeatable/RepeatableRenderer';
 import { debugClient } from '../globals';
-import db from '../db';
+import { clearRepeatable, clearTemplate, setRepeatable } from '../state/docsSlice';
+import { setTemplate } from '../state/docsSlice';
+import { useDispatch, useSelector } from '../store';
 
 const debug = debugClient('repeatable');
 
@@ -46,8 +46,9 @@ function Repeatable() {
           .template as string;
         const template: TemplateDoc = await handle.get(templateId);
 
-        let created, updated, slug;
-        created = updated = Date.now();
+        const created = Date.now();
+        const updated = created;
+        let slug;
         if (['date', 'timestamp'].includes(template.slug.type)) {
           slug = Date.now();
         } else {
@@ -88,7 +89,7 @@ function Repeatable() {
               title: template.title,
               back: true,
               under: 'home',
-            })
+            }),
           );
           dispatch(setRepeatable(repeatable));
           dispatch(setTemplate(template));
@@ -129,6 +130,7 @@ function Repeatable() {
   async function uncomplete() {
     const copy = Object.assign({}, repeatable);
 
+    // biome-ignore lint/performance/noDelete: TODO work out if we can just cahnge this
     delete copy.completed;
     await handle.userPut(copy);
     dispatch(setRepeatable(copy));
@@ -137,12 +139,12 @@ function Repeatable() {
   // PERF: stop this from referencing the repeatable or its values
   // if we can do that (ie just call changes onto redux) this func won't regenerate and force unneccessary rerenders
   const handleToggle = useCallback(
-    async function (idx: number) {
+    async (idx: number) => {
       const now = Date.now();
       const copy = Object.assign({}, repeatable);
       copy.values = Array.from(copy.values);
 
-      copy.values[idx] = !!!copy.values[idx];
+      copy.values[idx] = !copy.values[idx];
 
       copy.updated = now;
 
@@ -153,7 +155,7 @@ function Repeatable() {
         dispatch(setRepeatable(copy));
       });
     },
-    [dispatch, handle, repeatable]
+    [dispatch, handle, repeatable],
   );
 
   if (!(repeatable && template)) {
@@ -183,6 +185,7 @@ function Repeatable() {
           color="primary"
           variant="contained"
           //@ts-ignore
+          // biome-ignore lint/suspicious/noAssignInExpressions: FIXME come back to this madness
           ref={(node) => (this.button = node)}
         >
           Complete

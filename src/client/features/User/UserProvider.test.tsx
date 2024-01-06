@@ -1,10 +1,10 @@
-import axios, { CancelTokenSource } from 'axios';
-import { createStore, RootState } from '../../store';
 import { render as renderRtl, screen, waitFor } from '@testing-library/react';
+import axios, { CancelTokenSource } from 'axios';
 import { Provider } from 'react-redux';
-import { Store, AnyAction } from 'redux';
 import { MemoryRouter } from 'react-router';
+import { AnyAction, Store } from 'redux';
 import { mocked } from 'ts-jest/utils';
+import { RootState, createStore } from '../../store';
 import UserProvider from './UserProvider';
 import { GuestUser } from './userSlice';
 
@@ -38,7 +38,7 @@ describe('user authentication', () => {
     renderRtl(
       <Provider store={store}>
         <MemoryRouter>{children}</MemoryRouter>
-      </Provider>
+      </Provider>,
     );
   }
 

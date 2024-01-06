@@ -1,10 +1,10 @@
-import { useNavigate } from 'react-router-dom';
 import { render as renderRtl, screen } from '@testing-library/react';
 import { Provider } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
 
-import Page from './Page';
 import { createStore } from '../../store';
 import { setUserAsLoggedIn } from '../User/userSlice';
+import Page from './Page';
 import { set as setPageContext } from './pageSlice';
 
 jest.mock('react-router-dom');

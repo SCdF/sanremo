@@ -2,14 +2,14 @@ import { Button, Container, FormHelperText, TextField } from '@material-ui/core'
 import { FormEvent, useState } from 'react';
 import { useDispatch } from 'react-redux';
 
-import { setUserAsLoggedIn } from './userSlice';
 import axios from 'axios';
 import { User } from '../../../shared/types';
 import { migrateFromGuest } from '../../db';
+import { setUserAsLoggedIn } from './userSlice';
 
 export enum Action {
-  Create,
-  Authenticate,
+  Create = 0,
+  Authenticate = 1,
 }
 function UserAuthenticationWidget(props: { username?: string; action: Action }) {
   const dispatch = useDispatch();
@@ -36,7 +36,7 @@ function UserAuthenticationWidget(props: { username?: string; action: Action }) 
         {
           username,
           password,
-        }
+        },
       );
       const user: User = response.data;
 

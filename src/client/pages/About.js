@@ -4,12 +4,12 @@ import { Link } from '@material-ui/core';
 import { Fragment, useEffect, useState } from 'react';
 import { useDispatch } from 'react-redux';
 
-import { set as setContext } from '../features/Page/pageSlice';
-import { useSelector } from '../store';
-import UpdatePanel from '../features/Update/UpdatePanel';
-import DebugPanel from '../features/Debug/DebugPanel';
-import SyncPanel from '../features/Sync/SyncPanel';
 import db from '../db';
+import DebugPanel from '../features/Debug/DebugPanel';
+import { set as setContext } from '../features/Page/pageSlice';
+import SyncPanel from '../features/Sync/SyncPanel';
+import UpdatePanel from '../features/Update/UpdatePanel';
+import { useSelector } from '../store';
 
 function mapProps(parent, info) {
   return Object.keys(info)
@@ -53,9 +53,9 @@ function About(props) {
             ],
           ];
 
-          response.data.users?.forEach((user) => {
+          for (const user of response.data.users) {
             data.push([`${user.id}.${user.username}`, user.count]);
-          });
+          }
 
           setServerInfo(data);
         })
@@ -68,7 +68,7 @@ function About(props) {
         title: 'About',
         back: true,
         under: 'about',
-      })
+      }),
     );
   }, [dispatch]);
 
@@ -85,6 +85,7 @@ function About(props) {
       <table>
         <tbody>
           {vars.map(([k, v], idx) => (
+            // biome-ignore lint/suspicious/noArrayIndexKey: it's fine in this case
             <tr key={idx}>
               <td>{k}</td>
               <td>{v}</td>

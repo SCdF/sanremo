@@ -1,11 +1,11 @@
-import React, { FC, Fragment, useEffect } from 'react';
-import cookie from 'cookie';
 import axios from 'axios';
-import { debugClient } from '../../globals';
+import cookie from 'cookie';
+import React, { FC, Fragment, useEffect } from 'react';
 import { User } from '../../../shared/types';
+import Loading from '../../Loading';
+import { debugClient } from '../../globals';
 import { useDispatch, useSelector } from '../../store';
 import { setUserAsGuest, setUserAsLoggedIn } from './userSlice';
-import Loading from '../../Loading';
 
 const debug = debugClient('auth');
 
@@ -16,7 +16,7 @@ const UserProvider: FC = ({ children }) => {
 
   useEffect(() => {
     // Check the server for authentication against the server-side cookie
-    async function networkCheck(): Promise<User | 'auth_error' | void> {
+    async function networkCheck(): Promise<User | 'auth_error' | undefined> {
       debug('server authentication check');
       const source = axios.CancelToken.source();
       setTimeout(() => source.cancel(), 1000);
@@ -32,9 +32,8 @@ const UserProvider: FC = ({ children }) => {
             // authentication failed, either because they have no cookie or because it's wrong / outdated
             debug('server authentication check failed');
             return 'auth_error';
-          } else {
-            debug(`network (axios) issues: ${error.message}`);
           }
+          debug(`network (axios) issues: ${error.message}`);
         } else {
           console.error('unexpected error in networkCheck', error, source);
         }
@@ -42,7 +41,7 @@ const UserProvider: FC = ({ children }) => {
     }
 
     // Parse the user from the client-side cookie.
-    function localCookieCheck(): User | void {
+    function localCookieCheck(): User | undefined {
       debug('local cookie check');
       try {
         // 's:j:{...data...}.<secret-signed-signature>'
@@ -54,10 +53,9 @@ const UserProvider: FC = ({ children }) => {
           const backStripped = frontStripped.slice(0, frontStripped.lastIndexOf('.'));
           const user: User = JSON.parse(backStripped);
           return user;
-        } else {
-          // no client cookie at all means not logged in
-          debug('no local cookie found');
         }
+        // no client cookie at all means not logged in
+        debug('no local cookie found');
       } catch (error) {
         // Something went wrong with parsing. This indicates a bug or nefarious behaviour.
         // Treat as logged out, though maybe we should consider something stronger here.
@@ -89,7 +87,7 @@ const UserProvider: FC = ({ children }) => {
         //       and "lose" your work against sanremo-a as you'll now use sanremo-b.
         // For now though, proceed like it's valid, but mark the user as requiring re-auth with the server
         debug(
-          'server auth unsuccessful, local cookie valid, proceeding as user on existing local data'
+          'server auth unsuccessful, local cookie valid, proceeding as user on existing local data',
         );
         dispatch(setUserAsLoggedIn({ user: localUserCheck, needsServerAuthentication: true }));
       } else {
@@ -109,6 +107,7 @@ const UserProvider: FC = ({ children }) => {
     return <Loading />;
   }
 
+  // biome-ignore lint/complexity/noUselessFragments: TODO removing this causes type issues, investigate
   return <Fragment>{children}</Fragment>;
 };
 
