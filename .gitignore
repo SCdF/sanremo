@@ -8,6 +8,7 @@
 !.yarn/versions
 .pnp.*
 .parcel-cache/
+parcel-bundle-reports
 node_modules
 
 # testing
@@ -28,3 +29,4 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 sanremo/
+package.json
