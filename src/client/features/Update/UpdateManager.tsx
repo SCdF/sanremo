@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { debugClient } from '../../globals';
 
+import * as serviceWorkerRegistration from '../../serviceWorkerRegistration';
 import { useDispatch, useSelector } from '../../store';
 import { checkForUpdate, noUpdateReady, updateReadyToInstall } from './updateSlice';
 
@@ -9,7 +10,7 @@ const debug = debugClient('update');
 // TODO: benchmark this and see if it's actually worth it
 // the idea is that your browser can concentrate on loading the app and do this later
 // unclear if this makes a meaningful difference to performance though
-const INITIALIZATION_DELAY = 1000 * 5;
+const INITIALIZATION_DELAY = 1 * 5;
 const UPDATE_CHECK_INTERVAL = 1000 * 60 * 60 * 4;
 
 function UpdateManager() {
@@ -54,24 +55,21 @@ function UpdateManager() {
         }
       };
 
-      navigator.serviceWorker
-        .register(new URL('service-worker.js', import.meta.url), {
-          type: 'module',
-        })
-        .then((swr) => {
+      serviceWorkerRegistration.register({
+        onUpdate: (reg) => {
+          debug('update is possible');
+          dispatch(updateReadyToInstall());
+        },
+        onReady: (reg) => {
           debug('service worker registered successfully');
           dispatch(noUpdateReady());
-          setRegistration(swr);
+          setRegistration(reg);
 
           setInterval(() => {
             dispatch(checkForUpdate());
           }, UPDATE_CHECK_INTERVAL);
-
-          swr.addEventListener('updatefound', () => {
-            debug('update is possible');
-            dispatch(updateReadyToInstall());
-          });
-        });
+        },
+      });
     };
     setTimeout(initializeServiceWorker, INITIALIZATION_DELAY);
   }, [dispatch]);

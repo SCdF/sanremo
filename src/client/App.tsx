@@ -44,6 +44,7 @@ function App() {
       <DebugManager />
       {/* 'development' === `npm run dev`, so auto-reloading */}
       {/* {process.env.NODE_ENV !== 'development' && <UpdateManager />} */}
+      <UpdateManager />
       <UserProvider>
         <SyncManager />
         <Page>

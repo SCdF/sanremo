@@ -10472,6 +10472,9 @@ __metadata:
     ts-node: "npm:^10.9.2"
     typescript: "npm:^4.4.3"
     uuid: "npm:^8.3.2"
+    workbox-core: "npm:^5.1.4"
+    workbox-precaching: "npm:^5.1.4"
+    workbox-routing: "npm:^5.1.4"
   languageName: unknown
   linkType: soft
 
@@ -11877,6 +11880,31 @@ __metadata:
   bin:
     node-which: bin/which.js
   checksum: 449fa5c44ed120ccecfe18c433296a4978a7583bf2391c50abce13f76878d2476defde04d0f79db8165bdf432853c1f8389d0485ca6e8ebce3bbcded513d5e6a
+  languageName: node
+  linkType: hard
+
+"workbox-core@npm:^5.1.4":
+  version: 5.1.4
+  resolution: "workbox-core@npm:5.1.4"
+  checksum: 45e386207ef3f56a98745fa704875d3fb07d90d7da572581411c9ceea4bb06d2fe22287ef2f6c666e3abe0df16fb16d342aa26edc3f9308669d040a931e6637b
+  languageName: node
+  linkType: hard
+
+"workbox-precaching@npm:^5.1.4":
+  version: 5.1.4
+  resolution: "workbox-precaching@npm:5.1.4"
+  dependencies:
+    workbox-core: "npm:^5.1.4"
+  checksum: c688d204d6913d4f36b540593ea190f230bf342b20638ed51a99d6f1b1fec132fabc5f8994b476b7744aa40ce315fef2146912c9030d83bb9c5cd496f4c3a610
+  languageName: node
+  linkType: hard
+
+"workbox-routing@npm:^5.1.4":
+  version: 5.1.4
+  resolution: "workbox-routing@npm:5.1.4"
+  dependencies:
+    workbox-core: "npm:^5.1.4"
+  checksum: adb38993bdc94724e6dd4949964d4ccbfa44c84051301916a196c5d0195e77086601120aed368aea6d64445fe6c114f0ee81b4383aedd80a3114498e09e150b7
   languageName: node
   linkType: hard
 
