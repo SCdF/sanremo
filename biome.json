@@ -2,7 +2,12 @@
   "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
   "formatter": {
     "indentStyle": "space",
-    "lineWidth": 100,
     "formatWithErrors": true
+  },
+  "javascript": {
+    "formatter": {
+      "quoteStyle": "single",
+      "lineWidth": 100
+    }
   }
 }
