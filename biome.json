@@ -9,5 +9,8 @@
       "quoteStyle": "single",
       "lineWidth": 100
     }
+  },
+  "files": {
+    "ignore": ["package.json"]
   }
 }
