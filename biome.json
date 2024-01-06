@@ -11,6 +11,6 @@
     }
   },
   "files": {
-    "ignore": ["package.json"]
+    "ignore": ["package.json", "src/client/db-mirror.ts"]
   }
 }

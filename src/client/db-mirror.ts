@@ -38,7 +38,7 @@ export default function mirrored(db: Database, loggedInUser: User | Guest): Data
   );
 
   return new Proxy(db, {
-    get: (idb: Database, prop, receiver) => {
+    get: function (idb: Database, prop, receiver) {
       // skipping these because:
       //   userPut: our own function, just calls db.put which will be caught later
       //   changes: not a promise and not really possible to bench, only used in setup.ts as of writing
@@ -49,8 +49,7 @@ export default function mirrored(db: Database, loggedInUser: User | Guest): Data
 
       const dbg = debug(String(prop));
 
-      return () => {
-        // biome-ignore lint/style/noArguments: FIXME come back to this one
+      return function () {
         const args = arguments;
         return indexeddbPromise.then(async (indexeddb: Database) => {
           let idbTime = performance.now();
@@ -78,8 +77,8 @@ export default function mirrored(db: Database, loggedInUser: User | Guest): Data
           }
 
           const diff = DeepDiff.diff(idbResult, indexeddbResult);
-          if (diff?.length) {
-            debug(String(prop))('returned different results', idbResult, indexeddbResult, diff);
+          if (diff && diff.length) {
+            debug(String(prop))(`returned different results`, idbResult, indexeddbResult, diff);
             console.warn(`${String(prop)} returned different results`, {
               idbResult,
               indexeddbResult,
