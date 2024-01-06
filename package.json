@@ -5,7 +5,7 @@
   "scripts": {
     "start": "node ./dist/backend",
     "start:local": "DATABASE_URL=postgres://scdfR@localhost PORT=5000 yarn start",
-    "clean": "rm -r dist 2> /dev/null",
+    "clean": "rm -r dist 2> /dev/null || true",
     "check": "biome check src && tsc --noEmit -p src/client/tsconfig.json && tsc --noEmit -p src/server/tsconfig.json",
     "build:client": "parcel build --target frontend --reporter @parcel/reporter-bundle-analyzer",
     "build:server": "parcel build --target backend --reporter @parcel/reporter-bundle-analyzer",
