@@ -4,11 +4,11 @@ import {
   Divider,
   IconButton,
   ListItemIcon,
-  makeStyles,
   Menu,
   MenuItem,
   Toolbar,
   Typography,
+  makeStyles,
 } from '@material-ui/core';
 // TODO: configure babel properly so we can use { ArrowBack } etc instead
 // https://material-ui.com/guides/minimizing-bundle-size/#option-2
@@ -17,18 +17,18 @@ import CheckBoxIcon from '@material-ui/icons/CheckBox';
 import HistoryIcon from '@material-ui/icons/History';
 import InfoIcon from '@material-ui/icons/Info';
 
-import { useNavigate } from 'react-router-dom';
 import React, { FC, useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
-import SyncWidget from '../Sync/SyncWidget';
 import store, { useSelector } from '../../store';
-import { PageContext } from './pageSlice';
 import { RepeatableSlug } from '../Repeatable/RepeatableSlug';
+import SyncWidget from '../Sync/SyncWidget';
 import UpdateMenuItem from '../Update/UpdateMenuItem';
-import UserMenuBadge from '../User/UserMenuBadge';
-import { UserMenuItem, UserMenuDialog } from '../User/UserMenuItem';
 import LogoutMenuItem from '../User/LogoutMenuItem';
+import UserMenuBadge from '../User/UserMenuBadge';
+import { UserMenuDialog, UserMenuItem } from '../User/UserMenuItem';
 import { selectIsGuest } from '../User/userSlice';
+import { PageContext } from './pageSlice';
 
 const useStyles = makeStyles((theme) => ({
   grow: {
@@ -68,7 +68,7 @@ const Page: FC = ({ children }) => {
     setAnchorEl(event.currentTarget);
   }
   function handleMenuClose() {
-    setAnchorEl(null!);
+    setAnchorEl(null as unknown as HTMLButtonElement);
   }
   function navigate(to: string | number) {
     handleMenuClose();

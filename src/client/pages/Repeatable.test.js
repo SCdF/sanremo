@@ -1,12 +1,12 @@
 import { fireEvent, render as renderRtl, screen, waitFor } from '@testing-library/react';
-import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import { Provider } from 'react-redux';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 
 import db from '../db';
 
-import Repeatable from './Repeatable';
-import { createStore } from '../store';
 import { setUserAsLoggedIn } from '../features/User/userSlice';
+import { createStore } from '../store';
+import Repeatable from './Repeatable';
 
 jest.mock('react-router-dom');
 jest.mock('../db');
@@ -99,7 +99,8 @@ describe.skip('Repeatable', () => {
   });
 
   describe('completion redirection semantics', () => {
-    let repeatable, template;
+    let repeatable;
+    let template;
     beforeEach(() => {
       repeatable = {
         _id: 'repeatable:instance:1234',

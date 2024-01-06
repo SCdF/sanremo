@@ -1,3 +1,6 @@
+// FIXME: replace as much of this with PouchDB types
+// type Foo = PouchDB.Core.ExistingDocument<RepeatableDoc>;
+
 export type DocId = string;
 export type DocRev = string;
 export interface Doc {
@@ -25,7 +28,7 @@ export interface RepeatableDoc extends Doc {
   created: number;
   updated: number;
   completed?: number;
-  values: any[];
+  values: unknown[];
 }
 
 export interface TemplateDoc extends Doc {
@@ -39,7 +42,7 @@ export interface TemplateDoc extends Doc {
   created: number;
   updated: number;
   versioned: number;
-  values: any[];
+  values: unknown[];
 }
 
 export interface ServerToClientEvents {

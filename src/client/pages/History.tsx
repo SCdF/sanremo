@@ -1,12 +1,14 @@
 import { useEffect, useState } from 'react';
 
-import { List, makeStyles, Typography } from '@material-ui/core';
+import { List, Typography, makeStyles } from '@material-ui/core';
 
 import { set as setContext } from '../features/Page/pageSlice';
 
+import { RepeatableDoc, TemplateDoc } from '../../shared/types';
+import db from '../db';
 import RepeatableListItem from '../features/Repeatable/RepeatableListItem';
 import { useDispatch, useSelector } from '../store';
-import db from '../db';
+import { SortableRepeatableDoc } from './Home';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -16,7 +18,7 @@ const useStyles = makeStyles((theme) => ({
 
 function History() {
   const classes = useStyles();
-  const [repeatables, setRepeatables] = useState([] as Record<string, any>[]);
+  const [repeatables, setRepeatables] = useState([] as SortableRepeatableDoc[]);
   const dispatch = useDispatch();
 
   const user = useSelector((state) => state.user.value);
@@ -30,11 +32,12 @@ function History() {
       setContext({
         title: 'History',
         under: 'history',
-      })
+      }),
     );
   }, [dispatch]);
 
   // NB: this code also exists in Home.js using updated instead of completed
+  // biome-ignore lint/correctness/useExhaustiveDependencies: we need the timestamp to trigger
   useEffect(() => {
     async function loadRepeatables() {
       const { docs: repeatables } = (await handle.find({
@@ -42,13 +45,13 @@ function History() {
           _id: { $gt: 'repeatable:instance:', $lte: 'repeatable:instance:\uffff' },
           completed: { $exists: true },
         },
-        fields: ['_id', 'template', `completed`, 'slug'],
+        fields: ['_id', 'template', 'completed', 'slug'],
         // FIXME: there is a bug / missing feature in PouchDB where you sort won't work in this
         // situation because the query planner decides to use the default index, presumably because
         // sort doesn't match the selector (as written here it uses a [_id, completed] index).
         // We should see what CouchDB does in this situation and make sure it's the same
         // sort: [{completed: 'desc'}]
-      })) as { docs: Record<string, any>[] };
+      })) as { docs: SortableRepeatableDoc[] };
 
       // Replace template id with real thing
       const templateIds = [...new Set(repeatables.map((d) => d.template))];
@@ -62,14 +65,15 @@ function History() {
       })) as { docs: PouchDB.Core.ExistingDocument<{ title: string; slug: { type: string } }>[] };
 
       const templateMap = new Map(templates.map((t) => [t._id, t]));
-      repeatables.forEach((r) => {
+      for (const r of repeatables) {
         r.timestamp = r.completed;
+        // biome-ignore lint/performance/noDelete: TODO work out if this matters
         delete r.completed;
-        r.template = templateMap.get(r.template);
-      });
+        r.template = templateMap.get(r.template as string) as TemplateDoc;
+      }
 
       // As the FIXME: mentions above, sort manually
-      setRepeatables(repeatables.sort((d1, d2) => d2.timestamp - d1.timestamp));
+      setRepeatables(repeatables.sort((d1, d2) => d2.timestamp || 0 - (d1.timestamp || 0)));
     }
 
     // TODO: sort out logging / elevation for errors

@@ -1471,6 +1471,77 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@biomejs/biome@npm:1.4.1":
+  version: 1.4.1
+  resolution: "@biomejs/biome@npm:1.4.1"
+  dependencies:
+    "@biomejs/cli-darwin-arm64": "npm:1.4.1"
+    "@biomejs/cli-darwin-x64": "npm:1.4.1"
+    "@biomejs/cli-linux-arm64": "npm:1.4.1"
+    "@biomejs/cli-linux-x64": "npm:1.4.1"
+    "@biomejs/cli-win32-arm64": "npm:1.4.1"
+    "@biomejs/cli-win32-x64": "npm:1.4.1"
+  dependenciesMeta:
+    "@biomejs/cli-darwin-arm64":
+      optional: true
+    "@biomejs/cli-darwin-x64":
+      optional: true
+    "@biomejs/cli-linux-arm64":
+      optional: true
+    "@biomejs/cli-linux-x64":
+      optional: true
+    "@biomejs/cli-win32-arm64":
+      optional: true
+    "@biomejs/cli-win32-x64":
+      optional: true
+  bin:
+    biome: bin/biome
+  checksum: 11d3a6d0ac0e31c6f5e5e33a46a77b4e1f0846a1d6c023b597a472266e911ce5ad0513b1946eedc37d31547785909c87110e803c69f564a36d4ff045d01ed243
+  languageName: node
+  linkType: hard
+
+"@biomejs/cli-darwin-arm64@npm:1.4.1":
+  version: 1.4.1
+  resolution: "@biomejs/cli-darwin-arm64@npm:1.4.1"
+  conditions: os=darwin & cpu=arm64
+  languageName: node
+  linkType: hard
+
+"@biomejs/cli-darwin-x64@npm:1.4.1":
+  version: 1.4.1
+  resolution: "@biomejs/cli-darwin-x64@npm:1.4.1"
+  conditions: os=darwin & cpu=x64
+  languageName: node
+  linkType: hard
+
+"@biomejs/cli-linux-arm64@npm:1.4.1":
+  version: 1.4.1
+  resolution: "@biomejs/cli-linux-arm64@npm:1.4.1"
+  conditions: os=linux & cpu=arm64
+  languageName: node
+  linkType: hard
+
+"@biomejs/cli-linux-x64@npm:1.4.1":
+  version: 1.4.1
+  resolution: "@biomejs/cli-linux-x64@npm:1.4.1"
+  conditions: os=linux & cpu=x64
+  languageName: node
+  linkType: hard
+
+"@biomejs/cli-win32-arm64@npm:1.4.1":
+  version: 1.4.1
+  resolution: "@biomejs/cli-win32-arm64@npm:1.4.1"
+  conditions: os=win32 & cpu=arm64
+  languageName: node
+  linkType: hard
+
+"@biomejs/cli-win32-x64@npm:1.4.1":
+  version: 1.4.1
+  resolution: "@biomejs/cli-win32-x64@npm:1.4.1"
+  conditions: os=win32 & cpu=x64
+  languageName: node
+  linkType: hard
+
 "@cnakazawa/watch@npm:^1.0.3":
   version: 1.0.4
   resolution: "@cnakazawa/watch@npm:1.0.4"
@@ -9635,15 +9706,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"prettier@npm:^2.3.2":
-  version: 2.8.8
-  resolution: "prettier@npm:2.8.8"
-  bin:
-    prettier: bin-prettier.js
-  checksum: 463ea8f9a0946cd5b828d8cf27bd8b567345cf02f56562d5ecde198b91f47a76b7ac9eae0facd247ace70e927143af6135e8cf411986b8cb8478784a4d6d724a
-  languageName: node
-  linkType: hard
-
 "pretty-format@npm:^22.4.3":
   version: 22.4.3
   resolution: "pretty-format@npm:22.4.3"
@@ -10332,6 +10394,7 @@ __metadata:
     "@babel/preset-env": "npm:^7.23.7"
     "@babel/preset-react": "npm:^7.23.3"
     "@babel/preset-typescript": "npm:^7.23.3"
+    "@biomejs/biome": "npm:1.4.1"
     "@material-ui/core": "npm:^4.11.3"
     "@material-ui/icons": "npm:^4.11.2"
     "@parcel/packager-raw-url": "npm:^2.11.0"
@@ -10384,7 +10447,6 @@ __metadata:
     pouchdb-adapter-indexeddb: "npm:^7.2.2"
     pouchdb-core: "npm:^7.2.2"
     pouchdb-find: "npm:^7.2.2"
-    prettier: "npm:^2.3.2"
     process: "npm:^0.11.10"
     qs: "npm:^6.5.2"
     react: "npm:^17.0.1"

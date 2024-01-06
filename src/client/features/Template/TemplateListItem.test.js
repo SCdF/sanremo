@@ -7,7 +7,7 @@ test('renders without crashing', async () => {
   render(
     <MemoryRouter>
       <TemplateListItem _id="abc" title="Template ListItem" />
-    </MemoryRouter>
+    </MemoryRouter>,
   );
 
   const [create, edit] = screen.getAllByRole('button');

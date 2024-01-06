@@ -16,6 +16,7 @@ import { selectIsGuest } from './userSlice';
 // We are doing a weird forward ref here, due to a leaky MUI menu abstraction:
 // https://stackoverflow.com/questions/56307332/how-to-use-custom-functional-components-within-material-ui-menu
 // tl;dr, we need to forward the menu's ref because we are at the top of the menu
+// biome-ignore lint/suspicious/noExplicitAny: FIXME once we update MUI do we still need to do this?
 export const UserMenuItem = React.forwardRef<any, { onClick: () => void }>(({ onClick }, ref) => {
   const username = useSelector((state) => state.user.value?.name);
   const isGuest = useSelector(selectIsGuest);
@@ -50,7 +51,8 @@ export const UserMenuDialog: FC<{ open: boolean; onClose: () => void }> = ({ ope
   const isGuest = useSelector(selectIsGuest);
   const requiresReauthentication = useSelector((state) => state.user.needsServerAuthentication);
 
-  let title, content;
+  let title;
+  let content;
 
   if (isGuest) {
     title = 'Create / Login';

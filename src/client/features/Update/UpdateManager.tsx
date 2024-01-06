@@ -1,9 +1,8 @@
-import { debugClient } from '../../globals';
 import { useEffect, useState } from 'react';
+import { debugClient } from '../../globals';
 
-import * as serviceWorkerRegistration from '../../service-workers/serviceWorkerRegistration';
-import { checkForUpdate, noUpdateReady, updateReadyToInstall } from './updateSlice';
 import { useDispatch, useSelector } from '../../store';
+import { checkForUpdate, noUpdateReady, updateReadyToInstall } from './updateSlice';
 
 const debug = debugClient('update');
 
@@ -21,14 +20,14 @@ function UpdateManager() {
   const lastChecked = useSelector((state) => state.update.lastChecked);
 
   const [registration, setRegistration] = useState(
-    undefined as unknown as ServiceWorkerRegistration
+    undefined as unknown as ServiceWorkerRegistration,
   );
 
   useEffect(() => {
     if (registration && waitingToInstall && userReadyToUpdate) {
       debug('prepped update is set to install');
       // registration.update(); // maybe to get freshest freshest?
-      registration.waiting && registration.waiting.postMessage({ type: 'SKIP_WAITING' });
+      registration.waiting?.postMessage({ type: 'SKIP_WAITING' });
     }
   }, [registration, userReadyToUpdate, waitingToInstall]);
 
@@ -47,32 +46,33 @@ function UpdateManager() {
     updateCheck();
   }, [dispatch, lastChecked, registration]);
 
-  useEffect(() => {
-    const initializeServiceWorker = () => {
-      navigator.serviceWorker.onmessage = (event) => {
-        if (event?.data?.type === 'reload_ready') {
-          window.location.reload();
-        }
-      };
+  // FIXME: add back the service worker
+  // useEffect(() => {
+  //   const initializeServiceWorker = () => {
+  //     navigator.serviceWorker.onmessage = (event) => {
+  //       if (event?.data?.type === 'reload_ready') {
+  //         window.location.reload();
+  //       }
+  //     };
 
-      serviceWorkerRegistration.register({
-        onUpdate: (reg) => {
-          debug('update is possible');
-          dispatch(updateReadyToInstall());
-        },
-        onReady: (reg) => {
-          debug('service worker registered successfully');
-          dispatch(noUpdateReady());
-          setRegistration(reg);
+  //     serviceWorkerRegistration.register({
+  //       onUpdate: (reg) => {
+  //         debug('update is possible');
+  //         dispatch(updateReadyToInstall());
+  //       },
+  //       onReady: (reg) => {
+  //         debug('service worker registered successfully');
+  //         dispatch(noUpdateReady());
+  //         setRegistration(reg);
 
-          setInterval(() => {
-            dispatch(checkForUpdate());
-          }, UPDATE_CHECK_INTERVAL);
-        },
-      });
-    };
-    setTimeout(initializeServiceWorker, INITIALIZATION_DELAY);
-  }, [dispatch]);
+  //         setInterval(() => {
+  //           dispatch(checkForUpdate());
+  //         }, UPDATE_CHECK_INTERVAL);
+  //       },
+  //     });
+  //   };
+  //   setTimeout(initializeServiceWorker, INITIALIZATION_DELAY);
+  // }, [dispatch]);
 
   return null;
 }

@@ -26,7 +26,7 @@ describe('Repeatable Renderer', () => {
           markdown={'- [ ] check me'}
           values={[]}
           onChange={() => NOOP()}
-        />
+        />,
       );
 
       const cb: HTMLInputElement = (await screen.findByRole('checkbox')) as HTMLInputElement;
@@ -40,7 +40,7 @@ describe('Repeatable Renderer', () => {
           markdown={'- [ ] check me'}
           values={[true]}
           onChange={() => NOOP()}
-        />
+        />,
       );
 
       const cb: HTMLInputElement = (await screen.findByRole('checkbox')) as HTMLInputElement;
@@ -55,7 +55,7 @@ describe('Repeatable Renderer', () => {
           markdown={'- [ ] check me'}
           values={[]}
           onChange={onChange}
-        />
+        />,
       );
 
       const cb: HTMLInputElement = (await screen.findByRole('checkbox')) as HTMLInputElement;
@@ -73,11 +73,11 @@ describe('Repeatable Renderer', () => {
           markdown={'- [ ] do not check me\n- [ ] check me instead'}
           values={[]}
           onChange={onChange}
-        />
+        />,
       );
 
       const cbs: HTMLInputElement[] = (await screen.findAllByRole(
-        'checkbox'
+        'checkbox',
       )) as HTMLInputElement[];
 
       fireEvent.click(cbs[1]);

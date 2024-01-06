@@ -1,14 +1,14 @@
-import PouchDB from 'pouchdb-core';
 import IdbAdapter from 'pouchdb-adapter-idb';
+import PouchDB from 'pouchdb-core';
 import Find from 'pouchdb-find';
 
 import DeepDiff from 'deep-diff';
 
-import { User } from '../shared/types';
 import { Debugger } from 'debug';
-import { debugClient } from './globals';
-import { Guest } from './features/User/userSlice';
+import { User } from '../shared/types';
 import { Database } from './db';
+import { Guest } from './features/User/userSlice';
+import { debugClient } from './globals';
 
 PouchDB.plugin(IdbAdapter);
 PouchDB.plugin(Find);
@@ -34,11 +34,11 @@ export default function mirrored(db: Database, loggedInUser: User | Guest): Data
         auto_compaction: true,
         adapter: 'indexeddb',
       }) as Database;
-    }
+    },
   );
 
   return new Proxy(db, {
-    get: function (idb: Database, prop, receiver) {
+    get: (idb: Database, prop, receiver) => {
       // skipping these because:
       //   userPut: our own function, just calls db.put which will be caught later
       //   changes: not a promise and not really possible to bench, only used in setup.ts as of writing
@@ -49,7 +49,8 @@ export default function mirrored(db: Database, loggedInUser: User | Guest): Data
 
       const dbg = debug(String(prop));
 
-      return function () {
+      return () => {
+        // biome-ignore lint/style/noArguments: FIXME come back to this one
         const args = arguments;
         return indexeddbPromise.then(async (indexeddb: Database) => {
           let idbTime = performance.now();
@@ -65,20 +66,20 @@ export default function mirrored(db: Database, loggedInUser: User | Guest): Data
           if (indexeddbTime < idbTime) {
             dbg(
               `indexeddb (${displayTime(indexeddbTime)}) was faster by ${displayTime(
-                idbTime - indexeddbTime
-              )}`
+                idbTime - indexeddbTime,
+              )}`,
             );
           } else {
             dbg(
               `indexeddb (${displayTime(indexeddbTime)}) was SLOWER by ${displayTime(
-                indexeddbTime - idbTime
-              )}`
+                indexeddbTime - idbTime,
+              )}`,
             );
           }
 
           const diff = DeepDiff.diff(idbResult, indexeddbResult);
-          if (diff && diff.length) {
-            debug(String(prop))(`returned different results`, idbResult, indexeddbResult, diff);
+          if (diff?.length) {
+            debug(String(prop))('returned different results', idbResult, indexeddbResult, diff);
             console.warn(`${String(prop)} returned different results`, {
               idbResult,
               indexeddbResult,

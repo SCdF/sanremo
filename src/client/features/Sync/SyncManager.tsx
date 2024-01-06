@@ -1,27 +1,27 @@
 // TODO: drop axios and just use fetch
 import axios from 'axios';
-import { io, Socket } from 'socket.io-client';
+import { Socket, io } from 'socket.io-client';
 
 import { useEffect, useState } from 'react';
 
+import { Requests } from '../../../server/sync/types';
 import { ClientToServerEvents, Doc, DocStub, ServerToClientEvents } from '../../../shared/types';
+import db, { Database } from '../../db';
+import { debugClient } from '../../globals';
 import { update } from '../../state/docsSlice';
+import { useDispatch, useSelector } from '../../store';
+import { selectIsGuest, setUserAsUnauthenticated } from '../User/userSlice';
 import {
+  State,
   cleanStale,
   completeSync,
   requestSync,
   socketConnected,
   socketDisconnected,
   startSync,
-  State,
   syncError,
   updateProgress,
 } from './syncSlice';
-import { Requests } from '../../../server/sync/types';
-import { useDispatch, useSelector } from '../../store';
-import db, { Database } from '../../db';
-import { debugClient } from '../../globals';
-import { selectIsGuest, setUserAsUnauthenticated } from '../User/userSlice';
 
 const debug = debugClient('sync');
 
@@ -42,7 +42,7 @@ function splitDeletes(batch: Doc[]): { deletes: Doc[]; writes: Doc[] } {
       }
       return acc;
     },
-    { deletes: [] as Doc[], writes: [] as Doc[] }
+    { deletes: [] as Doc[], writes: [] as Doc[] },
   );
 }
 
@@ -84,12 +84,12 @@ function SyncManager() {
   const state = useSelector((state) => state.sync.state);
 
   const [socket, setSocket] = useState(
-    undefined as unknown as Socket<ServerToClientEvents, ClientToServerEvents>
+    undefined as unknown as Socket<ServerToClientEvents, ClientToServerEvents>,
   );
 
   useEffect(() => {
     // PERF: make this work more in parallel, benchmark it to see if it makes a difference etc
-    const handleFullSync = async function () {
+    const handleFullSync = async () => {
       try {
         // Get the docs we have locally. The only way to see deleted documents with PouchDB
         // is with the changes feed to get all ids
@@ -112,7 +112,7 @@ function SyncManager() {
           })
           .then(({ data }) => data);
         debug(
-          `the server needs ${serverState.server.length}, we need ${serverState.client.length}`
+          `the server needs ${serverState.server.length}, we need ${serverState.client.length}`,
         );
 
         const docTotal = serverState.client.length + serverState.server.length;
@@ -136,7 +136,7 @@ function SyncManager() {
             await axios.post('/api/sync/update', {
               docs: result.rows.map(
                 // @ts-ignore FIXME the types changed, work out what to do with erroring rows
-                (r) => r.doc || { _id: r.id, _rev: r.value.rev, _deleted: r.value.deleted }
+                (r) => r.doc || { _id: r.id, _rev: r.value.rev, _deleted: r.value.deleted },
               ),
             });
             debug('-> sent');
@@ -223,7 +223,7 @@ function SyncManager() {
   }, [dispatch, socket, stale, state]);
 
   useEffect(() => {
-    if (socket && socket.connected && state === State.completed) {
+    if (socket?.connected && state === State.completed) {
       socket.emit('ready');
       dispatch(socketConnected());
     } else {
@@ -231,6 +231,10 @@ function SyncManager() {
     }
   }, [dispatch, socket, state]);
 
+  // we are using the trigger of this to
+  // close the socket, so we can't also pass in the socket because when it's created it would be
+  // deleted again straight away
+  // biome-ignore lint/correctness/useExhaustiveDependencies: see above
   useEffect(() => {
     const initSocket = () => {
       if (socket) {
@@ -274,8 +278,7 @@ function SyncManager() {
     };
 
     initSocket();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isGuest, handle, dispatch /*socket*/]);
+  }, [isGuest, handle, dispatch]);
 
   return null;
 }

@@ -1,12 +1,12 @@
-import * as RR from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
+import * as RR from 'react-redux';
 
-import userReducer from './features/User/userSlice';
-import docsSlice from './state/docsSlice';
+import debugSlice from './features/Debug/debugSlice';
 import pageSlice from './features/Page/pageSlice';
 import syncSlice from './features/Sync/syncSlice';
-import debugSlice from './features/Debug/debugSlice';
 import updateSlice from './features/Update/updateSlice';
+import userReducer from './features/User/userSlice';
+import docsSlice from './state/docsSlice';
 
 function createStore() {
   return configureStore({

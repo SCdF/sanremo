@@ -1,5 +1,5 @@
 import { Checkbox, List, ListItem, ListItemIcon, ListItemText } from '@material-ui/core';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { MouseEventHandler, useCallback, useEffect, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { debugClient } from '../../globals';
 
@@ -7,6 +7,7 @@ const debug = debugClient('repeatable', 'render');
 
 type RepeatableProps = {
   markdown: string;
+  // biome-ignore lint/suspicious/noExplicitAny: FIXME later
   values: any[];
   onChange?: (idx: number) => void;
   /** whether the auto focus is inside the markdown document. Will never be called if takesFocus is false */
@@ -38,7 +39,7 @@ const MarkdownChunk = React.memo((props: { text: string }) => (
 ));
 
 type MarkdownCheckboxType = {
-  handleChange: any;
+  handleChange: (valueIdx: number, value: boolean) => React.MouseEventHandler<HTMLDivElement>;
   valueIdx: number;
   value: boolean;
   disabled: boolean;
@@ -105,7 +106,7 @@ function RepeatableRenderer(props: RepeatableProps) {
         }
       };
     },
-    [changeValue]
+    [changeValue],
   );
 
   const [renderables, setRenderables] = useState([] as Renderable[]);
@@ -117,7 +118,7 @@ function RepeatableRenderer(props: RepeatableProps) {
 
     let lastChunkIdxWithInput = -1; // tracking the last time we say an input (eg checkbox)
     let valueIdx = 0; // tracking which input we're up to
-    markdownChunks.forEach((chunk, chunkIdx) => {
+    for (const [chunkIdx, chunk] of markdownChunks.entries()) {
       // we have found a custom piece of markdown: a checkbox!
       if (chunk.startsWith('- [ ]')) {
         // if we are neither at the very start nor directly after an input there will be markdown to render
@@ -140,7 +141,7 @@ function RepeatableRenderer(props: RepeatableProps) {
 
         valueIdx++;
       }
-    });
+    }
 
     // If there were subsequent markdown chunks after the last input render them
     const lastChunkIdx = markdownChunks.length - 1;
@@ -156,13 +157,13 @@ function RepeatableRenderer(props: RepeatableProps) {
   }, [markdown]);
 
   const renderedChunks = [];
-  for (let renderable of renderables) {
+  for (const renderable of renderables) {
     if (renderable.type === 'markdown') {
       renderedChunks.push(
         <MarkdownChunk
           key={`chunk(${renderable.start}-${renderable.end})`}
           text={renderable.text}
-        />
+        />,
       );
     } else {
       renderedChunks.push(
@@ -174,7 +175,7 @@ function RepeatableRenderer(props: RepeatableProps) {
           disabled={!changeValue}
           focused={!!takesFocus && renderable.valueIdx === nextIdx}
           text={renderable.text}
-        />
+        />,
       );
     }
   }

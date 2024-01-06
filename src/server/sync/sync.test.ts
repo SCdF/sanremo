@@ -1,5 +1,5 @@
-import sync from './sync';
 import { getDocs, getStubsForUser, putDocs } from './db';
+import sync from './sync';
 
 jest.mock('./db');
 

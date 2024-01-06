@@ -2,15 +2,15 @@ import { Fragment } from 'react';
 import PageVisibility from 'react-page-visibility';
 import { useLocation } from 'react-router-dom';
 
-import { CircularProgress, Fade, IconButton, makeStyles, Tooltip } from '@material-ui/core';
-import CloudRoundedIcon from '@material-ui/icons/CloudRounded';
+import { CircularProgress, Fade, IconButton, Tooltip, makeStyles } from '@material-ui/core';
 import CloudDoneRoundedIcon from '@material-ui/icons/CloudDoneRounded';
 import CloudOffRoundedIcon from '@material-ui/icons/CloudOffRounded';
+import CloudRoundedIcon from '@material-ui/icons/CloudRounded';
 import ErrorOutlineRoundedIcon from '@material-ui/icons/ErrorOutlineRounded';
 
 import { useDispatch, useSelector } from '../../store';
-import { requestSync, State } from './syncSlice';
 import { selectIsGuest } from '../User/userSlice';
+import { State, requestSync } from './syncSlice';
 
 const useStyles = makeStyles((theme) => ({
   progress: {
@@ -35,7 +35,7 @@ function SyncWidget() {
     return null;
   }
 
-  const handleVisibilityChange = async function (isVisible: boolean) {
+  const handleVisibilityChange = async (isVisible: boolean) => {
     // TODO: we aren't actually using this right now. Investigate whether or not we should be
     // disconnecting or reconnecting sockets here
   };

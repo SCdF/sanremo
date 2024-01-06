@@ -2,16 +2,18 @@ import { EnhancedStore } from '@reduxjs/toolkit';
 import { render as renderRtl, screen, waitFor } from '@testing-library/react';
 import { Provider } from 'react-redux';
 import { RepeatableDoc, SlugType, TemplateDoc } from '../../../shared/types';
-import { createStore, RootState } from '../../store';
 import { setRepeatable, setTemplate } from '../../state/docsSlice';
-import { RepeatableSlug } from './RepeatableSlug';
+import { RootState, createStore } from '../../store';
 import { setUserAsLoggedIn } from '../User/userSlice';
+import { RepeatableSlug } from './RepeatableSlug';
 
 jest.mock('../../db');
 
 describe('RepeatableSlug slug types', () => {
   const user = { id: 1, name: 'Tester Test' };
+  // biome-ignore lint/suspicious/noExplicitAny: FIXME type this stuff right
   let repeatable: Record<string, any>;
+  // biome-ignore lint/suspicious/noExplicitAny: FIXME type this stuff right
   let template: Record<string, any>;
   let store: EnhancedStore<RootState>;
   beforeEach(() => {
@@ -108,7 +110,7 @@ describe('relevance', () => {
             slug: { type: SlugType.Date },
           },
         },
-      })
+      }),
     ).toBeTruthy();
   });
   it('is not relevant if the template has no slug', () => {
@@ -122,7 +124,7 @@ describe('relevance', () => {
             _id: 'def',
           },
         },
-      })
+      }),
     ).toBeFalsy();
   });
   it('is not relevant if there is no repeatable', () => {
@@ -135,7 +137,7 @@ describe('relevance', () => {
             slug: { type: SlugType.Date },
           },
         },
-      })
+      }),
     ).toBeFalsy();
   });
   it('is not relevant if there is no template', () => {
@@ -145,7 +147,7 @@ describe('relevance', () => {
           // @ts-ignore
           repeatable: { _id: 'abc' },
         },
-      })
+      }),
     ).toBeFalsy();
   });
 });

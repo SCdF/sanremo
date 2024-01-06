@@ -1,17 +1,17 @@
 import { ChangeEvent, FormEvent, MouseEvent, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 
 import { Button, ButtonGroup, Grid, MenuItem, TextField } from '@material-ui/core';
 import DeleteIcon from '@material-ui/icons/Delete';
 
 import { v4 as uuid } from 'uuid';
 
+import { SlugType, TemplateDoc } from '../../shared/types';
+import db from '../db';
 import { set as setContext } from '../features/Page/pageSlice';
+import RepeatableRenderer from '../features/Repeatable/RepeatableRenderer';
 import { clearTemplate, setTemplate } from '../state/docsSlice';
 import { useDispatch, useSelector } from '../store';
-import { SlugType, TemplateDoc } from '../../shared/types';
-import RepeatableRenderer from '../features/Repeatable/RepeatableRenderer';
-import db from '../db';
 
 function Template() {
   const template = useSelector((state) => state.docs.template);
@@ -61,7 +61,7 @@ function Template() {
         title: `${template?.title || 'New Template'} | edit`,
         back: true,
         under: 'home',
-      })
+      }),
     );
   });
 
@@ -111,6 +111,7 @@ function Template() {
       const splitId = copy._id.split(':');
       splitId[3] = String(Number(splitId[3]) + 1);
       copy._id = splitId.join(':');
+      // biome-ignore lint/performance/noDelete: TODO work out if we can replace this
       delete copy._rev;
     }
 
