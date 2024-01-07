@@ -3,8 +3,8 @@
   "version": "0.5.0",
   "packageManager": "yarn@4.0.2",
   "//": [
-    " TODO update react-router to latest",
-    " TODO update material-ui to mui https://github.com/mui/material-ui/issues/32142",
+    " TODO update material-ui to mui",
+    " TODO https://github.com/mui/material-ui/issues/32142",
     " TODO update react to 18",
     " TODO update everything else thing by thing"
   ],
