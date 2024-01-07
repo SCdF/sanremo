@@ -1,6 +1,10 @@
 /// <reference lib="webworker" />
 /* eslint-disable no-restricted-globals */
 
+// FIXME: debug why package updates sometimes break and require a service worker unregister
+// I wonder if it has something to do with the hashes remaining the same
+// Or, how I'm using `version` below
+
 import { clientsClaim } from 'workbox-core';
 import { createHandlerBoundToURL, precacheAndRoute } from 'workbox-precaching';
 import { registerRoute } from 'workbox-routing';

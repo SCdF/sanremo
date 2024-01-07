@@ -20,16 +20,16 @@ function RepeatableSlug() {
   const user = useSelector((state) => state.user.value);
   const handle = db(user);
 
-  // TODO should we drop 'as' here and below?
-  const repeatable = useSelector((state) => state.docs.repeatable) as RepeatableDoc;
-  const [slug, setSlug] = useState(repeatable.slug);
+  const repeatable = useSelector((state) => state.docs.repeatable);
+  const [slug, setSlug] = useState(repeatable?.slug);
 
-  const template = useSelector((state) => state.docs.template) as TemplateDoc;
+  const template = useSelector((state) => state.docs.template);
 
   function changeSlug({ target }: ChangeEvent) {
     // @ts-ignore FIXME: check if nodeValue works
     const targetValue = target.value;
-    const value = ['date', 'timestamp'].includes(template.slug.type)
+    // we know that if anyone calls this function template has a value
+    const value = ['date', 'timestamp'].includes((template as TemplateDoc).slug.type)
       ? new Date(targetValue).getTime()
       : targetValue;
 
@@ -37,7 +37,8 @@ function RepeatableSlug() {
   }
 
   async function storeSlugChange() {
-    const copy = Object.assign({}, repeatable);
+    // we know that if anyone calls this function repeatable has a value
+    const copy = Object.assign({}, repeatable as RepeatableDoc);
 
     copy.slug = slug;
 
@@ -65,7 +66,7 @@ function RepeatableSlug() {
     // FIXME: Clean This Up! The format required for the native date input type cannot
     // be manufactured from the native JavaScript date type. If we were in raw HTML
     // we could post-set it with Javascript by using valueAsNumber, but not in situ
-    const slugDate = new Date(slug);
+    const slugDate = new Date(slug as number);
     const awkwardlyFormattedSlug = [
       slugDate.getFullYear(),
       `${slugDate.getMonth() + 1}`.padStart(2, '0'),
@@ -87,7 +88,7 @@ function RepeatableSlug() {
     // FIXME: Clean This Up! The format required for the native date input type cannot
     // be manufactured from the native JavaScript date type. If we were in raw HTML
     // we could post-set it with Javascript by using valueAsNumber, but not in situ
-    const slugDate = new Date(slug);
+    const slugDate = new Date(slug as number);
     const awkwardlyFormattedSlug = `${[
       slugDate.getFullYear(),
       `${slugDate.getMonth() + 1}`.padStart(2, '0'),

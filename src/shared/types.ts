@@ -24,7 +24,7 @@ export enum SlugType {
 }
 export interface RepeatableDoc extends Doc {
   template: DocId;
-  slug: string | number;
+  slug: string | number | undefined;
   created: number;
   updated: number;
   completed?: number;
