@@ -11,6 +11,12 @@
     }
   },
   "files": {
-    "ignore": ["package.json", "src/client/db-mirror.ts"]
+    "ignoreUnknown": true,
+    "ignore": [
+      "dist",
+      "node_modules",
+      "package.json",
+      "src/client/db-mirror.ts"
+    ]
   }
 }
