@@ -6,7 +6,8 @@
     " TODO update material-ui to mui",
     " TODO https://github.com/mui/material-ui/issues/32142",
     " TODO update react to 18",
-    " TODO update everything else thing by thing"
+    " TODO update everything else thing by thing",
+    " TODO migrate off heroku"
   ],
   "scripts": {
     "start": "node ./dist/backend",
@@ -15,7 +16,7 @@
     "check": "biome check . && tsc --noEmit -p src/client/tsconfig.json && tsc --noEmit -p src/server/tsconfig.json",
     "build:client": "parcel build --target frontend --reporter @parcel/reporter-bundle-analyzer",
     "build:server": "parcel build --target backend --reporter @parcel/reporter-bundle-analyzer",
-    "build": "parcel build --no-optimize --reporter @parcel/reporter-bundle-analyzer && node ./scripts/inject-manifest.mjs",
+    "build": "parcel build --reporter @parcel/reporter-bundle-analyzer && node ./scripts/inject-manifest.mjs",
     "dev": "parcel --target frontend",
     "test:client": "jest src/client",
     "test:server": "jest src/server",
