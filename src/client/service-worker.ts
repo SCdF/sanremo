@@ -18,10 +18,10 @@ import { registerRoute } from 'workbox-routing';
 const MANIFEST = ['INJECT_MANIFEST_HERE'];
 const INDEX_VERSION = 'INJECT_HTML_HASH_HERE';
 
-const versionedManifest: PrecacheEntry[] = Array(MANIFEST.length);
+const versionedManifest: PrecacheEntry[] = Array();
 for (const url of MANIFEST) {
   if (url === 'index.html') {
-    versionedManifest.push({ url, revision: INDEX_VERSION }); // DONOTMERGE test what this version looks like
+    versionedManifest.push({ url, revision: INDEX_VERSION });
   } else {
     versionedManifest.push({ url });
   }
