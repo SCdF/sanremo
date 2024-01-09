@@ -7,5 +7,8 @@
   "editor.codeActionsOnSave": {
     "source.organizeImports.biome": "explicit"
   },
-  "todo-tree.tree.scanMode": "workspace only"
+  "todo-tree.tree.scanMode": "workspace only",
+  "[javascript]": {
+    "editor.defaultFormatter": "biomejs.biome"
+  }
 }

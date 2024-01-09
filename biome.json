@@ -11,7 +11,7 @@
     }
   },
   "files": {
-    "ignoreUnknown": true,
+    "include": ["src", "scripts"],
     "ignore": [
       "dist",
       "node_modules",
