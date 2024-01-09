@@ -6,7 +6,7 @@ Hosted at: https://sanremo.sdufresne.info
 
 ## Local Development
 
-To dev without a server, you can just `npm ci` then `npm run dev`.
+To dev without a server, you can just `yarn` then `yarn dev`.
 
 If you also want the backend server for user support you'll need to: install postgres; init the schema; then build and boot the server.
 
@@ -27,8 +27,8 @@ Then the local server can be built with `npm run buildServer` (no continuous bui
 
 ## Testing
 
-So far unit tests only, run via `npm test`
+So far unit tests only, run via `yarn test`
 
 ## Building
 
-The production build is achieved with `npm run build` and started with `npm start`
+The production build is achieved with `yarn build` and started with `yarn start`
