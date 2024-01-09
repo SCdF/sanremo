@@ -10472,9 +10472,9 @@ __metadata:
     ts-node: "npm:^10.9.2"
     typescript: "npm:^4.4.3"
     uuid: "npm:^8.3.2"
-    workbox-core: "npm:^5.1.4"
-    workbox-precaching: "npm:^5.1.4"
-    workbox-routing: "npm:^5.1.4"
+    workbox-core: "npm:^7.0.0"
+    workbox-precaching: "npm:^7.0.0"
+    workbox-routing: "npm:^7.0.0"
   languageName: unknown
   linkType: soft
 
@@ -11883,28 +11883,39 @@ __metadata:
   languageName: node
   linkType: hard
 
-"workbox-core@npm:^5.1.4":
-  version: 5.1.4
-  resolution: "workbox-core@npm:5.1.4"
-  checksum: 45e386207ef3f56a98745fa704875d3fb07d90d7da572581411c9ceea4bb06d2fe22287ef2f6c666e3abe0df16fb16d342aa26edc3f9308669d040a931e6637b
+"workbox-core@npm:7.0.0, workbox-core@npm:^7.0.0":
+  version: 7.0.0
+  resolution: "workbox-core@npm:7.0.0"
+  checksum: aaaf7b66978456bf5d6a90b1068b5acd82bf451f4a23c5a416201524b50ea4e0bc62a01365499bc088b4c18cddc513fdebbe8b048ab15aff960fe7cbbf55d5bd
   languageName: node
   linkType: hard
 
-"workbox-precaching@npm:^5.1.4":
-  version: 5.1.4
-  resolution: "workbox-precaching@npm:5.1.4"
+"workbox-precaching@npm:^7.0.0":
+  version: 7.0.0
+  resolution: "workbox-precaching@npm:7.0.0"
   dependencies:
-    workbox-core: "npm:^5.1.4"
-  checksum: c688d204d6913d4f36b540593ea190f230bf342b20638ed51a99d6f1b1fec132fabc5f8994b476b7744aa40ce315fef2146912c9030d83bb9c5cd496f4c3a610
+    workbox-core: "npm:7.0.0"
+    workbox-routing: "npm:7.0.0"
+    workbox-strategies: "npm:7.0.0"
+  checksum: 1b47cb151bb6ec7442b2dc8981203feff22527a4383510f2399730338b620ef0d03076bd3dbc1eb9a05272d5d6f4803fb4262f320bf5645f0818981e91077f39
   languageName: node
   linkType: hard
 
-"workbox-routing@npm:^5.1.4":
-  version: 5.1.4
-  resolution: "workbox-routing@npm:5.1.4"
+"workbox-routing@npm:7.0.0, workbox-routing@npm:^7.0.0":
+  version: 7.0.0
+  resolution: "workbox-routing@npm:7.0.0"
   dependencies:
-    workbox-core: "npm:^5.1.4"
-  checksum: adb38993bdc94724e6dd4949964d4ccbfa44c84051301916a196c5d0195e77086601120aed368aea6d64445fe6c114f0ee81b4383aedd80a3114498e09e150b7
+    workbox-core: "npm:7.0.0"
+  checksum: 74ad651a0643506cfd3ca51eee754f5fe34e3f1460e6b772ed213e0422028cf002d70f91da32d13261bc5ee2160527ffb5436ac209fdbe8d0e7071784aa65190
+  languageName: node
+  linkType: hard
+
+"workbox-strategies@npm:7.0.0":
+  version: 7.0.0
+  resolution: "workbox-strategies@npm:7.0.0"
+  dependencies:
+    workbox-core: "npm:7.0.0"
+  checksum: 4fe122b80e547b347bedf187aeb2c2eb34efc3fbde2733b7709530cccb6b6e03b29adcbccecf301e4fcaad0d5cd4a74e1e704f769d949c32439dca358130a613
   languageName: node
   linkType: hard
 
