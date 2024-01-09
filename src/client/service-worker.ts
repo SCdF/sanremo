@@ -20,7 +20,7 @@ const INDEX_VERSION = 'INJECT_HTML_HASH_HERE';
 
 const versionedManifest: PrecacheEntry[] = Array();
 for (const url of MANIFEST) {
-  if (url === 'index.html') {
+  if (url === '/index.html') {
     versionedManifest.push({ url, revision: INDEX_VERSION });
   } else {
     // other resources have their version in their name,
