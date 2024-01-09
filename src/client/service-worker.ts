@@ -23,7 +23,9 @@ for (const url of MANIFEST) {
   if (url === 'index.html') {
     versionedManifest.push({ url, revision: INDEX_VERSION });
   } else {
-    versionedManifest.push({ url });
+    // other resources have their version in their name,
+    // null explicitly disables the warning
+    versionedManifest.push({ url, revision: null });
   }
 }
 
