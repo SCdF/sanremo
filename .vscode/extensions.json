@@ -1,5 +1,3 @@
 {
-  "recommendations": [
-    "vscodevim.vim"
-  ]
+  "recommendations": ["gruntfuggly.todo-tree", "biomejs.biome"]
 }
