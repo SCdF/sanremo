@@ -16,7 +16,7 @@
     "check": "biome check . && tsc --noEmit -p src/client/tsconfig.json && tsc --noEmit -p src/server/tsconfig.json",
     "build:client": "parcel build --target frontend --reporter @parcel/reporter-bundle-analyzer",
     "build:server": "parcel build --target backend --reporter @parcel/reporter-bundle-analyzer",
-    "build": "parcel build --reporter @parcel/reporter-bundle-analyzer && node ./scripts/inject-manifest.mjs",
+    "build": "yarn clean && parcel build --reporter @parcel/reporter-bundle-analyzer && node ./scripts/inject-manifest.mjs",
     "dev": "parcel --target frontend",
     "test:client": "jest src/client",
     "test:server": "jest src/server",
