@@ -1,5 +1,3 @@
-import { readFileSync } from 'fs';
-
 import { debugServer } from './globals';
 
 import compression from 'compression';
@@ -95,7 +93,7 @@ if (process.env.NODE_ENV === 'production') {
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(compression()); // TODO: use static compression instead for assets (so it only happens once): https://parceljs.org/features/production/#compression
-app.use(express.static('dist/frontend')); // i.e. these should be compressed on disk
+app.use(express.static('dist/client')); // i.e. these should be compressed on disk
 app.use(sesh);
 app.use(cookieParser(SECRET));
 

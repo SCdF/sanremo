@@ -8,7 +8,7 @@ Hosted at: https://sanremo.sdufresne.info
 
 To dev without a server, you can just `yarn` then `yarn dev`.
 
-If you also want the backend server for user support you'll need to: install postgres; init the schema; then build and boot the server.
+If you also want the server server for user support you'll need to: install postgres; init the schema; then build and boot the server.
 
 ### Postgres+server
 

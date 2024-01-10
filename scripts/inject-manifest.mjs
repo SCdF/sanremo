@@ -20,7 +20,7 @@ const getAllFiles = (dirPath, arrayOfFiles = []) => {
 };
 
 // Generate manifest list
-const DIR = 'dist/frontend';
+const DIR = 'dist/client';
 const SERVICE_WORKER = '/service-worker.js';
 const INDEX = '/index.html';
 const buildFiles = getAllFiles(DIR)

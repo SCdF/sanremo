@@ -10679,7 +10679,7 @@ __metadata:
     connect-pg-simple: "npm:^6.2.1"
     cookie-parser: "npm:^1.4.5"
     date-fns: "npm:^2.17.0"
-    debug: "npm:^4.3.1"
+    debug: "npm:^4.3.4"
     deep-diff: "npm:^1.0.2"
     dotenv: "npm:^8.2.0"
     events: "npm:^3.1.0"
