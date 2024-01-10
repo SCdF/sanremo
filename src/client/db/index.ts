@@ -61,8 +61,9 @@ export default function db(user: User | Guest): Database {
 }
 
 export async function migrateFromGuest(user: User) {
-  const local = handle(user);
-  const guest = handle(GuestUser);
-  await guest.replicate.to(local);
-  await guest.destroy();
+  const userDb = handle(user);
+  const guestDb = handle(GuestUser);
+  // FIXME: this function is undefined!? Parcel bug?
+  await guestDb.replicate.to(userDb);
+  await guestDb.destroy();
 }

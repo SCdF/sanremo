@@ -1,4 +1,4 @@
-import { DatabaseError } from 'pg-protocol/dist/messages';
+import { DatabaseError } from 'pg-protocol';
 
 import { Router } from 'express';
 import { Server as SocketServer } from 'socket.io';
