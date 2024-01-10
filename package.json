@@ -51,9 +51,6 @@
     "pg-protocol": "*",
     "socket.io": "^4.1.3"
   },
-  "@devDependencies": {
-    "parcel": "Stuck on 2.8.3 due to manifest issues: https://github.com/parcel-bundler/parcel/issues/9309"
-  },
   "devDependencies": {
     "@babel/core": "^7.23.7",
     "@babel/preset-env": "^7.23.7",
@@ -72,8 +69,6 @@
     "@testing-library/jest-dom": "^5.11.9",
     "@testing-library/react": "^11.2.7",
     "@testing-library/user-event": "^13.2.1",
-    "@types/babel__core": "^7",
-    "@types/babel__preset-env": "^7",
     "@types/bcryptjs": "^2.4.2",
     "@types/compression": "^1.7.1",
     "@types/connect-pg-simple": "^4.2.4",
