@@ -7,7 +7,8 @@
     " TODO https://github.com/mui/material-ui/issues/32142",
     " TODO update react to 18",
     " TODO update everything else thing by thing",
-    " TODO migrate off heroku"
+    " TODO migrate off heroku",
+    " TODO delete the tests and / or rewrite them in a library that isn't flaky crap"
   ],
   "scripts": {
     "start": "node ./dist/backend",

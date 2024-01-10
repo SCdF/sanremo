@@ -4,7 +4,7 @@ Most recently used checklist instance on front page.
 
 For responsiveness, decouple visual actions (checking a box) with writing to DB? Consider it...
 
-- CHECK: is this still happening? We aren't binding checkboxes with material design anymore
+- TODO: is this still happening? We aren't binding checkboxes with material design anymore
 
 Questions on completion:
 

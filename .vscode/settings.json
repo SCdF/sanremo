@@ -1,6 +1,5 @@
 {
   "editor.tabSize": 2,
-  "todo-tree.tree.showBadges": true,
   "typescript.tsdk": "node_modules/typescript/lib",
   "editor.defaultFormatter": "biomejs.biome",
   "editor.codeActionsOnSave": {
@@ -8,5 +7,6 @@
   },
   "[javascript]": {
     "editor.defaultFormatter": "biomejs.biome"
-  }
+  },
+  "todo-tree.tree.scanMode": "workspace"
 }

@@ -8,9 +8,9 @@ import { registerRoute } from 'workbox-routing';
 
 // import { manifest, version } from '@parcel/service-worker';
 // ^ This is broken in a couple of ways and so does not work for us:
-// - TODO raise ticxet; version is the hash of this exact file, so stays constant because the hash is calulcated before the manifest is injected
-// - https://github.com/parcel-bundler/parcel/issues/9309 *.runtime.* files are not added to the manifest
-// - TODO PR; if you build multiple targets the manifest contains resources from all targets
+// TODO - raise ticxet; version is the hash of this exact file, so stays constant because the hash is calulcated before the manifest is injected
+//   https://github.com/parcel-bundler/parcel/issues/9309 *.runtime.* files are not added to the manifest
+// TODO - PR; if you build multiple targets the manifest contains resources from all targets
 // TODO once you've worked out a good system try to make it into a parcel addon?
 
 // once populated by the post build scripyt this will be an array of files that look like
