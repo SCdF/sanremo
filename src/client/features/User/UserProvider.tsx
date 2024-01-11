@@ -21,7 +21,12 @@ const UserProvider: FC = ({ children }) => {
       const source = axios.CancelToken.source();
       setTimeout(() => source.cancel(), 1000);
       try {
-        const response = await axios.get('/api/auth', { cancelToken: source.token });
+        const response = await axios.get('/api/auth', {
+          cancelToken: source.token,
+          headers: {
+            'Cache-Control': 'no-cache',
+          },
+        });
         debug('got valid server response');
         return response.data;
       } catch (error) {
