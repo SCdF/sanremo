@@ -28,7 +28,7 @@ export interface RepeatableDoc extends Doc {
   created: number;
   updated: number;
   completed?: number;
-  values: unknown[];
+  values: boolean[];
 }
 
 export interface TemplateDoc extends Doc {
@@ -42,7 +42,7 @@ export interface TemplateDoc extends Doc {
   created: number;
   updated: number;
   versioned: number;
-  values: unknown[];
+  values: boolean[];
 }
 
 export interface ServerToClientEvents {

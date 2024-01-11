@@ -5,7 +5,7 @@ import { debugClient } from '../../globals';
 
 const debug = debugClient('repeatable', 'render');
 
-type RepeatableProps = {
+export type RepeatableProps = {
   markdown: string;
   values: boolean[];
   onChange?: (idx: number) => void;
