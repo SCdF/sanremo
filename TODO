@@ -1,16 +1,20 @@
+Quick list
+
+Better bullet points
+- real markdown bullet points should show as bullet points, support standard markdown bullet points (- / * / more?), as well as adding [ ] for checkbox
+- hitting enter creates next line with new point of same style
+- nested bullet points
+
+Button to edit template on repeatable view. Will edit existing repeatables. This has downsides because repeatable data is just an array of booleans, not a map. Think about that but probably don't care for now.
+
 Spend a pomo looking into shorter and less ugly variations on raw uuids to clean up URLs etc.
 
-Most recently used checklist instance on front page.
-
 For responsiveness, decouple visual actions (checking a box) with writing to DB? Consider it...
-
 - TODO: is this still happening? We aren't binding checkboxes with material design anymore
 
 Questions on completion:
-
 - If you complete all checks in a checklist, should it be automatically marked as completed?
 - Should it also be automatically closed?
-- Alternatively, should you be able to complete a checklist without completing all checks?
 
 "Repeatable” is a better name for checklists? Imagine also supporting a "daily mgmt” checklist that lets you increment a counter for every glass of water, generally record your day.
 Or "Steps". Maybe that is best name?
