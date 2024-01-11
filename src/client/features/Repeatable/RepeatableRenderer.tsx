@@ -7,8 +7,7 @@ const debug = debugClient('repeatable', 'render');
 
 type RepeatableProps = {
   markdown: string;
-  // biome-ignore lint/suspicious/noExplicitAny: FIXME later
-  values: any[];
+  values: boolean[];
   onChange?: (idx: number) => void;
   /** whether the auto focus is inside the markdown document. Will never be called if takesFocus is false */
   hasFocus?: (hasFocus: boolean) => void;
