@@ -10,7 +10,7 @@ const getAllFiles = (dirPath, arrayOfFiles = []) => {
   const allFiles = [];
   for (const file of files) {
     if (fs.statSync(`${dirPath}/${file}`).isDirectory()) {
-      allFiles.concat(getAllFiles(`${dirPath}/${file}`, arrayOfFiles));
+      allFiles.push(...getAllFiles(`${dirPath}/${file}`, arrayOfFiles));
     } else {
       allFiles.push(path.join(dirPath, '/', file));
     }
@@ -22,24 +22,27 @@ const getAllFiles = (dirPath, arrayOfFiles = []) => {
 // Generate manifest list
 const DIR = 'dist/client';
 const SERVICE_WORKER = '/service-worker.js';
-const INDEX = '/index.html';
-const buildFiles = getAllFiles(DIR)
-  .filter((f) => !f.endsWith('.map') && !f.endsWith(SERVICE_WORKER))
-  .map((f) => f.split(DIR)[1]);
+const buildFiles = getAllFiles(DIR).filter(
+  (f) => !f.endsWith('.map') && !f.endsWith(SERVICE_WORKER),
+);
 
-// Generate index hash
-const sw = fs.readFileSync(path.join(DIR, SERVICE_WORKER)).toString();
-const indexFile = fs.readFileSync(path.join(DIR, INDEX));
-const indexHash = crypto.createHash('md5').update(indexFile).digest('hex');
+const stringManifest = buildFiles.map((filename) => {
+  const url = filename.split(DIR)[1];
+
+  if (url.match(/\.[0-9a-f]{8}\.[^\.]+$/)) {
+    // File has .12345678.abc somewhere in it. we will presume this is Parcel's hash
+    // eg. index.es.8f189f37.js
+
+    return `{url: "${url}", revision: null}`;
+  }
+
+  // We have no hash, we need to hash it ourselves
+  const file = fs.readFileSync(filename);
+  const md5 = crypto.createHash('md5').update(file).digest('hex');
+  return `{url: "${url}", revision: "${md5}"}`;
+});
 
 // Inject values
-const INJECT_MANIFEST = 'INJECT_MANIFEST_HERE';
-const INJECT_INDEX_VERSION = 'INJECT_HTML_HASH_HERE';
-
-const manifestStringedArray = buildFiles.map((f) => `"${f}"`).join(',');
-
-const fixed = sw
-  .replace(RegExp(`("|')${INJECT_MANIFEST}("|')`), manifestStringedArray)
-  .replace(INJECT_INDEX_VERSION, indexHash);
-
+const sw = fs.readFileSync(path.join(DIR, SERVICE_WORKER)).toString();
+const fixed = sw.replace(/("|')INJECT_MANIFEST_HERE("|')/, stringManifest.join(','));
 fs.writeFileSync(path.join(DIR, SERVICE_WORKER), fixed);

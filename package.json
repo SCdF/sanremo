@@ -8,8 +8,9 @@
     " TODO https://github.com/mui/material-ui/issues/32142",
     " TODO update react to 18",
     " TODO update everything else thing by thing",
-    " TODO migrate off heroku",
-    " TODO delete the tests and / or rewrite them in a library that isn't flaky crap"
+    " TODO migrate off heroku (fly.io?)",
+    " TODO replacement for jest and general flaky react unit testing (vitest?)",
+    " TODO redux -> https://github.com/pmndrs/zustand"
   ],
   "scripts": {
     "start": "node dist/server",
