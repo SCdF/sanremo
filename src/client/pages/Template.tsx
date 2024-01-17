@@ -2,7 +2,7 @@ import { ChangeEvent, FormEvent, MouseEvent, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import { Button, ButtonGroup, Grid, MenuItem, TextField } from '@material-ui/core';
-import DeleteIcon from '@material-ui/icons/Delete';
+import DeleteIcon from '@mui/icons-material/Delete';
 
 import { v4 as uuid } from 'uuid';
 

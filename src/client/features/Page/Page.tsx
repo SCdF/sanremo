@@ -12,10 +12,10 @@ import {
 } from '@material-ui/core';
 // TODO: configure babel properly so we can use { ArrowBack } etc instead
 // https://material-ui.com/guides/minimizing-bundle-size/#option-2
-import ArrowBack from '@material-ui/icons/ArrowBack';
-import CheckBoxIcon from '@material-ui/icons/CheckBox';
-import HistoryIcon from '@material-ui/icons/History';
-import InfoIcon from '@material-ui/icons/Info';
+import ArrowBack from '@mui/icons-material/ArrowBack';
+import CheckBoxIcon from '@mui/icons-material/CheckBox';
+import HistoryIcon from '@mui/icons-material/History';
+import InfoIcon from '@mui/icons-material/Info';
 
 import React, { FC, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';

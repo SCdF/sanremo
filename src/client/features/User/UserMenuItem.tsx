@@ -7,7 +7,7 @@ import {
   MenuItem,
   Typography,
 } from '@material-ui/core';
-import AccountCircle from '@material-ui/icons/AccountCircle';
+import AccountCircle from '@mui/icons-material/AccountCircle';
 import React, { FC, Fragment } from 'react';
 import { useSelector } from '../../store';
 import UserAuthenticationWidget, { Action } from './UserAuthenticationWidget';

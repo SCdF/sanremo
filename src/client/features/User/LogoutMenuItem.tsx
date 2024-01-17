@@ -9,7 +9,7 @@ import {
   MenuItem,
   Typography,
 } from '@material-ui/core';
-import ExitToAppIcon from '@material-ui/icons/ExitToApp';
+import ExitToAppIcon from '@mui/icons-material/ExitToApp';
 import { Fragment, useState } from 'react';
 import db from '../../db';
 import { useSelector } from '../../store';

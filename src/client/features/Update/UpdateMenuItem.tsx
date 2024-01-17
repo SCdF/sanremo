@@ -1,5 +1,5 @@
 import { Badge, ListItemIcon, MenuItem, Typography } from '@material-ui/core';
-import GetAppIcon from '@material-ui/icons/GetApp';
+import GetAppIcon from '@mui/icons-material/GetApp';
 import { useDispatch, useSelector } from '../../store';
 import { userReadyToUpdate } from './updateSlice';
 
