@@ -1,5 +1,5 @@
-import { Badge } from '@material-ui/core';
 import AccountCircle from '@mui/icons-material/AccountCircle';
+import { Badge } from '@mui/material';
 import { useSelector } from '../../store';
 
 function UserMenuBadge() {
