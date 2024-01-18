@@ -1,22 +1,19 @@
 import './App.scss';
 
 import { Suspense, lazy } from 'react';
-
 import { Route, Routes } from 'react-router-dom';
 
-import { Typography, createTheme } from '@material-ui/core';
-import CssBaseline from '@material-ui/core/CssBaseline';
-import { ThemeProvider } from '@material-ui/core/styles';
-
-import { selectIsGuest } from './features/User/userSlice';
-import { useSelector } from './store';
+import { Typography } from '@mui/material';
 
 import Loading from './Loading';
+import Themed from './Themed';
 import DebugManager from './features/Debug/DebugManager';
 import Page from './features/Page/Page';
 import SyncManager from './features/Sync/SyncManager';
 import UpdateManager from './features/Update/UpdateManager';
 import UserProvider from './features/User/UserProvider';
+import { selectIsGuest } from './features/User/userSlice';
+import { useSelector } from './store';
 
 const About = lazy(() => import('./pages/About'));
 const History = lazy(() => import('./pages/History'));
@@ -24,23 +21,11 @@ const Home = lazy(() => import('./pages/Home'));
 const Repeatable = lazy(() => import('./pages/Repeatable'));
 const Template = lazy(() => import('./pages/Template'));
 
-const theme = createTheme({
-  // palette: {
-  //   primary: {
-  //     main: '#f5df4d',
-  //   },
-  //   secondary: {
-  //     main: '#939597',
-  //   },
-  // },
-});
-
 function App() {
   const isGuest = useSelector(selectIsGuest);
 
   return (
-    <ThemeProvider theme={theme}>
-      <CssBaseline />
+    <Themed>
       <DebugManager />
       {process.env.NODE_ENV !== 'development' && <UpdateManager />}
       <UserProvider>
@@ -62,7 +47,7 @@ function App() {
           </Typography>
         )}
       </UserProvider>
-    </ThemeProvider>
+    </Themed>
   );
 }
 

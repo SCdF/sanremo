@@ -1,3 +1,9 @@
+// PERF: configure babel properly so we can use { ArrowBack } etc instead
+// https://material-ui.com/guides/minimizing-bundle-size/#option-2
+import ArrowBack from '@mui/icons-material/ArrowBack';
+import CheckBoxIcon from '@mui/icons-material/CheckBox';
+import HistoryIcon from '@mui/icons-material/History';
+import InfoIcon from '@mui/icons-material/Info';
 import {
   AppBar,
   Container,
@@ -8,14 +14,8 @@ import {
   MenuItem,
   Toolbar,
   Typography,
-  makeStyles,
-} from '@material-ui/core';
-// TODO: configure babel properly so we can use { ArrowBack } etc instead
-// https://material-ui.com/guides/minimizing-bundle-size/#option-2
-import ArrowBack from '@mui/icons-material/ArrowBack';
-import CheckBoxIcon from '@mui/icons-material/CheckBox';
-import HistoryIcon from '@mui/icons-material/History';
-import InfoIcon from '@mui/icons-material/Info';
+} from '@mui/material';
+import { makeStyles } from '@mui/styles';
 
 import React, { FC, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -53,7 +53,7 @@ const Page: FC = ({ children }) => {
 
   // Due to a MUI bug, Page has to be aware of the user dialogue, as it cannot be contained
   // inside the UserMenuItem, as a Dialog cannot be inside a Menu
-  // https://github.com/mui-org/material-ui/issues/20173
+  // FIXME https://github.com/mui-org/material-ui/issues/20173
   // This means we've had to pull in a lot more stuff into Page than we wanted
   const [userDialogOpen, setUserDialogOpen] = useState(false);
   const isGuest = useSelector(selectIsGuest);
@@ -127,19 +127,13 @@ const Page: FC = ({ children }) => {
       >
         <UserMenuItem onClick={showUserDialog} />
         <Divider />
-        <MenuItem
-          button
-          key="home"
-          selected={context.under === 'home'}
-          onClick={() => navigate('/')}
-        >
+        <MenuItem key="home" selected={context.under === 'home'} onClick={() => navigate('/')}>
           <ListItemIcon>
             <CheckBoxIcon />
           </ListItemIcon>
           <Typography>Active</Typography>
         </MenuItem>
         <MenuItem
-          button
           key="history"
           selected={context.under === 'history'}
           onClick={() => navigate('/history')}
@@ -150,7 +144,6 @@ const Page: FC = ({ children }) => {
           <Typography>History</Typography>
         </MenuItem>
         <MenuItem
-          button
           key="about"
           selected={context.under === 'about'}
           onClick={() => navigate('/about')}
