@@ -1,9 +1,12 @@
 import { EnhancedStore } from '@reduxjs/toolkit';
-import { render as renderRtl, screen, waitFor } from '@testing-library/react';
+import { screen } from '@testing-library/react';
+import { ReactElement } from 'react';
 import { Provider } from 'react-redux';
+
 import { RepeatableDoc, SlugType, TemplateDoc } from '../../../shared/types';
 import { setRepeatable, setTemplate } from '../../state/docsSlice';
 import { RootState, createStore } from '../../store';
+import { render as wrappedRender, withStore } from '../../test-utils';
 import { setUserAsLoggedIn } from '../User/userSlice';
 import { RepeatableSlug } from './RepeatableSlug';
 
@@ -35,8 +38,8 @@ describe('RepeatableSlug slug types', () => {
     store = createStore();
     store.dispatch(setUserAsLoggedIn({ user }));
   });
-  function render(children: JSX.Element) {
-    renderRtl(<Provider store={store}>{children}</Provider>);
+  function render(children: ReactElement) {
+    wrappedRender(withStore(store, children));
   }
 
   it('string', async () => {

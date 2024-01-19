@@ -1,3 +1,4 @@
+import AccountCircle from '@mui/icons-material/AccountCircle';
 import {
   Badge,
   Dialog,
@@ -6,8 +7,7 @@ import {
   ListItemIcon,
   MenuItem,
   Typography,
-} from '@material-ui/core';
-import AccountCircle from '@material-ui/icons/AccountCircle';
+} from '@mui/material';
 import React, { FC, Fragment } from 'react';
 import { useSelector } from '../../store';
 import UserAuthenticationWidget, { Action } from './UserAuthenticationWidget';
@@ -34,7 +34,7 @@ export const UserMenuItem = React.forwardRef<any, { onClick: () => void }>(({ on
 
   return (
     <Fragment>
-      <MenuItem onClick={onClick} innerRef={ref}>
+      <MenuItem onClick={onClick} ref={ref}>
         <ListItemIcon>
           <Badge color="secondary" variant="dot" invisible={!requiresReauthentication}>
             <AccountCircle />

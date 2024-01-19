@@ -2,11 +2,12 @@ import { Fragment } from 'react';
 import PageVisibility from 'react-page-visibility';
 import { useLocation } from 'react-router-dom';
 
-import { CircularProgress, Fade, IconButton, Tooltip, makeStyles } from '@material-ui/core';
-import CloudDoneRoundedIcon from '@material-ui/icons/CloudDoneRounded';
-import CloudOffRoundedIcon from '@material-ui/icons/CloudOffRounded';
-import CloudRoundedIcon from '@material-ui/icons/CloudRounded';
-import ErrorOutlineRoundedIcon from '@material-ui/icons/ErrorOutlineRounded';
+import CloudDoneRoundedIcon from '@mui/icons-material/CloudDoneRounded';
+import CloudOffRoundedIcon from '@mui/icons-material/CloudOffRounded';
+import CloudRoundedIcon from '@mui/icons-material/CloudRounded';
+import ErrorOutlineRoundedIcon from '@mui/icons-material/ErrorOutlineRounded';
+import { CircularProgress, Fade, IconButton, Tooltip } from '@mui/material';
+import { makeStyles } from '@mui/styles';
 
 import { useDispatch, useSelector } from '../../store';
 import { selectIsGuest } from '../User/userSlice';

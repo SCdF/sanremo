@@ -1,6 +1,6 @@
 import { Fragment } from 'react';
 
-import { Button, ButtonGroup, CircularProgress, Tooltip } from '@material-ui/core';
+import { Button, ButtonGroup, CircularProgress, Tooltip } from '@mui/material';
 
 import { useDispatch, useSelector } from '../../store';
 import { checkForUpdate, userReadyToUpdate } from './updateSlice';

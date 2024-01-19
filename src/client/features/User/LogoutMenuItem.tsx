@@ -1,3 +1,4 @@
+import ExitToAppIcon from '@mui/icons-material/ExitToApp';
 import {
   Button,
   Dialog,
@@ -8,8 +9,7 @@ import {
   ListItemIcon,
   MenuItem,
   Typography,
-} from '@material-ui/core';
-import ExitToAppIcon from '@material-ui/icons/ExitToApp';
+} from '@mui/material';
 import { Fragment, useState } from 'react';
 import db from '../../db';
 import { useSelector } from '../../store';
@@ -51,7 +51,7 @@ function LogoutMenuItem(props: { onClick: () => void }) {
 
   return (
     <Fragment>
-      <MenuItem button key="logout" onClick={showConfirm}>
+      <MenuItem key="logout" onClick={showConfirm}>
         <ListItemIcon>
           <ExitToAppIcon />
         </ListItemIcon>

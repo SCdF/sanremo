@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-import { Link } from '@material-ui/core';
+import { Link } from '@mui/material';
 import { Fragment, useEffect, useState } from 'react';
 import { useDispatch } from 'react-redux';
 

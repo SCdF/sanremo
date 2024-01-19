@@ -1,12 +1,14 @@
-import { render as renderRtl, screen, waitFor } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import { Provider } from 'react-redux';
 import { MemoryRouter } from 'react-router-dom';
 
 import { setUserAsLoggedIn } from '../features/User/userSlice';
 import { createStore } from '../store';
+import { render as wrappedRender } from '../test-utils';
 import Home from './Home';
 
 import db from '../db';
+import { withStore } from '../test-utils';
 
 jest.mock('../db');
 
@@ -21,7 +23,7 @@ describe('Home', () => {
   });
 
   function render(children) {
-    renderRtl(<Provider store={store}>{children}</Provider>);
+    wrappedRender(withStore(store, children));
   }
 
   it('renders without crashing', async () => {

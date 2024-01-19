@@ -1,11 +1,13 @@
-import { fireEvent, render as renderRtl, screen, waitFor } from '@testing-library/react';
+import { fireEvent, screen, waitFor } from '@testing-library/react';
 import { Provider } from 'react-redux';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 
 import db from '../db';
+import { render as wrappedRender } from '../test-utils';
 
 import { setUserAsLoggedIn } from '../features/User/userSlice';
 import { createStore } from '../store';
+import { withStore } from '../test-utils';
 import Repeatable from './Repeatable';
 
 jest.mock('react-router-dom');
@@ -28,7 +30,7 @@ describe.skip('Repeatable', () => {
   });
 
   function render(children) {
-    renderRtl(<Provider store={store}>{children}</Provider>);
+    wrappedRender(withStore(store, children));
   }
 
   it('renders without crashing', async () => {
