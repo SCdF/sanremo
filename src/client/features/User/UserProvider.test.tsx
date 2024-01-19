@@ -1,10 +1,12 @@
-import { render as renderRtl, screen, waitFor } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import axios, { CancelTokenSource } from 'axios';
 import { Provider } from 'react-redux';
 import { MemoryRouter } from 'react-router';
 import { AnyAction, Store } from 'redux';
 import { mocked } from 'ts-jest/utils';
+
 import { RootState, createStore } from '../../store';
+import { render as wrappedRender, withStore } from '../../test-utils';
 import UserProvider from './UserProvider';
 import { GuestUser } from './userSlice';
 
@@ -35,11 +37,7 @@ describe('user authentication', () => {
   });
 
   function render(children: React.ReactElement) {
-    renderRtl(
-      <Provider store={store}>
-        <MemoryRouter>{children}</MemoryRouter>
-      </Provider>,
-    );
+    wrappedRender(withStore(store, <MemoryRouter>{children}</MemoryRouter>));
   }
 
   it('loads user with valid server credentials', async () => {

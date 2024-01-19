@@ -1,16 +1,15 @@
-import { StyledEngineProvider, Theme, ThemeProvider, createTheme } from '@mui/material/styles';
-
+import { EnhancedStore } from '@reduxjs/toolkit';
 import { render as renderRtl } from '@testing-library/react';
-
+import { ReactElement } from 'react';
 import { Provider } from 'react-redux';
-import Themed from '../Themed';
 
-// biome-ignore lint/suspicious/noExplicitAny: FIXME
-export default function wrappedRender(store: any, children: any) {
-  const theme = createTheme({});
-  renderRtl(
-    <Themed>
-      <Provider store={store}>{children}</Provider>
-    </Themed>,
-  );
+import Themed from '../Themed';
+import { RootState } from '../store';
+
+export function render(children: ReactElement) {
+  renderRtl(<Themed>{children}</Themed>);
+}
+
+export function withStore(store: EnhancedStore<RootState>, children: ReactElement) {
+  return <Provider store={store}>{children}</Provider>;
 }
