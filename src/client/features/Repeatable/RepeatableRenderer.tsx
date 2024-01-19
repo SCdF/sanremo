@@ -1,5 +1,5 @@
-import { Checkbox, List, ListItem, ListItemIcon, ListItemText } from '@material-ui/core';
-import React, { MouseEventHandler, useCallback, useEffect, useState } from 'react';
+import { Checkbox, List, ListItem, ListItemIcon, ListItemText } from '@mui/material';
+import React, { useCallback, useEffect, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { debugClient } from '../../globals';
 

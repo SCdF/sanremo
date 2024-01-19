@@ -1,5 +1,5 @@
-import { Divider, List, Typography } from '@material-ui/core';
-import { makeStyles } from '@material-ui/core/styles';
+import { Divider, List, Typography } from '@mui/material';
+import { makeStyles } from '@mui/styles';
 import { Fragment, useEffect, useState } from 'react';
 
 import { set as setContext } from '../features/Page/pageSlice';

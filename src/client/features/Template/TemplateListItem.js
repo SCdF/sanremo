@@ -1,6 +1,6 @@
-import { Button, ButtonGroup, ListItem } from '@material-ui/core';
-import { makeStyles } from '@material-ui/core/styles';
 import EditIcon from '@mui/icons-material/Edit';
+import { Button, ButtonGroup, ListItem } from '@mui/material';
+import { makeStyles } from '@mui/styles';
 import React from 'react';
 import { Link } from 'react-router-dom';
 
@@ -37,12 +37,13 @@ function TemplateListItem(props) {
         <Button
           to={`/repeatable/new?template=${_id}`}
           component={Link}
+          role="button"
           color="primary"
           variant="contained"
         >
           {title}
         </Button>
-        <Button to={`/template/${_id}`} component={Link} aria-label="edit">
+        <Button to={`/template/${_id}`} component={Link} role="button" aria-label="edit">
           <EditIcon />
         </Button>
       </ButtonGroup>

@@ -1,4 +1,4 @@
-import { Button, Container, FormHelperText, TextField } from '@material-ui/core';
+import { Button, Container, FormHelperText, TextField } from '@mui/material';
 import { FormEvent, useState } from 'react';
 import { useDispatch } from 'react-redux';
 

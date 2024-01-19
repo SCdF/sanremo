@@ -1,6 +1,6 @@
-import { Input, makeStyles } from '@material-ui/core';
+import { Input } from '@mui/material';
+import { makeStyles } from '@mui/styles';
 import { ChangeEvent, useState } from 'react';
-import React from 'react';
 import { RepeatableDoc, TemplateDoc } from '../../../shared/types';
 import db from '../../db';
 import { setRepeatable } from '../../state/docsSlice';

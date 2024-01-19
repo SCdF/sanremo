@@ -1,4 +1,4 @@
-import { Button } from '@material-ui/core';
+import { Button } from '@mui/material';
 import { Fragment } from 'react';
 import { useDispatch } from 'react-redux';
 import { useSelector } from '../../store';

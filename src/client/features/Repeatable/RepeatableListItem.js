@@ -1,4 +1,4 @@
-import { Link, ListItem, ListItemText } from '@material-ui/core';
+import { Link, ListItem, ListItemText } from '@mui/material';
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import RelativeTime from '../../components/RelativeTime';

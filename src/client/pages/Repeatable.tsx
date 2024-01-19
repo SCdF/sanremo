@@ -3,8 +3,8 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 
-import { Button, ButtonGroup } from '@material-ui/core';
 import DeleteIcon from '@mui/icons-material/Delete';
+import { Button, ButtonGroup } from '@mui/material';
 
 import qs from 'qs';
 import { v4 as uuid } from 'uuid';

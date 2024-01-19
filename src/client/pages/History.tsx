@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 
-import { List, Typography, makeStyles } from '@material-ui/core';
+import { List, Typography } from '@mui/material';
+import { makeStyles } from '@mui/styles';
 
 import { set as setContext } from '../features/Page/pageSlice';
 
