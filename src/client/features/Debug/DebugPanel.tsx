@@ -12,7 +12,7 @@ function DebugPanel() {
     dispatch(setDebug(event.target.value));
   };
 
-  return <TextField label="Debug Level" onChange={handleDebugChange} value={debug} />;
+  return <TextField label="Debug Level" onChange={handleDebugChange} value={debug || ''} />;
 }
 
 export default DebugPanel;

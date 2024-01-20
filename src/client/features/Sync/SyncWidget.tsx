@@ -1,5 +1,4 @@
 import { Fragment } from 'react';
-import PageVisibility from 'react-page-visibility';
 import { useLocation } from 'react-router-dom';
 
 import CloudDoneRoundedIcon from '@mui/icons-material/CloudDoneRounded';
@@ -27,42 +26,35 @@ function SyncWidget() {
     return null;
   }
 
-  const handleVisibilityChange = async (isVisible: boolean) => {
-    // TODO: we aren't actually using this right now. Investigate whether or not we should be
-    // disconnecting or reconnecting sockets here
-  };
-
   const fadeOutConnected = state === State.connected && location.pathname !== '/about';
   // TODO: map the states more cleanly in an if else block (we are missing some)
   return (
-    <PageVisibility onChange={handleVisibilityChange}>
-      {/* instantly "fade in" other states, slowly fade out connected state */}
-      <Fade in={!fadeOutConnected} timeout={fadeOutConnected ? 2000 : 0}>
-        <IconButton color="inherit" onClick={() => dispatch(requestSync())}>
-          {state === State.error && error && (
-            <Tooltip title={`${error.name}: ${error.message}, tap to try again`}>
-              <ErrorOutlineRoundedIcon />
-            </Tooltip>
-          )}
-          {state === State.disconnected && <CloudOffRoundedIcon />}
-          {state === State.syncing && (
-            <Fragment>
-              <CloudRoundedIcon />
-              {/* inner constantly animating progress */}
-              <CircularProgress color="secondary" sx={{ position: 'absolute' }} size="33px" />
-              {/* outer percentage progress */}
-              <CircularProgress
-                color="secondary"
-                sx={{ position: 'absolute' }}
-                variant="determinate"
-                value={progress}
-              />
-            </Fragment>
-          )}
-          {state === State.connected && <CloudDoneRoundedIcon />}
-        </IconButton>
-      </Fade>
-    </PageVisibility>
+    // instantly "fade in" other states, slowly fade out connected state
+    <Fade in={!fadeOutConnected} timeout={fadeOutConnected ? 2000 : 0}>
+      <IconButton color="inherit" onClick={() => dispatch(requestSync())}>
+        {state === State.error && error && (
+          <Tooltip title={`${error.name}: ${error.message}, tap to try again`}>
+            <ErrorOutlineRoundedIcon />
+          </Tooltip>
+        )}
+        {state === State.disconnected && <CloudOffRoundedIcon />}
+        {state === State.syncing && (
+          <Fragment>
+            <CloudRoundedIcon />
+            {/* inner constantly animating progress */}
+            <CircularProgress color="secondary" sx={{ position: 'absolute' }} size="33px" />
+            {/* outer percentage progress */}
+            <CircularProgress
+              color="secondary"
+              sx={{ position: 'absolute' }}
+              variant="determinate"
+              value={progress}
+            />
+          </Fragment>
+        )}
+        {state === State.connected && <CloudDoneRoundedIcon />}
+      </IconButton>
+    </Fade>
   );
 }
 

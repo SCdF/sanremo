@@ -13,7 +13,7 @@ const theme = createTheme({
   },
 });
 
-const Themed: FC = ({ children }) => {
+const Themed: FC<{ children?: React.ReactNode }> = ({ children }) => {
   return (
     <StyledEngineProvider injectFirst>
       <ThemeProvider theme={theme}>

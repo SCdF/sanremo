@@ -9,7 +9,7 @@ import { setUserAsGuest, setUserAsLoggedIn } from './userSlice';
 
 const debug = debugClient('auth');
 
-const UserProvider: FC = ({ children }) => {
+const UserProvider: FC<{ children?: React.ReactNode }> = ({ children }) => {
   const dispatch = useDispatch();
 
   const user = useSelector((state) => state.user.value);
