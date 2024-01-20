@@ -1,5 +1,4 @@
 import { Divider, List, Typography } from '@mui/material';
-import { makeStyles } from '@mui/styles';
 import { Fragment, useEffect, useState } from 'react';
 
 import { set as setContext } from '../features/Page/pageSlice';
@@ -10,12 +9,6 @@ import RepeatableListItem from '../features/Repeatable/RepeatableListItem';
 import TemplateListItem from '../features/Template/TemplateListItem';
 import { useDispatch, useSelector } from '../store';
 
-const useStyles = makeStyles((theme) => ({
-  root: {
-    padding: theme.spacing(1),
-  },
-}));
-
 export type SortableRepeatableDoc = Omit<RepeatableDoc, 'template'> & {
   timestamp?: number;
   updated?: string; // so we can delete it TODO work out why we are deleting it
@@ -23,7 +16,6 @@ export type SortableRepeatableDoc = Omit<RepeatableDoc, 'template'> & {
 };
 
 function Home() {
-  const classes = useStyles();
   const dispatch = useDispatch();
 
   const user = useSelector((state) => state.user.value);
@@ -154,7 +146,7 @@ function Home() {
     <Fragment>
       {!!repeatableList.length && <List className="repeatables">{repeatableList}</List>}
       {!repeatableList.length && (
-        <Typography align="center" variant="body2" className={classes.root}>
+        <Typography align="center" variant="body2" sx={{ padding: 1 }}>
           You're free! For now&hellip;
         </Typography>
       )}
