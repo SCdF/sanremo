@@ -2,11 +2,21 @@
   "version": "2.0.0",
   "tasks": [
     {
-      "type": "typescript",
-      "tsconfig": "src/client/tsconfig.json",
-      "problemMatcher": ["$tsc"],
-      "group": "build",
-      "label": "tsc: build - src/client/tsconfig.json"
+      "type": "npm",
+      "script": "biome",
+      "problemMatcher": {
+        "owner": "biome",
+        "fileLocation": ["relative", "${workspaceFolder}"],
+        "pattern": {
+          "regexp": "^(.+):(\\d+):(\\d+) (\\S+) ",
+          "file": 1,
+          "line": 2,
+          "column": 3,
+          "message": 4
+        }
+      },
+      "label": "npm: biome",
+      "detail": "biome check ."
     }
   ]
 }

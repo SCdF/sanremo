@@ -71,7 +71,7 @@ function Template() {
     const copy = Object.assign({}, template);
 
     // Soft delete if there is more than one version or we are using this one
-    let soft;
+    let soft: boolean;
     const unversionedId = Number(copy._id.substring(0, copy._id.lastIndexOf(':')));
     if (unversionedId > 1) {
       soft = true;

@@ -77,7 +77,7 @@ const Page: FC<{ children?: React.ReactNode }> = ({ children }) => {
     setUserDialogOpen(true);
   }
 
-  let title;
+  let title: string | React.ReactElement | undefined;
   if (RepeatableSlug.relevant(store.getState())) {
     title = (
       <div>

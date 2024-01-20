@@ -7,6 +7,7 @@ import { debugServer } from '../globals';
 
 import { ClientToServerEvents, Doc, ServerToClientEvents, User, UserId } from '../../shared/types';
 import sync from './sync';
+import { Requests } from './types';
 
 const debug = debugServer('socket');
 
@@ -38,7 +39,7 @@ export default function routes(
   app.post('/api/sync/begin', async (req, res) => {
     try {
       const stubs = req.body.docs || [];
-      let results;
+      let results: Requests;
       try {
         results = await sync.begin(req.session.user as User, stubs);
       } catch (error) {
