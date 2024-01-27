@@ -79,20 +79,9 @@ function RepeatableRenderer(props: RepeatableProps) {
 
   // Used for auto-focus (hammer spacebar to tick everything and close)
   const [nextIdx, setNextIdx] = useState(initialNextIndex); // the next index that the user should focus on
-  const [maxIdx, setMaxIdx] = useState(undefined as unknown as number); // the maximum index of fields the user can focus on
 
   // Caching this value internally
   const [hasFocus, setHasFocus] = useState(true);
-
-  useEffect(() => {
-    if (takesFocus && hasFocusCb && nextIdx !== undefined && maxIdx !== undefined) {
-      const newHasFocus = nextIdx < maxIdx;
-      if (newHasFocus !== hasFocus) {
-        hasFocusCb(newHasFocus);
-        setHasFocus(newHasFocus);
-      }
-    }
-  }, [hasFocus, hasFocusCb, maxIdx, nextIdx, takesFocus]);
 
   const handleChange = useCallback(
     (idx: number, currentValue: boolean) => {
@@ -108,52 +97,61 @@ function RepeatableRenderer(props: RepeatableProps) {
     [changeValue],
   );
 
-  const [renderables, setRenderables] = useState([] as Renderable[]);
+  debug('markdown render compilation start');
+  const renderables = [] as Renderable[];
+  const markdownChunks: string[] = markdown?.split('\n').map((s) => s.trim()) || [];
+  debug(`splitting into ${markdownChunks.length} markdown chunks`);
+
+  let lastChunkIdxWithInput = -1; // tracking the last time we say an input (eg checkbox)
+  let valueIdx = 0; // tracking which input we're up to
+  for (const [chunkIdx, chunk] of markdownChunks.entries()) {
+    // we have found a custom piece of markdown: a checkbox!
+    if (chunk.startsWith('- [ ]')) {
+      // if we are neither at the very start nor directly after an input there will be markdown to render
+      // between the last time we rendered a custom input and now
+      if (chunkIdx > 0 && lastChunkIdxWithInput + 1 < chunkIdx) {
+        const text = markdownChunks.slice(lastChunkIdxWithInput + 1, chunkIdx).join('\n');
+        renderables.push({
+          type: 'markdown',
+          start: lastChunkIdxWithInput + 1,
+          end: chunkIdx - 1,
+          text,
+        });
+      }
+
+      lastChunkIdxWithInput = chunkIdx;
+
+      const text = chunk.substring(5); // - [ ]
+
+      renderables.push({ type: 'checkbox', valueIdx, chunkIdx, text });
+
+      valueIdx++;
+    }
+  }
+
+  // If there were subsequent markdown chunks after the last input render them
+  const lastChunkIdx = markdownChunks.length - 1;
+  if (lastChunkIdxWithInput !== lastChunkIdx) {
+    const text = markdownChunks.slice(lastChunkIdxWithInput + 1).join('\n');
+    renderables.push({
+      type: 'markdown',
+      start: lastChunkIdxWithInput + 1,
+      end: lastChunkIdx,
+      text,
+    });
+  }
+  const maxIdx = valueIdx;
+  debug('postrender');
+
   useEffect(() => {
-    debug('markdown render compilation start');
-    const result = [] as Renderable[];
-    const markdownChunks: string[] = markdown?.split('\n').map((s) => s.trim()) || [];
-    debug(`splitting into ${markdownChunks.length} markdown chunks`);
-
-    let lastChunkIdxWithInput = -1; // tracking the last time we say an input (eg checkbox)
-    let valueIdx = 0; // tracking which input we're up to
-    for (const [chunkIdx, chunk] of markdownChunks.entries()) {
-      // we have found a custom piece of markdown: a checkbox!
-      if (chunk.startsWith('- [ ]')) {
-        // if we are neither at the very start nor directly after an input there will be markdown to render
-        // between the last time we rendered a custom input and now
-        if (chunkIdx > 0 && lastChunkIdxWithInput + 1 < chunkIdx) {
-          const text = markdownChunks.slice(lastChunkIdxWithInput + 1, chunkIdx).join('\n');
-          result.push({
-            type: 'markdown',
-            start: lastChunkIdxWithInput + 1,
-            end: chunkIdx - 1,
-            text,
-          });
-        }
-
-        lastChunkIdxWithInput = chunkIdx;
-
-        const text = chunk.substring(5); // - [ ]
-
-        result.push({ type: 'checkbox', valueIdx, chunkIdx, text });
-
-        valueIdx++;
+    if (takesFocus && hasFocusCb && nextIdx !== undefined && maxIdx !== undefined) {
+      const newHasFocus = nextIdx < maxIdx;
+      if (newHasFocus !== hasFocus) {
+        hasFocusCb(newHasFocus);
+        setHasFocus(newHasFocus);
       }
     }
-
-    // If there were subsequent markdown chunks after the last input render them
-    const lastChunkIdx = markdownChunks.length - 1;
-    if (lastChunkIdxWithInput !== lastChunkIdx) {
-      const text = markdownChunks.slice(lastChunkIdxWithInput + 1).join('\n');
-      result.push({ type: 'markdown', start: lastChunkIdxWithInput + 1, end: lastChunkIdx, text });
-    }
-
-    setMaxIdx(valueIdx);
-    setRenderables(result);
-
-    debug('postrender');
-  }, [markdown]);
+  }, [hasFocus, hasFocusCb, maxIdx, nextIdx, takesFocus]);
 
   const renderedChunks = [];
   for (const renderable of renderables) {

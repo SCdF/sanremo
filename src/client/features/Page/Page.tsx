@@ -17,7 +17,7 @@ import {
   Typography,
 } from '@mui/material';
 
-import React, { FC, useEffect, useState } from 'react';
+import React, { FC, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import store, { useSelector } from '../../store';
@@ -50,10 +50,6 @@ const Page: FC<{ children?: React.ReactNode }> = ({ children }) => {
   const requiresReauthentication = useSelector((state) => state.user.needsServerAuthentication);
   const canSeeUserDialog = userDialogOpen && (isGuest || requiresReauthentication);
 
-  useEffect(() => {
-    document.title = context.title ? `${context.title} | Sanremo` : 'Sanremo';
-  }, [context]);
-
   function handleMenuOpen(event: React.MouseEvent<HTMLButtonElement>) {
     setAnchorEl(event.currentTarget);
   }
@@ -77,6 +73,7 @@ const Page: FC<{ children?: React.ReactNode }> = ({ children }) => {
     setUserDialogOpen(true);
   }
 
+  document.title = context.title ? `${context.title} | Sanremo` : 'Sanremo';
   let title: string | React.ReactElement | undefined;
   if (RepeatableSlug.relevant(store.getState())) {
     title = (
