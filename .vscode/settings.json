@@ -9,5 +9,4 @@
     "editor.defaultFormatter": "biomejs.biome"
   },
   "todo-tree.tree.scanMode": "workspace",
-  "cursorless.showOnStart": false
 }
