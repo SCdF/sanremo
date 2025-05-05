@@ -1,20 +1,21 @@
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
-import { useNavigate } from 'react-router-dom';
+import { NavigateFunction, useNavigate } from 'react-router-dom';
 import { render } from '../../test-utils';
 
+import { Mock, beforeEach, describe, expect, it, vi } from 'vitest';
 import RepeatableListItem from './RepeatableListItem';
 
-jest.mock('react-router-dom');
+vi.mock('react-router-dom');
 
 // FIXME: this test has different date format outputs depending on the computer you're
 // running it on
 describe('Repeatable', () => {
-  let navigate;
+  let navigate: Mock<NavigateFunction>;
   beforeEach(() => {
-    navigate = jest.fn();
-    useNavigate.mockReturnValue(navigate);
+    navigate = vi.fn();
+    (useNavigate as Mock).mockReturnValue(navigate);
   });
 
   it('renders without crashing', async () => {
@@ -33,8 +34,8 @@ describe('Repeatable', () => {
 
     render(<RepeatableListItem {...params} />);
 
-    expect(screen.getByText('Checklist ListItem')).toBeInTheDocument();
-    expect(screen.getByText('less than a minute ago')).toBeInTheDocument();
+    expect(screen.getByText('Checklist ListItem')).toBeTruthy();
+    expect(screen.getByText('less than a minute ago')).toBeTruthy();
   });
 
   it('url slug renders (and does not effect slug click)', async () => {
@@ -71,7 +72,7 @@ describe('Repeatable', () => {
     };
 
     render(<RepeatableListItem {...params} />);
-    expect(screen.getByText('01/01/2020')).toBeInTheDocument();
+    expect(screen.getByText('01/01/2020')).toBeTruthy();
   });
 
   it('timestamp slug', async () => {
@@ -88,7 +89,7 @@ describe('Repeatable', () => {
     };
 
     render(<RepeatableListItem {...params} />);
-    expect(screen.getByText('01/01/2020, 10:20:00')).toBeInTheDocument();
+    expect(screen.getByText('01/01/2020, 10:20:00')).toBeTruthy();
   });
   it('plain text slug', async () => {
     const params = {
@@ -104,6 +105,6 @@ describe('Repeatable', () => {
     };
 
     render(<RepeatableListItem {...params} />);
-    expect(screen.getByText('some text for you')).toBeInTheDocument();
+    expect(screen.getByText('some text for you')).toBeTruthy();
   });
 });

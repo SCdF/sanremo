@@ -1,7 +1,9 @@
+import { vi } from 'vitest';
+
 const mockDb = {
-  find: jest.fn(),
-  get: jest.fn(),
-  userPut: jest.fn(),
+  find: vi.fn(),
+  get: vi.fn(),
+  userPut: vi.fn(),
 };
 
 const db = () => mockDb;

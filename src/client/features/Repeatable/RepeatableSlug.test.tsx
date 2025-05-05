@@ -3,6 +3,7 @@ import { screen } from '@testing-library/react';
 import { ReactElement } from 'react';
 import { Provider } from 'react-redux';
 
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { RepeatableDoc, SlugType, TemplateDoc } from '../../../shared/types';
 import { setRepeatable, setTemplate } from '../../state/docsSlice';
 import { RootState, createStore } from '../../store';
@@ -10,7 +11,7 @@ import { render as wrappedRender, withStore } from '../../test-utils';
 import { setUserAsLoggedIn } from '../User/userSlice';
 import { RepeatableSlug } from './RepeatableSlug';
 
-jest.mock('../../db');
+vi.mock('../../db');
 
 describe('RepeatableSlug slug types', () => {
   const user = { id: 1, name: 'Tester Test' };

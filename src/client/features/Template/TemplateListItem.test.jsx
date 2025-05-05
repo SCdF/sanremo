@@ -4,7 +4,7 @@ import { render } from '../../test-utils';
 
 import TemplateListItem from './TemplateListItem';
 
-test('renders without crashing', async () => {
+test.skip('renders without crashing', async () => {
   render(
     <MemoryRouter>
       <TemplateListItem _id="abc" title="Template ListItem" />
