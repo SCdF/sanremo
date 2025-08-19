@@ -1,22 +1,22 @@
 import { screen } from '@testing-library/react';
-import { NavigateFunction } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
-import { Store } from '@reduxjs/toolkit';
-import { MockedFunction, beforeEach, describe, expect, it, vi } from 'vitest';
 import { createStore } from '../../store';
 import { render, withStore } from '../../test-utils';
 import { setUserAsLoggedIn } from '../User/userSlice';
 import Page from './Page';
 import { set as setPageContext } from './pageSlice';
 
-vi.mock('react-router-dom');
-vi.mock('../../db');
+jest.mock('react-router-dom');
+jest.mock('../../db');
 
 describe('Page', () => {
-  let navigate: MockedFunction<NavigateFunction>;
-  let store: Store;
-
+  let navigate;
+  let store;
   beforeEach(() => {
+    navigate = jest.fn();
+    useNavigate.mockReturnValue(navigate);
+
     store = createStore();
     store.dispatch(setUserAsLoggedIn({ user: { id: 1, name: 'Tester Test' } }));
   });
@@ -29,7 +29,7 @@ describe('Page', () => {
     store.dispatch(setPageContext({ title: 'Test Title' }));
     render(withStore(store, <Page />));
 
-    expect(screen.getByText('Test Title')).toBeTruthy();
+    expect(screen.getByText('Test Title')).toBeInTheDocument();
     expect(global.window.document.title).toBe('Test Title | Sanremo');
   });
 });

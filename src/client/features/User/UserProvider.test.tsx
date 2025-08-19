@@ -1,17 +1,18 @@
 import { screen, waitFor } from '@testing-library/react';
 import axios, { CancelTokenSource } from 'axios';
+import { Provider } from 'react-redux';
 import { MemoryRouter } from 'react-router';
 import { AnyAction, Store } from 'redux';
+import { mocked } from 'ts-jest/utils';
 
-import { Mocked, beforeEach, describe, expect, it, vi } from 'vitest';
 import { RootState, createStore } from '../../store';
 import { render as wrappedRender, withStore } from '../../test-utils';
 import UserProvider from './UserProvider';
 import { GuestUser } from './userSlice';
 
-vi.mock('axios');
+jest.mock('axios');
 
-const mockedAxios = axios as Mocked<typeof axios>;
+const mockedAxios = mocked(axios, true);
 
 const serverUser = { id: 1, name: 'Tester Test' };
 const clientUser = { id: 1, name: 'test' };
@@ -28,7 +29,7 @@ describe('user authentication', () => {
     // however, this messes with the mocked function that we used to get mockedAxios
     mockedAxios.isAxiosError.mockImplementation((e) => e.isAxiosError);
     mockedAxios.isCancel.mockImplementation((e) => e.isCancel);
-    mockedAxios.CancelToken.source = vi.fn(() => {
+    mockedAxios.CancelToken.source.mockImplementation(() => {
       return { cancel: () => {} } as CancelTokenSource;
     });
 
@@ -47,7 +48,7 @@ describe('user authentication', () => {
     await waitFor(() => screen.getByText(/some text/));
 
     expect(store.getState().user.value).toStrictEqual(serverUser);
-    expect(store.getState().user.needsServerAuthentication).toBeFalsy();
+    expect(store.getState().user.needsServerAuthentication).toBeFalse();
   });
   it('loads user with invalid server credentials but valid client cookie', async () => {
     document.cookie = CLIENT_COOKIE;
@@ -57,7 +58,7 @@ describe('user authentication', () => {
     await waitFor(() => screen.getByText(/some text/));
 
     expect(store.getState().user.value).toStrictEqual(clientUser);
-    expect(store.getState().user.needsServerAuthentication).toBeTruthy();
+    expect(store.getState().user.needsServerAuthentication).toBeTrue();
   });
   it('loads user with a down server but valid client cookie', async () => {
     document.cookie = CLIENT_COOKIE;
@@ -67,7 +68,7 @@ describe('user authentication', () => {
     await waitFor(() => screen.getByText(/some text/));
 
     expect(store.getState().user.value).toStrictEqual(clientUser);
-    expect(store.getState().user.needsServerAuthentication).toBeFalsy();
+    expect(store.getState().user.needsServerAuthentication).toBeFalse();
   });
   it('loads user with network issues but valid client cookie', async () => {
     document.cookie = CLIENT_COOKIE;
@@ -77,7 +78,7 @@ describe('user authentication', () => {
     await waitFor(() => screen.getByText(/some text/));
 
     expect(store.getState().user.value).toStrictEqual(clientUser);
-    expect(store.getState().user.needsServerAuthentication).toBeFalsy();
+    expect(store.getState().user.needsServerAuthentication).toBeFalse();
   });
   it('loads user with an unresponsive server but valid client cookie', async () => {
     document.cookie = CLIENT_COOKIE;
@@ -87,7 +88,7 @@ describe('user authentication', () => {
     await waitFor(() => screen.getByText(/some text/));
 
     expect(store.getState().user.value).toStrictEqual(clientUser);
-    expect(store.getState().user.needsServerAuthentication).toBeFalsy();
+    expect(store.getState().user.needsServerAuthentication).toBeFalse();
   });
   it('treats no client cookie as the user being a guest', async () => {
     document.cookie = NO_CLIENT_COOKIE;
@@ -97,10 +98,10 @@ describe('user authentication', () => {
     await waitFor(() => screen.getByText(/some text/));
 
     expect(store.getState().user.value).toStrictEqual(GuestUser);
-    expect(store.getState().user.needsServerAuthentication).toBeFalsy();
+    expect(store.getState().user.needsServerAuthentication).toBeFalse();
   });
   it('for now, treat to corrupted client cookie as the user being a guest', async () => {
-    vi.spyOn(console, 'error').mockImplementation(() => {});
+    jest.spyOn(console, 'error').mockImplementation(() => {});
     document.cookie = 'sanremo-client=blah';
     mockedAxios.get.mockResolvedValueOnce({ data: serverUser });
 
@@ -109,6 +110,6 @@ describe('user authentication', () => {
 
     expect(console.error).toBeCalledTimes(1);
     expect(store.getState().user.value).toStrictEqual(GuestUser);
-    expect(store.getState().user.needsServerAuthentication).toBeFalsy();
+    expect(store.getState().user.needsServerAuthentication).toBeFalse();
   });
 });
