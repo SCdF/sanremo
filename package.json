@@ -1,6 +1,6 @@
 {
   "name": "sanremo",
-  "type": "module",
+  "type": "modu le",
   "version": "0.5.0",
   "packageManager": "yarn@4.0.2",
   "//": [
@@ -20,7 +20,7 @@
     "build:server": "parcel build --target server --reporter @parcel/reporter-bundle-analyzer",
     "build": "yarn clean && parcel build --reporter @parcel/reporter-bundle-analyzer && node ./scripts/inject-manifest.mjs",
     "dev": "parcel --target client",
-    "test:client": "jest src/client",
+    "test:client": "node --experimental-vm-modules $(yarn bin jest) src/client",
     "test:server": "jest src/server",
     "test": "yarn test:client && yarn test:server"
   },
