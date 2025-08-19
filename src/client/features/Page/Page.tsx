@@ -33,7 +33,7 @@ import { PageContext } from './pageSlice';
 /**
  * Wrapper for Pages. Manages headers, sidebar etc
  */
-const Page: FC<{ children?: React.ReactNode }> = ({ children }) => {
+const Page: FC = ({ children }) => {
   const rrdNavigate = useNavigate();
 
   const context: PageContext = useSelector((state) => state.page.value);

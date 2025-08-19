@@ -27,9 +27,7 @@ function About(props) {
   const [idbInfo, setIdbInfo] = useState([]);
   const [serverInfo, setServerInfo] = useState([]);
 
-  useEffect(() => {
-    handle.info().then((info) => setIdbInfo(mapProps('db', info)));
-  }, [handle]);
+  useEffect(() => handle.info().then((info) => setIdbInfo(mapProps('db', info))), [handle]);
 
   useEffect(() => {
     if (process.env.NODE_ENV === 'production') {
