@@ -20,4 +20,4 @@ jobs:
       - run: yarn
       - run: yarn check
       - run: yarn build
-      # - run: yarn test
+      - run: yarn test
