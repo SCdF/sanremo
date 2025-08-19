@@ -66,7 +66,8 @@ function History() {
       }
 
       // As the FIXME: mentions above, sort manually
-      setRepeatables(repeatables.sort((d1, d2) => d2.timestamp || 0 - (d1.timestamp || 0)));
+      repeatables.sort((d1, d2) => (d2.timestamp || 0) - (d1.timestamp || 0));
+      setRepeatables(repeatables);
     }
 
     // TODO: sort out logging / elevation for errors
