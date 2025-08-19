@@ -1,13 +1,12 @@
-import { MockedFunction, describe, expect, it, vi } from 'vitest';
 import { getDocs, getStubsForUser, putDocs } from './db';
 import sync from './sync';
 
-vi.mock('./db');
+jest.mock('./db');
 
-const mockGetStubsForUser = getStubsForUser as MockedFunction<typeof getStubsForUser>;
+const mockGetStubsForUser = getStubsForUser as jest.MockedFunction<typeof getStubsForUser>;
 
-const mockGetDocs = getDocs as MockedFunction<typeof getDocs>;
-const mockPutDocs = putDocs as MockedFunction<typeof putDocs>;
+const mockGetDocs = getDocs as jest.MockedFunction<typeof getDocs>;
+const mockPutDocs = putDocs as jest.MockedFunction<typeof putDocs>;
 
 const user = { name: 'test', id: 1 };
 

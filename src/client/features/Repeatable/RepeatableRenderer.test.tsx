@@ -1,5 +1,4 @@
 import { fireEvent, screen } from '@testing-library/react';
-import { describe, expect, it, vi } from 'vitest';
 import { render } from '../../test-utils';
 import RepeatableRenderer from './RepeatableRenderer';
 
@@ -50,7 +49,7 @@ describe('Repeatable Renderer', () => {
       await screen.findByText('check me');
     });
     it('onChange fires when a checkbox is clicked', async () => {
-      const onChange = vi.fn();
+      const onChange = jest.fn();
       render(
         <RepeatableRenderer
           hasFocus={NOOP}
@@ -68,7 +67,7 @@ describe('Repeatable Renderer', () => {
       expect(onChange).toBeCalledWith(0);
     });
     it('onChange fires to the right checkbox when it is clicked', async () => {
-      const onChange = vi.fn();
+      const onChange = jest.fn();
       render(
         <RepeatableRenderer
           hasFocus={NOOP}

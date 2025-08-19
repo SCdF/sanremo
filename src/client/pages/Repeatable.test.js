@@ -5,14 +5,13 @@ import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import db from '../db';
 import { render as wrappedRender } from '../test-utils';
 
-import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { setUserAsLoggedIn } from '../features/User/userSlice';
 import { createStore } from '../store';
 import { withStore } from '../test-utils';
 import Repeatable from './Repeatable';
 
-vi.mock('react-router-dom');
-vi.mock('../db');
+jest.mock('react-router-dom');
+jest.mock('../db');
 
 describe('Repeatable', () => {
   const user = { id: 1, name: 'Tester Test' };
@@ -21,7 +20,7 @@ describe('Repeatable', () => {
   let handle;
 
   beforeEach(() => {
-    navigate = vi.fn();
+    navigate = jest.fn();
     useNavigate.mockReturnValue(navigate);
 
     store = createStore();
