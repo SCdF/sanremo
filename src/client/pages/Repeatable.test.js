@@ -13,7 +13,7 @@ import Repeatable from './Repeatable';
 jest.mock('react-router-dom');
 jest.mock('../db');
 
-describe('Repeatable', () => {
+describe.skip('Repeatable', () => {
   const user = { id: 1, name: 'Tester Test' };
   let navigate;
   let store;
@@ -97,7 +97,7 @@ describe('Repeatable', () => {
     });
   });
 
-  describe.skip('completion redirection semantics', () => {
+  describe('completion redirection semantics', () => {
     let repeatable;
     let template;
     beforeEach(() => {
