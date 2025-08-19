@@ -1,16 +1,20 @@
 import { Input } from '@mui/material';
+import { makeStyles } from '@mui/styles';
 import { ChangeEvent, useState } from 'react';
 import { RepeatableDoc, TemplateDoc } from '../../../shared/types';
 import db from '../../db';
 import { setRepeatable } from '../../state/docsSlice';
 import { RootState, useDispatch, useSelector } from '../../store';
 
-const inputStyle = {
-  paddingLeft: '0.5em',
-  color: 'inherit',
-} as const;
+export const useStyles = makeStyles((theme) => ({
+  inputRoot: {
+    paddingLeft: '0.5em',
+    color: 'inherit',
+  },
+}));
 
 function RepeatableSlug() {
+  const classes = useStyles();
   const dispatch = useDispatch();
 
   const user = useSelector((state) => state.user.value);
@@ -51,7 +55,7 @@ function RepeatableSlug() {
     slugInput = (
       <Input
         type="text"
-        sx={inputStyle}
+        classes={{ root: classes.inputRoot }}
         placeholder={template.slug.placeholder}
         value={slug}
         onChange={changeSlug}
@@ -74,7 +78,7 @@ function RepeatableSlug() {
         type="date"
         // TODO: make sure this works for accessibility
         inputProps={{ role: 'entry' }}
-        sx={inputStyle}
+        classes={{ root: classes.inputRoot }}
         value={awkwardlyFormattedSlug}
         onChange={changeSlug}
         onBlur={storeSlugChange}
@@ -99,7 +103,7 @@ function RepeatableSlug() {
         type="datetime-local"
         // TODO: make sure this works for accessibility
         inputProps={{ role: 'entry' }}
-        sx={inputStyle}
+        classes={{ root: classes.inputRoot }}
         value={awkwardlyFormattedSlug}
         onChange={changeSlug}
         onBlur={storeSlugChange}

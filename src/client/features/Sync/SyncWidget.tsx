@@ -7,12 +7,21 @@ import CloudOffRoundedIcon from '@mui/icons-material/CloudOffRounded';
 import CloudRoundedIcon from '@mui/icons-material/CloudRounded';
 import ErrorOutlineRoundedIcon from '@mui/icons-material/ErrorOutlineRounded';
 import { CircularProgress, Fade, IconButton, Tooltip } from '@mui/material';
+import { makeStyles } from '@mui/styles';
 
 import { useDispatch, useSelector } from '../../store';
 import { selectIsGuest } from '../User/userSlice';
 import { State, requestSync } from './syncSlice';
 
+const useStyles = makeStyles((theme) => ({
+  progress: {
+    position: 'absolute',
+  },
+}));
+
 function SyncWidget() {
+  const classes = useStyles();
+
   const dispatch = useDispatch();
 
   const location = useLocation();
@@ -49,11 +58,11 @@ function SyncWidget() {
             <Fragment>
               <CloudRoundedIcon />
               {/* inner constantly animating progress */}
-              <CircularProgress color="secondary" sx={{ position: 'absolute' }} size="33px" />
+              <CircularProgress color="secondary" className={classes.progress} size="33px" />
               {/* outer percentage progress */}
               <CircularProgress
                 color="secondary"
-                sx={{ position: 'absolute' }}
+                className={classes.progress}
                 variant="determinate"
                 value={progress}
               />

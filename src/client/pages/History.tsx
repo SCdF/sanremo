@@ -1,16 +1,24 @@
 import { useEffect, useState } from 'react';
 
 import { List, Typography } from '@mui/material';
+import { makeStyles } from '@mui/styles';
 
 import { set as setContext } from '../features/Page/pageSlice';
 
-import { TemplateDoc } from '../../shared/types';
+import { RepeatableDoc, TemplateDoc } from '../../shared/types';
 import db from '../db';
 import RepeatableListItem from '../features/Repeatable/RepeatableListItem';
 import { useDispatch, useSelector } from '../store';
 import { SortableRepeatableDoc } from './Home';
 
+const useStyles = makeStyles((theme) => ({
+  root: {
+    padding: theme.spacing(1),
+  },
+}));
+
 function History() {
+  const classes = useStyles();
   const [repeatables, setRepeatables] = useState([] as SortableRepeatableDoc[]);
   const dispatch = useDispatch();
 
@@ -82,7 +90,7 @@ function History() {
       {repeatableList.length ? (
         repeatableList
       ) : (
-        <Typography align="center" variant="body2" sx={{ padding: 1 }}>
+        <Typography align="center" variant="body2" className={classes.root}>
           Nothing here yet&hellip;
         </Typography>
       )}

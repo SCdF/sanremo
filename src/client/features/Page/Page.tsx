@@ -6,7 +6,6 @@ import HistoryIcon from '@mui/icons-material/History';
 import InfoIcon from '@mui/icons-material/Info';
 import {
   AppBar,
-  Box,
   Container,
   Divider,
   IconButton,
@@ -16,6 +15,7 @@ import {
   Toolbar,
   Typography,
 } from '@mui/material';
+import { makeStyles } from '@mui/styles';
 
 import React, { FC, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -30,10 +30,20 @@ import { UserMenuDialog, UserMenuItem } from '../User/UserMenuItem';
 import { selectIsGuest } from '../User/userSlice';
 import { PageContext } from './pageSlice';
 
+const useStyles = makeStyles((theme) => ({
+  grow: {
+    flexGrow: 1,
+  },
+  main: {
+    padding: theme.spacing(1),
+  },
+}));
+
 /**
  * Wrapper for Pages. Manages headers, sidebar etc
  */
 const Page: FC = ({ children }) => {
+  const classes = useStyles();
   const rrdNavigate = useNavigate();
 
   const context: PageContext = useSelector((state) => state.page.value);
@@ -100,7 +110,7 @@ const Page: FC = ({ children }) => {
             </IconButton>
           )}
           <Typography variant="h6">{title}</Typography>
-          <Box sx={{ flexGrow: 1 }} />
+          <div className={classes.grow} />
           <SyncWidget />
           <IconButton edge="end" color="inherit" onClick={handleMenuOpen}>
             <UserMenuBadge />
@@ -151,9 +161,7 @@ const Page: FC = ({ children }) => {
       in there will be a split second where it shows invalid data even though it's set to open=false
        */}
       {canSeeUserDialog && <UserMenuDialog open={true} onClose={() => setUserDialogOpen(false)} />}
-      <Box sx={{ margin: 1 }} component="main">
-        {children}
-      </Box>
+      <main className={classes.main}>{children}</main>
     </Container>
   );
 };
