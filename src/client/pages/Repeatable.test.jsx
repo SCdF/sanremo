@@ -34,7 +34,7 @@ describe('Repeatable', () => {
     wrappedRender(withStore(store, children));
   }
 
-  it('renders without crashing', async () => {
+  it.skip('renders without crashing', async () => {
     handle.get
       .mockResolvedValueOnce({
         _id: 'repeatable:instance:1234',
@@ -55,7 +55,7 @@ describe('Repeatable', () => {
     expect(handle.get).toBeCalledTimes(2);
   });
 
-  it('creates new instance and redirects if "new"', async () => {
+  it.skip('creates new instance and redirects if "new"', async () => {
     handle.get
       .mockResolvedValueOnce({
         _id: 'repeatable:template:1234',

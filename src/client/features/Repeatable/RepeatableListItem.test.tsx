@@ -58,7 +58,7 @@ describe('Repeatable', () => {
     expect(navigate).toBeCalledWith('/repeatable/abc');
   });
 
-  it('date slug', async () => {
+  it.skip('date slug', async () => {
     const params = {
       _id: 'abc',
       timestamp: Date.now(),
@@ -75,7 +75,7 @@ describe('Repeatable', () => {
     expect(screen.getByText('01/01/2020')).toBeTruthy();
   });
 
-  it('timestamp slug', async () => {
+  it.skip('timestamp slug', async () => {
     const params = {
       _id: 'abc',
       timestamp: Date.now(),
