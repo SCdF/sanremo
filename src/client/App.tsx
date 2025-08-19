@@ -33,11 +33,11 @@ function App() {
         <Page>
           <Suspense fallback={<Loading />}>
             <Routes>
-              <Route path="/" element={<Home />} />
-              <Route path="/about" element={<About />} />
+              <Route path="about" element={<About />} />
               <Route path="repeatable/:repeatableId" element={<Repeatable />} />
               <Route path="template/:templateId" element={<Template />} />
               <Route path="history" element={<History />} />
+              <Route path="*" element={<Home />} />
             </Routes>
           </Suspense>
         </Page>
