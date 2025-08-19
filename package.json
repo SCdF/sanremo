@@ -4,9 +4,9 @@
   "version": "0.5.0",
   "packageManager": "yarn@4.0.2",
   "//": [
-    " TODO replacement for jest and general flaky react unit testing (vitest?)",
     " TODO update everything else thing by thing",
     " TODO migrate off heroku (fly.io?)",
+    " TODO replacement for jest and general flaky react unit testing (vitest?)",
     " TODO redux -> https://github.com/pmndrs/zustand"
   ],
   "scripts": {
