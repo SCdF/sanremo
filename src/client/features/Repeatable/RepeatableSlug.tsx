@@ -46,7 +46,7 @@ function RepeatableSlug() {
     return null;
   }
 
-  let slugInput: React.ReactElement;
+  let slugInput;
   if (['url', 'string'].includes(template.slug.type)) {
     slugInput = (
       <Input

@@ -48,7 +48,7 @@ function Repeatable() {
 
         const created = Date.now();
         const updated = created;
-        let slug: string | number | undefined;
+        let slug;
         if (['date', 'timestamp'].includes(template.slug.type)) {
           slug = Date.now();
         } else {

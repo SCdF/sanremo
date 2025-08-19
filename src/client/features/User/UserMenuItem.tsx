@@ -22,7 +22,7 @@ export const UserMenuItem = React.forwardRef<any, { onClick: () => void }>(({ on
   const isGuest = useSelector(selectIsGuest);
   const requiresReauthentication = useSelector((state) => state.user.needsServerAuthentication);
 
-  let title: string;
+  let title;
 
   if (isGuest) {
     title = 'Create / Login';
@@ -51,8 +51,8 @@ export const UserMenuDialog: FC<{ open: boolean; onClose: () => void }> = ({ ope
   const isGuest = useSelector(selectIsGuest);
   const requiresReauthentication = useSelector((state) => state.user.needsServerAuthentication);
 
-  let title: string;
-  let content: React.ReactElement | undefined;
+  let title;
+  let content;
 
   if (isGuest) {
     title = 'Create / Login';
