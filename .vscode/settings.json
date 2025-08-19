@@ -8,6 +8,5 @@
   "[javascript]": {
     "editor.defaultFormatter": "biomejs.biome"
   },
-  "todo-tree.tree.scanMode": "workspace",
-  "cursorless.showOnStart": false
+  "todo-tree.tree.scanMode": "workspace"
 }
