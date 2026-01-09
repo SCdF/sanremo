@@ -75,7 +75,9 @@ describe('Repeatable', () => {
     };
 
     render(<RepeatableListItem {...params} />);
-    expect(screen.getByText('01/01/2020')).toBeTruthy();
+    // Date format is locale-dependent, so check for the expected date in any format
+    const expectedDate = new Date(2020, 0, 1).toLocaleDateString();
+    expect(screen.getByText(expectedDate)).toBeTruthy();
   });
 
   it('timestamp slug', async () => {
@@ -92,7 +94,9 @@ describe('Repeatable', () => {
     };
 
     render(<RepeatableListItem {...params} />);
-    expect(screen.getByText('01/01/2020, 10:20:00')).toBeTruthy();
+    // Timestamp format is locale-dependent, so check for the expected timestamp in any format
+    const expectedTimestamp = new Date(2020, 0, 1, 10, 20).toLocaleString();
+    expect(screen.getByText(expectedTimestamp)).toBeTruthy();
   });
   it('plain text slug', async () => {
     const params = {
