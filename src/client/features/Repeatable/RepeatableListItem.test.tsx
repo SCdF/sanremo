@@ -1,4 +1,5 @@
-import { screen } from '@testing-library/react';
+import React from 'react'
+import { screen, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 import { NavigateFunction, useNavigate } from 'react-router-dom';
@@ -54,11 +55,13 @@ describe('Repeatable', () => {
     render(<RepeatableListItem {...params} />);
 
     expect(screen.getByRole('link')).toHaveAttribute('href', params.slug);
-    userEvent.click(screen.getByText('URL Test'));
+    act(() => {
+      userEvent.click(screen.getByText('URL Test'));
+    });
     expect(navigate).toBeCalledWith('/repeatable/abc');
   });
 
-  it.skip('date slug', async () => {
+  it('date slug', async () => {
     const params = {
       _id: 'abc',
       timestamp: Date.now(),
@@ -75,7 +78,7 @@ describe('Repeatable', () => {
     expect(screen.getByText('01/01/2020')).toBeTruthy();
   });
 
-  it.skip('timestamp slug', async () => {
+  it('timestamp slug', async () => {
     const params = {
       _id: 'abc',
       timestamp: Date.now(),

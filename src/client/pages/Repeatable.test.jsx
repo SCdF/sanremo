@@ -1,3 +1,4 @@
+import React from 'react';
 import { fireEvent, screen, waitFor } from '@testing-library/react';
 import { Provider } from 'react-redux';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
@@ -34,7 +35,7 @@ describe('Repeatable', () => {
     wrappedRender(withStore(store, children));
   }
 
-  it.skip('renders without crashing', async () => {
+  it('renders without crashing', async () => {
     handle.get
       .mockResolvedValueOnce({
         _id: 'repeatable:instance:1234',
@@ -55,7 +56,7 @@ describe('Repeatable', () => {
     expect(handle.get).toBeCalledTimes(2);
   });
 
-  it.skip('creates new instance and redirects if "new"', async () => {
+  it('creates new instance and redirects if "new"', async () => {
     handle.get
       .mockResolvedValueOnce({
         _id: 'repeatable:template:1234',
@@ -98,10 +99,15 @@ describe('Repeatable', () => {
     });
   });
 
-  describe.skip('completion redirection semantics', () => {
+  describe('completion redirection semantics', () => {
     let repeatable;
     let template;
     beforeEach(() => {
+      handle.get.mockReset();
+      handle.userPut.mockReset();
+      useLocation.mockReset();
+      useParams.mockReset();
+
       repeatable = {
         _id: 'repeatable:instance:1234',
         template: 'repeatable:template:5678',

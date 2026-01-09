@@ -1,10 +1,11 @@
+import React from 'react';
 import { screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { render } from '../../test-utils';
 
 import TemplateListItem from './TemplateListItem';
 
-test.skip('renders without crashing', async () => {
+test('renders without crashing', async () => {
   render(
     <MemoryRouter>
       <TemplateListItem _id="abc" title="Template ListItem" />
