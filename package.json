@@ -21,7 +21,7 @@
     "dev": "parcel --target client",
     "test:client": "vitest --config src/client/vitest.config.js src/client",
     "test:server": "vitest --config src/server/vitest.config.js src/server",
-    "test": "yarn test:client && yarn test:server"
+    "test": "yarn test:client --run && yarn test:server --run"
   },
   "targets": {
     "client": {
