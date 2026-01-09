@@ -1,5 +1,5 @@
-import React from 'react';
 import { fireEvent, screen, waitFor } from '@testing-library/react';
+import React from 'react';
 import { Provider } from 'react-redux';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 
