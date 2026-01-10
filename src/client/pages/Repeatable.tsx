@@ -203,7 +203,7 @@ function Repeatable() {
         hasFocus={setRepeatableHasFocus}
         takesFocus
       />
-      <ButtonGroup>
+      <ButtonGroup data-testid="repeatable-page">
         {!repeatable?.completed && <CompleteButton hasFocus={!repeatableHasFocus} />}
         {repeatable?.completed && (
           <Button onClick={uncomplete} color="primary" variant="contained">

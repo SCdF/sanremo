@@ -146,7 +146,7 @@ function Template() {
   }
 
   return (
-    <form onSubmit={handleSubmit} noValidate autoComplete="off">
+    <form onSubmit={handleSubmit} noValidate autoComplete="off" data-testid="template-page">
       <Grid container spacing={2}>
         <Grid item xs={12}>
           <TextField

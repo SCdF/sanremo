@@ -144,14 +144,18 @@ function Home() {
 
   return (
     <Fragment>
-      {!!repeatableList.length && <List className="repeatables">{repeatableList}</List>}
+      {!!repeatableList.length && (
+        <List className="repeatables" data-testid="home-repeatables-list">
+          {repeatableList}
+        </List>
+      )}
       {!repeatableList.length && (
         <Typography align="center" variant="body2" sx={{ padding: 1 }}>
           You're free! For now&hellip;
         </Typography>
       )}
       <Divider />
-      <List className="templates">
+      <List className="templates" data-testid="home-templates-list">
         {templateList}
         <TemplateListItem key="new" />
       </List>
