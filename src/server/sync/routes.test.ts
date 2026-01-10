@@ -5,7 +5,8 @@ import { DatabaseError } from 'pg-protocol';
 import { Server as SocketServer } from 'socket.io';
 import { io as SocketClient } from 'socket.io-client';
 import request from 'supertest';
-import { Mock, afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { when } from 'vitest-when';
 import { User } from '../../shared/types';
 import syncRoutes from './routes';
 import sync from './sync';
@@ -81,7 +82,7 @@ describe('Sync Routes', () => {
         client: [{ _id: 'doc4', _rev: '1-jkl' }],
       };
 
-      (sync.begin as Mock).mockResolvedValue(mockResponse);
+      when(vi.mocked(sync.begin)).calledWith(testUser, mockStubs).thenResolve(mockResponse);
 
       const response = await request(app)
         .post('/api/sync/begin')
@@ -94,7 +95,7 @@ describe('Sync Routes', () => {
 
     it('should handle empty docs array', async () => {
       const mockResponse = { server: [], client: [] };
-      (sync.begin as Mock).mockResolvedValue(mockResponse);
+      when(vi.mocked(sync.begin)).calledWith(testUser, []).thenResolve(mockResponse);
 
       const response = await request(app).post('/api/sync/begin').send({}).expect(200);
 
@@ -111,7 +112,7 @@ describe('Sync Routes', () => {
       // @ts-ignore - setting readonly property for test
       duplicateError.code = '23505';
 
-      (sync.begin as Mock)
+      vi.mocked(sync.begin)
         .mockRejectedValueOnce(duplicateError)
         .mockResolvedValueOnce(mockResponse);
 
@@ -125,7 +126,9 @@ describe('Sync Routes', () => {
     });
 
     it('should return 500 on unexpected error', async () => {
-      (sync.begin as Mock).mockRejectedValue(new Error('Database connection failed'));
+      when(vi.mocked(sync.begin))
+        .calledWith(testUser, [])
+        .thenReject(new Error('Database connection failed'));
 
       await request(app).post('/api/sync/begin').send({ docs: [] }).expect(500);
     });
@@ -142,7 +145,7 @@ describe('Sync Routes', () => {
         { _id: 'doc2', _rev: '1-def', content: 'data2' },
       ];
 
-      (sync.request as Mock).mockResolvedValue(mockDocs);
+      when(vi.mocked(sync.request)).calledWith(testUser, mockStubs).thenResolve(mockDocs);
 
       const response = await request(app)
         .post('/api/sync/request')
@@ -154,7 +157,7 @@ describe('Sync Routes', () => {
     });
 
     it('should handle empty request', async () => {
-      (sync.request as Mock).mockResolvedValue([]);
+      when(vi.mocked(sync.request)).calledWith(testUser, []).thenResolve([]);
 
       const response = await request(app).post('/api/sync/request').send({}).expect(200);
 
@@ -163,7 +166,9 @@ describe('Sync Routes', () => {
     });
 
     it('should return 500 on error', async () => {
-      (sync.request as Mock).mockRejectedValue(new Error('Request failed'));
+      when(vi.mocked(sync.request))
+        .calledWith(testUser, [])
+        .thenReject(new Error('Request failed'));
 
       await request(app).post('/api/sync/request').send({ docs: [] }).expect(500);
     });
@@ -176,7 +181,7 @@ describe('Sync Routes', () => {
         { _id: 'doc2', _rev: '2-def', content: 'updated2' },
       ];
 
-      (sync.update as Mock).mockResolvedValue(undefined);
+      when(vi.mocked(sync.update)).calledWith(testUser, mockDocs).thenResolve(undefined);
 
       await request(app).post('/api/sync/update').send({ docs: mockDocs }).expect(200);
 
@@ -184,7 +189,7 @@ describe('Sync Routes', () => {
     });
 
     it('should handle empty update', async () => {
-      (sync.update as Mock).mockResolvedValue(undefined);
+      when(vi.mocked(sync.update)).calledWith(testUser, []).thenResolve(undefined);
 
       await request(app).post('/api/sync/update').send({}).expect(200);
 
@@ -192,109 +197,11 @@ describe('Sync Routes', () => {
     });
 
     it('should return 500 on error', async () => {
-      (sync.update as Mock).mockRejectedValue(new Error('Update failed'));
+      when(vi.mocked(sync.update))
+        .calledWith(testUser, [])
+        .thenReject(new Error('Update failed'));
 
       await request(app).post('/api/sync/update').send({ docs: [] }).expect(500);
-    });
-  });
-
-  describe.skip('Socket.IO integration', () => {
-    // TODO: Socket.IO tests require more complex setup with proper session mocking
-    // These are being skipped for now as the HTTP API tests provide good coverage
-    // Socket.IO functionality should be tested manually or with integration tests
-    it('should accept socket connection and handle ready event', () => {
-      return new Promise<void>((resolve, reject) => {
-        // Mock the socket.io session middleware to inject user
-        io.use((socket, next) => {
-          // @ts-ignore
-          socket.request = { session: { user: testUser } };
-          next();
-        });
-
-        const client = SocketClient(baseURL, {
-          transports: ['websocket'],
-          auth: { sessionID: 'test-session' },
-        });
-
-        client.on('connect', () => {
-          client.emit('ready');
-          setTimeout(() => {
-            client.disconnect();
-            resolve();
-          }, 100);
-        });
-
-        client.on('connect_error', (err) => {
-          reject(err);
-        });
-      });
-    });
-
-    it('should broadcast docUpdate to other sockets of the same user', () => {
-      return new Promise<void>((resolve, reject) => {
-        const mockDocs = [{ _id: 'doc1', _rev: '1-abc', content: 'test' }];
-        (sync.update as Mock).mockResolvedValue(undefined);
-
-        // Mock the socket.io session middleware
-        io.use((socket, next) => {
-          // @ts-ignore
-          socket.request = { session: { user: testUser } };
-          next();
-        });
-
-        const client1 = SocketClient(baseURL, { transports: ['websocket'] });
-        const client2 = SocketClient(baseURL, { transports: ['websocket'] });
-
-        let client2Ready = false;
-
-        client1.on('connect', () => {
-          client1.emit('ready');
-        });
-
-        client2.on('connect', () => {
-          client2.emit('ready');
-          client2Ready = true;
-        });
-
-        client2.on('docUpdate', (docs) => {
-          try {
-            expect(docs).toEqual(mockDocs);
-            client1.disconnect();
-            client2.disconnect();
-            resolve();
-          } catch (err) {
-            reject(err);
-          }
-        });
-
-        // Wait for both clients to be ready, then send update from client1
-        setTimeout(() => {
-          if (client2Ready) {
-            client1.emit('docUpdate', mockDocs);
-          }
-        }, 200);
-      });
-    });
-
-    it('should handle disconnect event', () => {
-      return new Promise<void>((resolve) => {
-        io.use((socket, next) => {
-          // @ts-ignore
-          socket.request = { session: { user: testUser } };
-          next();
-        });
-
-        const client = SocketClient(baseURL, { transports: ['websocket'] });
-
-        client.on('connect', () => {
-          client.emit('ready');
-          setTimeout(() => {
-            client.disconnect();
-            // Give time for disconnect to be processed
-            setTimeout(resolve, 100);
-          }, 100);
-        });
-      });
     });
   });
 });
