@@ -107,9 +107,11 @@ app.get('/api/deployment', async (req, res) => {
   };
 
   if (process.env.NODE_ENV === 'production') {
-    toReturn.deploy_created_at = process.env.HEROKU_RELEASE_CREATED_AT;
-    toReturn.deploy_version = process.env.HEROKU_RELEASE_VERSION;
-    toReturn.deploy_commit = process.env.HEROKU_SLUG_COMMIT;
+    toReturn.deploy_created_at =
+      process.env.RAILWAY_DEPLOYMENT_TIMESTAMP || process.env.HEROKU_RELEASE_CREATED_AT;
+    toReturn.deploy_version =
+      process.env.RAILWAY_DEPLOYMENT_ID || process.env.HEROKU_RELEASE_VERSION;
+    toReturn.deploy_commit = process.env.RAILWAY_GIT_COMMIT_SHA || process.env.HEROKU_SLUG_COMMIT;
   } else {
     toReturn.deploy_created_at = '1970-01-01T12:12:12Z';
     toReturn.deploy_version = 'continuous';
