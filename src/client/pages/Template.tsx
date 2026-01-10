@@ -110,7 +110,6 @@ function Template() {
       const splitId = copy._id.split(':');
       splitId[3] = String(Number(splitId[3]) + 1);
       copy._id = splitId.join(':');
-      // biome-ignore lint/performance/noDelete: TODO work out if we can replace this
       delete copy._rev;
     }
 

@@ -23,6 +23,7 @@ function LogoutMenuItem(props: { onClick: () => void }) {
   const handle = db(user);
 
   async function handleLogout() {
+    // biome-ignore lint/suspicious/noDocumentCookie: Required for dual-cookie auth system
     document.cookie = 'sanremo-client='; // ugly-wipe client-side cookie
     await handle.destroy();
     window.location.reload();

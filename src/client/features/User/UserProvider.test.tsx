@@ -40,6 +40,7 @@ describe('user authentication', () => {
   }
 
   it('loads user with valid server credentials', async () => {
+    // biome-ignore lint/suspicious/noDocumentCookie: Required for dual-cookie auth testing
     document.cookie = CLIENT_COOKIE;
     mockedAxios.get.mockResolvedValueOnce({ data: serverUser });
 
@@ -50,6 +51,7 @@ describe('user authentication', () => {
     expect(store.getState().user.needsServerAuthentication).toBeFalsy();
   });
   it('loads user with invalid server credentials but valid client cookie', async () => {
+    // biome-ignore lint/suspicious/noDocumentCookie: Required for dual-cookie auth testing
     document.cookie = CLIENT_COOKIE;
     mockedAxios.get.mockRejectedValue({ response: { status: 401 }, isAxiosError: true });
 
@@ -60,6 +62,7 @@ describe('user authentication', () => {
     expect(store.getState().user.needsServerAuthentication).toBeTruthy();
   });
   it('loads user with a down server but valid client cookie', async () => {
+    // biome-ignore lint/suspicious/noDocumentCookie: Required for dual-cookie auth testing
     document.cookie = CLIENT_COOKIE;
     mockedAxios.get.mockRejectedValue({ response: { status: 404 }, isAxiosError: true });
 
@@ -70,6 +73,7 @@ describe('user authentication', () => {
     expect(store.getState().user.needsServerAuthentication).toBeFalsy();
   });
   it('loads user with network issues but valid client cookie', async () => {
+    // biome-ignore lint/suspicious/noDocumentCookie: Required for dual-cookie auth testing
     document.cookie = CLIENT_COOKIE;
     mockedAxios.get.mockRejectedValue({ who: 'knows', isAxiosError: true });
 
@@ -80,6 +84,7 @@ describe('user authentication', () => {
     expect(store.getState().user.needsServerAuthentication).toBeFalsy();
   });
   it('loads user with an unresponsive server but valid client cookie', async () => {
+    // biome-ignore lint/suspicious/noDocumentCookie: Required for dual-cookie auth testing
     document.cookie = CLIENT_COOKIE;
     mockedAxios.get.mockRejectedValue({ isCancel: true });
 
@@ -90,6 +95,7 @@ describe('user authentication', () => {
     expect(store.getState().user.needsServerAuthentication).toBeFalsy();
   });
   it('treats no client cookie as the user being a guest', async () => {
+    // biome-ignore lint/suspicious/noDocumentCookie: Required for dual-cookie auth testing
     document.cookie = NO_CLIENT_COOKIE;
     mockedAxios.get.mockResolvedValueOnce({ data: serverUser });
 
@@ -101,6 +107,7 @@ describe('user authentication', () => {
   });
   it('for now, treat to corrupted client cookie as the user being a guest', async () => {
     vi.spyOn(console, 'error').mockImplementation(() => {});
+    // biome-ignore lint/suspicious/noDocumentCookie: Required for dual-cookie auth testing
     document.cookie = 'sanremo-client=blah';
     mockedAxios.get.mockResolvedValueOnce({ data: serverUser });
 

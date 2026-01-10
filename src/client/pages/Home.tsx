@@ -72,7 +72,6 @@ function Home() {
       const templateMap = new Map(templates.map((t) => [t._id, t]));
       for (const r of repeatables) {
         r.timestamp = r.updated;
-        // biome-ignore lint/performance/noDelete: FIXME: check if we can change this
         delete r.updated;
         r.template = templateMap.get(r.template as string) as TemplateDoc;
       }

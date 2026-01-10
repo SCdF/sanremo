@@ -27,7 +27,7 @@ describe('App Routing', () => {
     store = createStore();
     handle = db({ id: 1, name: 'testuser' }) as Mocked<Database>;
 
-    // Set client cookie for logged-in state (UserProvider will detect this)
+    // biome-ignore lint/suspicious/noDocumentCookie: Required for dual-cookie auth testing
     document.cookie = CLIENT_COOKIE;
 
     // Mock database responses for Home page
@@ -183,7 +183,7 @@ describe('App Routing', () => {
   });
 
   it('should show guest user message when user is guest', async () => {
-    // Mock no client cookie scenario - UserProvider will set user as guest
+    // biome-ignore lint/suspicious/noDocumentCookie: Required for dual-cookie auth testing
     document.cookie = 'sanremo-client=';
     mockedAxios.get.mockResolvedValue({ data: { id: 1, name: 'testuser' } });
 

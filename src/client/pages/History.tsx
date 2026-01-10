@@ -57,7 +57,6 @@ function History() {
       const templateMap = new Map(templates.map((t) => [t._id, t]));
       for (const r of repeatables) {
         r.timestamp = r.completed;
-        // biome-ignore lint/performance/noDelete: TODO work out if this matters
         delete r.completed;
         r.template = templateMap.get(r.template as string) as TemplateDoc;
       }

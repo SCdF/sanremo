@@ -113,7 +113,7 @@ const UserProvider: FC<{ children?: React.ReactNode }> = ({ children }) => {
     return <Loading />;
   }
 
-  // biome-ignore lint/complexity/noUselessFragments: TODO removing this causes type issues, investigate
+  // Fragment needed here for type compatibility
   return <Fragment>{children}</Fragment>;
 };
 

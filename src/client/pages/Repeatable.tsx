@@ -126,7 +126,6 @@ function Repeatable() {
   async function uncomplete() {
     const copy = Object.assign({}, repeatable);
 
-    // biome-ignore lint/performance/noDelete: TODO work out if we can just cahnge this
     delete copy.completed;
     await handle.userPut(copy);
     dispatch(setRepeatable(copy));
