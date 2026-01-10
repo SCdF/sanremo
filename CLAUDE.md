@@ -9,6 +9,13 @@ Sanremo is an offline-first PWA for managing repeatable checklists. It uses Pouc
 **Hosted at:** https://sanremo.sdufresne.info
 **GitHub:** https://github.com/SCdF/sanremo/
 
+## Package Manager
+
+**IMPORTANT: This project uses Yarn, NOT npm.**
+- Always use `yarn` or `yarn add` commands
+- Never use `npm install` or `npm` commands
+- Package manager is enforced via `.yarnrc` configuration
+
 ## Development Commands
 
 ### Essential Commands
@@ -178,6 +185,22 @@ import { MyComponent } from './MyComponent';
 - **Client tests**: Vitest with jsdom, setup in `src/client/test-utils/test-setup.ts`
 - **Server tests**: Vitest with default Node environment
 - Testing library for React components
+- **vitest-when**: Use for binding mock return values to specific parameters
+
+**Mock Best Practices**:
+- Don't just mock return values - use `vitest-when` to bind return values to expected parameters
+- This tests both how the mock is called AND what's done with the response
+- Example:
+  ```typescript
+  import { when } from 'vitest-when';
+
+  // Good: Binds mock response to specific input
+  when(handle.get).calledWith('doc-id').thenResolve(mockDoc);
+
+  // Bad: Doesn't verify the call parameters
+  handle.get.mockResolvedValue(mockDoc);
+  ```
+- vitest-when API: `.thenReturn()` for sync, `.thenResolve()` for promises, `.thenThrow()` for errors
 
 **Locale Gotcha**: `toLocaleDateString()` and `toLocaleString()` format differently in CI vs local. Always use same formatting method in tests as component uses.
 

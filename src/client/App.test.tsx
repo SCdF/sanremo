@@ -1,30 +1,49 @@
 import { screen, waitFor } from '@testing-library/react';
+import axios, { CancelTokenSource } from 'axios';
 import { MemoryRouter } from 'react-router-dom';
 import { beforeEach, describe, expect, it, test, vi } from 'vitest';
 import { Mocked } from 'vitest';
+import { when } from 'vitest-when';
+import { RepeatableDoc, SlugType, TemplateDoc } from '../shared/types';
 import App from './App';
 import db, { Database } from './db';
 import { setUserAsLoggedIn } from './features/User/userSlice';
 import { createStore } from './store';
 import { render, withStore } from './test-utils';
 
-// Mock the database
+// Mock the database and axios
 vi.mock('./db');
+vi.mock('axios');
+
+const mockedAxios = axios as Mocked<typeof axios>;
 
 describe('App Routing', () => {
   let store: ReturnType<typeof createStore>;
   let handle: Mocked<Database>;
 
+  // Client cookie for a logged-in user (same format as UserProvider.test.tsx)
+  const CLIENT_COOKIE =
+    'sanremo-client=s%3Aj%3A%7B%22id%22%3A1%2C%22name%22%3A%22testuser%22%7D.n%2BTOXdVN4pxjHo%2F3u8aOxEac6bRJWWASfUji1PBbJBM';
+
   beforeEach(() => {
     store = createStore();
-    store.dispatch(setUserAsLoggedIn({ user: { id: 1, name: 'testuser' } }));
     handle = db({ id: 1, name: 'testuser' }) as Mocked<Database>;
+
+    // Set client cookie for logged-in state (UserProvider will detect this)
+    document.cookie = CLIENT_COOKIE;
 
     // Mock database responses for Home page
     handle.find.mockResolvedValue({
       docs: [],
-      // biome-ignore lint/suspicious/noExplicitAny: Mock type for testing
-    } as any);
+    });
+
+    // Mock axios for UserProvider authentication check
+    mockedAxios.isAxiosError.mockImplementation((e) => e.isAxiosError);
+    mockedAxios.isCancel.mockImplementation((e) => e.isCancel);
+    mockedAxios.CancelToken.source = vi.fn(() => {
+      return { cancel: () => {} } as CancelTokenSource;
+    });
+    mockedAxios.get.mockResolvedValue({ data: { id: 1, name: 'testuser' } });
   });
 
   it('should render App with routing structure', async () => {
@@ -37,26 +56,44 @@ describe('App Routing', () => {
       ),
     );
 
+    // Should render the home page by default
     await waitFor(() => {
-      expect(document.body.textContent).toBeTruthy();
+      expect(screen.getByTestId('home-templates-list')).toBeTruthy();
     });
   });
 
   it('should handle /repeatable/:id route', async () => {
     // Mock for repeatable page
-    handle.get
-      .mockResolvedValueOnce({
-        _id: 'repeatable:instance:test-id',
-        template: 'repeatable:template:test',
-        values: [],
-        // biome-ignore lint/suspicious/noExplicitAny: Mock type for testing
-      } as any)
-      .mockResolvedValueOnce({
-        _id: 'repeatable:template:test',
-        title: 'Test Template',
-        markdown: 'Test markdown',
-        // biome-ignore lint/suspicious/noExplicitAny: Mock type for testing
-      } as any);
+    const mockRepeatable: RepeatableDoc = {
+      _id: 'test-id',
+      template: 'repeatable:template:test',
+      values: [],
+      created: Date.now(),
+      updated: Date.now(),
+      slug: '',
+    };
+
+    const mockTemplate: TemplateDoc = {
+      _id: 'repeatable:template:test',
+      title: 'Test Template',
+      markdown: '- [ ] Test item',
+      slug: { type: SlugType.Date },
+      created: Date.now(),
+      updated: Date.now(),
+      versioned: Date.now(),
+      values: [],
+    };
+
+    // Repeatable page calls handle.get with the route param (just 'test-id')
+    // biome-ignore lint/suspicious/noExplicitAny: PouchDB.get has overloaded signatures; using any for vitest-when compatibility
+    when(handle.get as any)
+      .calledWith('test-id')
+      .thenResolve(mockRepeatable);
+    // Then it loads the template using the template ID from the repeatable
+    // biome-ignore lint/suspicious/noExplicitAny: PouchDB.get has overloaded signatures; using any for vitest-when compatibility
+    when(handle.get as any)
+      .calledWith('repeatable:template:test')
+      .thenResolve(mockTemplate);
 
     render(
       withStore(
@@ -67,32 +104,45 @@ describe('App Routing', () => {
       ),
     );
 
+    // Should render the repeatable page with Complete button
     await waitFor(() => {
-      expect(document.body).toBeTruthy();
+      expect(screen.getByTestId('repeatable-page')).toBeTruthy();
+      expect(screen.getByText('Complete')).toBeTruthy();
     });
   });
 
   it('should handle /template/:id route', async () => {
     // Mock for template page
-    handle.get.mockResolvedValue({
+    const mockTemplate: TemplateDoc = {
       _id: 'repeatable:template:test',
       title: 'Test Template',
       markdown: 'Test markdown',
       values: [],
-      // biome-ignore lint/suspicious/noExplicitAny: Mock type for testing
-    } as any);
+      slug: { type: SlugType.Date, placeholder: '' },
+      created: Date.now(),
+      updated: Date.now(),
+      versioned: Date.now(),
+    };
+
+    // biome-ignore lint/suspicious/noExplicitAny: PouchDB.get has overloaded signatures; using any for vitest-when compatibility
+    when(handle.get as any)
+      .calledWith('repeatable:template:test')
+      .thenResolve(mockTemplate);
 
     render(
       withStore(
         store,
-        <MemoryRouter initialEntries={['/template/test-id']}>
+        <MemoryRouter initialEntries={['/template/repeatable:template:test']}>
           <App />
         </MemoryRouter>,
       ),
     );
 
+    // Should render the template edit page with form
     await waitFor(() => {
-      expect(document.body).toBeTruthy();
+      expect(screen.getByTestId('template-page')).toBeTruthy();
+      expect(screen.getByLabelText(/title/i)).toBeTruthy();
+      expect(screen.getByText('Save')).toBeTruthy();
     });
   });
 
@@ -100,8 +150,7 @@ describe('App Routing', () => {
     // Mock for history page
     handle.find.mockResolvedValue({
       docs: [],
-      // biome-ignore lint/suspicious/noExplicitAny: Mock type for testing
-    } as any);
+    });
 
     render(
       withStore(
@@ -112,8 +161,10 @@ describe('App Routing', () => {
       ),
     );
 
+    // Should render the history page with empty state message
     await waitFor(() => {
-      expect(document.body).toBeTruthy();
+      expect(screen.getByTestId('history-page')).toBeTruthy();
+      expect(screen.getByText(/Nothing here yet/i)).toBeTruthy();
     });
   });
 
@@ -127,14 +178,16 @@ describe('App Routing', () => {
       ),
     );
 
+    // Should render the home page (fallback route)
     await waitFor(() => {
-      expect(document.body).toBeTruthy();
+      expect(screen.getByTestId('home-templates-list')).toBeTruthy();
     });
   });
 
   it('should show guest user message when user is guest', async () => {
-    // Reset to guest user
-    store.dispatch({ type: 'user/setUserAsGuest' });
+    // Mock no client cookie scenario - UserProvider will set user as guest
+    document.cookie = 'sanremo-client=';
+    mockedAxios.get.mockResolvedValue({ data: { id: 1, name: 'testuser' } });
 
     render(
       withStore(
@@ -161,25 +214,12 @@ describe('App Routing', () => {
       ),
     );
 
+    // Should render home page and not show guest warning
     await waitFor(() => {
-      expect(document.body.textContent).toBeTruthy();
+      expect(screen.getByTestId('home-templates-list')).toBeTruthy();
     });
 
     // Guest message should not be present
     expect(screen.queryByText(/Data only stored in this browser/i)).toBeNull();
-  });
-
-  it('should render with Suspense boundary', () => {
-    render(
-      withStore(
-        store,
-        <MemoryRouter initialEntries={['/']}>
-          <App />
-        </MemoryRouter>,
-      ),
-    );
-
-    // App renders without crashing
-    expect(document.body).toBeTruthy();
   });
 });

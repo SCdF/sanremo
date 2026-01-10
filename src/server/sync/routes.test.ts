@@ -17,12 +17,16 @@ describe('Sync Routes', () => {
   let server: http.Server;
   let io: SocketServer;
   let baseURL: string;
+  let consoleWarnSpy: ReturnType<typeof vi.spyOn>;
 
   const testUser: User = { id: 1, name: 'testuser' };
 
   beforeEach(() => {
     // Reset mocks
     vi.resetAllMocks();
+
+    // Suppress console.warn for intentional error tests
+    consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
 
     // Create Express app with session middleware
     app = express();
@@ -56,6 +60,7 @@ describe('Sync Routes', () => {
   });
 
   afterEach(() => {
+    consoleWarnSpy.mockRestore();
     return new Promise<void>((resolve) => {
       io.close(() => {
         server.close(() => {

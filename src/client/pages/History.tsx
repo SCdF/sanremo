@@ -79,7 +79,7 @@ function History() {
   ));
 
   return (
-    <List>
+    <List data-testid="history-page">
       {repeatableList.length ? (
         repeatableList
       ) : (
