@@ -16,7 +16,7 @@ function mapProps(parent, info) {
     .map((k) => [`${parent}.${k}`, info[k]]);
 }
 
-function About(_props) {
+function About() {
   const dispatch = useDispatch();
 
   const loggedInUser = useSelector((state) => state.user.value);
