@@ -37,14 +37,12 @@ function About(props) {
         .get('./api/deployment')
         .then((response) => {
           const {
-            deploy_created_at: created,
             deploy_version: deployVersion,
             release_version: releaseVersion,
             deploy_commit: hash,
           } = response.data;
 
           const data = [
-            ['Deployed At', new Date(created).toLocaleString()],
             ['Deploy Version', deployVersion],
             ['Release', releaseVersion],
             [
