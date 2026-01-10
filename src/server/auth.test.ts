@@ -1,10 +1,9 @@
 import bcrypt from 'bcryptjs';
 import cookieParser from 'cookie-parser';
 import express from 'express';
-import session from 'express-session';
-import { SessionOptions } from 'express-session';
+import session, { type SessionOptions } from 'express-session';
 import request from 'supertest';
-import { Mock, beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, type Mock, vi } from 'vitest';
 import { setupAuthRoutes } from './auth';
 import { db } from './db';
 

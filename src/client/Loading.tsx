@@ -1,6 +1,6 @@
 import { Backdrop, CircularProgress } from '@mui/material';
 
-import { FC } from 'react';
+import type { FC } from 'react';
 
 const Loading: FC<{ open?: boolean }> = ({ open }) => {
   return (

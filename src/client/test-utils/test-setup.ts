@@ -3,14 +3,14 @@ import { vi } from 'vitest';
 
 // Mock localStorage to ensure it works properly in all test environments
 const localStorageMock = {
-  getItem: vi.fn((key: string) => null),
-  setItem: vi.fn((key: string, value: string) => {}),
-  removeItem: vi.fn((key: string) => {}),
+  getItem: vi.fn((_key: string) => null),
+  setItem: vi.fn((_key: string, _value: string) => {}),
+  removeItem: vi.fn((_key: string) => {}),
   clear: vi.fn(() => {}),
   get length() {
     return 0;
   },
-  key: vi.fn((index: number) => null),
+  key: vi.fn((_index: number) => null),
 };
 
 Object.defineProperty(window, 'localStorage', {

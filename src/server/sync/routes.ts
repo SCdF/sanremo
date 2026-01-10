@@ -1,13 +1,16 @@
+import type { Router } from 'express';
 import { DatabaseError } from 'pg-protocol';
-
-import { Router } from 'express';
-import { Server as SocketServer } from 'socket.io';
-
+import type { Server as SocketServer } from 'socket.io';
+import type {
+  ClientToServerEvents,
+  Doc,
+  ServerToClientEvents,
+  User,
+  UserId,
+} from '../../shared/types';
 import { debugServer } from '../globals';
-
-import { ClientToServerEvents, Doc, ServerToClientEvents, User, UserId } from '../../shared/types';
 import sync from './sync';
-import { Requests } from './types';
+import type { Requests } from './types';
 
 const debug = debugServer('socket');
 
@@ -106,7 +109,7 @@ export default function routes(
   };
 
   io.on('connection', (socket) => {
-    // @ts-ignore https://github.com/socketio/socket.io/issues/3890
+    // @ts-expect-error https://github.com/socketio/socket.io/issues/3890
     const user: User = socket.request.session.user;
     if (!socketIds.has(user.id)) {
       socketIds.set(user.id, new Set());

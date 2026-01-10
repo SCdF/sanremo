@@ -1,12 +1,11 @@
-import { ChangeEvent, FormEvent, MouseEvent, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-
 import DeleteIcon from '@mui/icons-material/Delete';
 import { Button, ButtonGroup, Grid, MenuItem, TextField } from '@mui/material';
+import { type ChangeEvent, type FormEvent, type MouseEvent, useEffect } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 
 import { v4 as uuid } from 'uuid';
 
-import { SlugType, TemplateDoc } from '../../shared/types';
+import { SlugType, type TemplateDoc } from '../../shared/types';
 import db from '../db';
 import { set as setContext } from '../features/Page/pageSlice';
 import RepeatableRenderer from '../features/Repeatable/RepeatableRenderer';
@@ -134,7 +133,7 @@ function Template() {
 
       copy.slug.placeholder = value as string;
     } else {
-      // @ts-ignore
+      // @ts-expect-error
       copy[name] = value;
     }
 

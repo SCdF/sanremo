@@ -1,8 +1,7 @@
+import type { Store } from '@reduxjs/toolkit';
 import { screen } from '@testing-library/react';
-import { NavigateFunction } from 'react-router-dom';
-
-import { Store } from '@reduxjs/toolkit';
-import { MockedFunction, beforeEach, describe, expect, it, vi } from 'vitest';
+import type { NavigateFunction } from 'react-router-dom';
+import { beforeEach, describe, expect, it, type MockedFunction, vi } from 'vitest';
 import { createStore } from '../../store';
 import { render, withStore } from '../../test-utils';
 import { setUserAsLoggedIn } from '../User/userSlice';
@@ -13,7 +12,7 @@ vi.mock('react-router-dom');
 vi.mock('../../db');
 
 describe('Page', () => {
-  let navigate: MockedFunction<NavigateFunction>;
+  let _navigate: MockedFunction<NavigateFunction>;
   let store: Store;
 
   beforeEach(() => {

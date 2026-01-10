@@ -1,11 +1,9 @@
 import { act, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import React from 'react';
 
-import { NavigateFunction, useNavigate } from 'react-router-dom';
+import { type NavigateFunction, useNavigate } from 'react-router-dom';
+import { beforeEach, describe, expect, it, type Mock, vi } from 'vitest';
 import { render } from '../../test-utils';
-
-import { Mock, beforeEach, describe, expect, it, vi } from 'vitest';
 import RepeatableListItem from './RepeatableListItem';
 
 vi.mock('react-router-dom');

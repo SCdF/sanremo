@@ -1,19 +1,13 @@
+import type { Store } from '@reduxjs/toolkit';
 import { screen, waitFor } from '@testing-library/react';
-import { Provider } from 'react-redux';
+import type { JSX } from 'react/jsx-runtime';
 import { MemoryRouter } from 'react-router-dom';
-
+import { beforeEach, describe, expect, it, type Mocked, vi } from 'vitest';
+import db, { type Database } from '../db';
 import { setUserAsLoggedIn } from '../features/User/userSlice';
 import { createStore } from '../store';
-import { render as wrappedRender } from '../test-utils';
+import { withStore, render as wrappedRender } from '../test-utils';
 import Home from './Home';
-
-import { Mock } from 'node:test';
-import { Store } from '@reduxjs/toolkit';
-import { JSX } from 'react/jsx-runtime';
-import { Mocked, MockedFunction, beforeEach, describe, expect, it, vi } from 'vitest';
-import { Doc } from '../../shared/types';
-import db, { Database } from '../db';
-import { withStore } from '../test-utils';
 
 vi.mock('../db');
 

@@ -1,6 +1,5 @@
 import { formatDistance } from 'date-fns';
-import { useState } from 'react';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 function RelativeTime(props: { date: number | Date; interval?: number }) {
   const { date, interval } = props;

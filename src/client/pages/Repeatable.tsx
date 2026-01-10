@@ -1,21 +1,17 @@
-import { Fragment, useCallback, useEffect, useState } from 'react';
-import React from 'react';
-import ReactDOM from 'react-dom';
-import { useLocation, useNavigate, useParams } from 'react-router-dom';
-
 import DeleteIcon from '@mui/icons-material/Delete';
 import { Button, ButtonGroup } from '@mui/material';
-
 import qs from 'qs';
+import React, { Fragment, useCallback, useEffect, useState } from 'react';
+import ReactDOM from 'react-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { v4 as uuid } from 'uuid';
 
-import { RepeatableDoc, TemplateDoc } from '../../shared/types';
+import type { RepeatableDoc, TemplateDoc } from '../../shared/types';
 import db from '../db';
 import { set as setContext } from '../features/Page/pageSlice';
 import RepeatableRenderer from '../features/Repeatable/RepeatableRenderer';
 import { debugClient } from '../globals';
-import { clearRepeatable, clearTemplate, setRepeatable } from '../state/docsSlice';
-import { setTemplate } from '../state/docsSlice';
+import { clearRepeatable, clearTemplate, setRepeatable, setTemplate } from '../state/docsSlice';
 import { useDispatch, useSelector } from '../store';
 
 const debug = debugClient('repeatable');
@@ -173,7 +169,7 @@ function Repeatable() {
   class CompleteButton extends React.Component<{ hasFocus: boolean }> {
     componentDidMount() {
       if (this.props.hasFocus) {
-        //@ts-ignore
+        //@ts-expect-error
         ReactDOM.findDOMNode(this.button).focus();
       }
     }
@@ -184,7 +180,7 @@ function Repeatable() {
           onClick={complete}
           color="primary"
           variant="contained"
-          //@ts-ignore
+          //@ts-expect-error
           // biome-ignore lint/suspicious/noAssignInExpressions: FIXME come back to this madness
           ref={(node) => (this.button = node)}
         >

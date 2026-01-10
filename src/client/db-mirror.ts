@@ -1,10 +1,8 @@
+import { Debugger } from 'debug';
+import DeepDiff from 'deep-diff';
 import IdbAdapter from 'pouchdb-adapter-idb';
 import PouchDB from 'pouchdb-core';
 import Find from 'pouchdb-find';
-
-import DeepDiff from 'deep-diff';
-
-import { Debugger } from 'debug';
 import { User } from '../shared/types';
 import { Database } from './db';
 import { Guest } from './features/User/userSlice';

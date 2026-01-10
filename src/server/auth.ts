@@ -1,7 +1,7 @@
 import bcrypt from 'bcryptjs';
-import { CookieOptions, Express, Response } from 'express';
-import { SessionOptions } from 'express-session';
-import { User } from '../shared/types';
+import type { CookieOptions, Express, Response } from 'express';
+import type { SessionOptions } from 'express-session';
+import type { User } from '../shared/types';
 import { db } from './db';
 import { debugServer } from './globals';
 

@@ -1,14 +1,11 @@
-import { useEffect, useState } from 'react';
-
 import { List, Typography } from '@mui/material';
-
-import { set as setContext } from '../features/Page/pageSlice';
-
-import { TemplateDoc } from '../../shared/types';
+import { useEffect, useState } from 'react';
+import type { TemplateDoc } from '../../shared/types';
 import db from '../db';
+import { set as setContext } from '../features/Page/pageSlice';
 import RepeatableListItem from '../features/Repeatable/RepeatableListItem';
 import { useDispatch, useSelector } from '../store';
-import { SortableRepeatableDoc } from './Home';
+import type { SortableRepeatableDoc } from './Home';
 
 function History() {
   const [repeatables, setRepeatables] = useState([] as SortableRepeatableDoc[]);

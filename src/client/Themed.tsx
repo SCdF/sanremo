@@ -1,6 +1,6 @@
 import { CssBaseline } from '@mui/material';
-import { StyledEngineProvider, ThemeProvider, createTheme } from '@mui/material/styles';
-import { FC } from 'react';
+import { createTheme, StyledEngineProvider, ThemeProvider } from '@mui/material/styles';
+import type { FC } from 'react';
 
 const theme = createTheme({
   palette: {

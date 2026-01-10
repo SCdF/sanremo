@@ -1,11 +1,11 @@
 import { screen, waitFor } from '@testing-library/react';
-import axios, { CancelTokenSource } from 'axios';
+import axios, { type CancelTokenSource } from 'axios';
 import { MemoryRouter } from 'react-router';
-import { AnyAction, Store } from 'redux';
+import type { AnyAction, Store } from 'redux';
 
-import { Mocked, beforeEach, describe, expect, it, vi } from 'vitest';
-import { RootState, createStore } from '../../store';
-import { render as wrappedRender, withStore } from '../../test-utils';
+import { beforeEach, describe, expect, it, type Mocked, vi } from 'vitest';
+import { createStore, type RootState } from '../../store';
+import { withStore, render as wrappedRender } from '../../test-utils';
 import UserProvider from './UserProvider';
 import { GuestUser } from './userSlice';
 

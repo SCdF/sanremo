@@ -1,6 +1,6 @@
 import { createSelector, createSlice } from '@reduxjs/toolkit';
-import { User } from '../../../shared/types';
-import { RootState } from '../../store';
+import type { User } from '../../../shared/types';
+import type { RootState } from '../../store';
 
 export type Guest = User & {
   guest: true;

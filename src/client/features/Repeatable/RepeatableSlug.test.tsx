@@ -1,13 +1,12 @@
-import { EnhancedStore } from '@reduxjs/toolkit';
+import type { EnhancedStore } from '@reduxjs/toolkit';
 import { screen } from '@testing-library/react';
-import { ReactElement } from 'react';
-import { Provider } from 'react-redux';
+import type { ReactElement } from 'react';
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { RepeatableDoc, SlugType, TemplateDoc } from '../../../shared/types';
+import { type RepeatableDoc, SlugType, type TemplateDoc } from '../../../shared/types';
 import { setRepeatable, setTemplate } from '../../state/docsSlice';
-import { RootState, createStore } from '../../store';
-import { render as wrappedRender, withStore } from '../../test-utils';
+import { createStore, type RootState } from '../../store';
+import { withStore, render as wrappedRender } from '../../test-utils';
 import { setUserAsLoggedIn } from '../User/userSlice';
 import { RepeatableSlug } from './RepeatableSlug';
 
@@ -106,9 +105,9 @@ describe('relevance', () => {
     expect(
       RepeatableSlug.relevant({
         docs: {
-          // @ts-ignore
+          // @ts-expect-error
           repeatable: { _id: 'abc' },
-          // @ts-ignore
+          // @ts-expect-error
           template: {
             _id: 'def',
             slug: { type: SlugType.Date },
@@ -121,9 +120,9 @@ describe('relevance', () => {
     expect(
       RepeatableSlug.relevant({
         docs: {
-          // @ts-ignore
+          // @ts-expect-error
           repeatable: { _id: 'abc' },
-          // @ts-ignore
+          // @ts-expect-error
           template: {
             _id: 'def',
           },
@@ -135,7 +134,7 @@ describe('relevance', () => {
     expect(
       RepeatableSlug.relevant({
         docs: {
-          // @ts-ignore
+          // @ts-expect-error
           template: {
             _id: 'def',
             slug: { type: SlugType.Date },
@@ -148,7 +147,7 @@ describe('relevance', () => {
     expect(
       RepeatableSlug.relevant({
         docs: {
-          // @ts-ignore
+          // @ts-expect-error
           repeatable: { _id: 'abc' },
         },
       }),

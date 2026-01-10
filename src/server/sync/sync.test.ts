@@ -1,4 +1,4 @@
-import { MockedFunction, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, type MockedFunction, vi } from 'vitest';
 import { getDocs, getStubsForUser, putDocs } from './db';
 import sync from './sync';
 

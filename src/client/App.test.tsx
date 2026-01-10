@@ -1,13 +1,11 @@
 import { screen, waitFor } from '@testing-library/react';
-import axios, { CancelTokenSource } from 'axios';
+import axios, { type CancelTokenSource } from 'axios';
 import { MemoryRouter } from 'react-router-dom';
-import { beforeEach, describe, expect, it, test, vi } from 'vitest';
-import { Mocked } from 'vitest';
+import { beforeEach, describe, expect, it, type Mocked, vi } from 'vitest';
 import { when } from 'vitest-when';
-import { RepeatableDoc, SlugType, TemplateDoc } from '../shared/types';
+import { type RepeatableDoc, SlugType, type TemplateDoc } from '../shared/types';
 import App from './App';
-import db, { Database } from './db';
-import { setUserAsLoggedIn } from './features/User/userSlice';
+import db, { type Database } from './db';
 import { createStore } from './store';
 import { render, withStore } from './test-utils';
 

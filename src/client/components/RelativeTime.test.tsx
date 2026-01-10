@@ -1,7 +1,6 @@
 import { screen, waitFor } from '@testing-library/react';
-import { render } from '../test-utils';
-
 import { expect, test } from 'vitest';
+import { render } from '../test-utils';
 import RelativeTime from './RelativeTime';
 
 test('renders without crashing', async () => {

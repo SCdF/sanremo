@@ -1,19 +1,17 @@
 import './App.scss';
 
-import { Suspense, lazy } from 'react';
-import { Route, Routes } from 'react-router-dom';
-
 import { Typography } from '@mui/material';
-
-import Loading from './Loading';
-import Themed from './Themed';
+import { lazy, Suspense } from 'react';
+import { Route, Routes } from 'react-router-dom';
 import DebugManager from './features/Debug/DebugManager';
 import Page from './features/Page/Page';
 import SyncManager from './features/Sync/SyncManager';
 import UpdateManager from './features/Update/UpdateManager';
 import UserProvider from './features/User/UserProvider';
 import { selectIsGuest } from './features/User/userSlice';
+import Loading from './Loading';
 import { useSelector } from './store';
+import Themed from './Themed';
 
 const About = lazy(() => import('./pages/About'));
 const History = lazy(() => import('./pages/History'));

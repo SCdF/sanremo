@@ -1,11 +1,8 @@
-import { Fragment } from 'react';
-
 import { Button, ButtonGroup, CircularProgress, Tooltip } from '@mui/material';
-
+import { Fragment } from 'react';
+import RelativeTime from '../../components/RelativeTime';
 import { useDispatch, useSelector } from '../../store';
 import { checkForUpdate, userReadyToUpdate } from './updateSlice';
-
-import RelativeTime from '../../components/RelativeTime';
 
 function UpdatePanel() {
   const dispatch = useDispatch();
