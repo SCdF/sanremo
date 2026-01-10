@@ -16,7 +16,6 @@ describe('Sync Routes', () => {
   let app: express.Express;
   let server: http.Server;
   let io: SocketServer;
-  let _baseURL: string;
   let consoleWarnSpy: ReturnType<typeof vi.spyOn>;
 
   const testUser: User = { id: 1, name: 'testuser' };
@@ -56,7 +55,6 @@ describe('Sync Routes', () => {
     // Start server on random port
     const port = Math.floor(Math.random() * 10000) + 30000;
     server.listen(port);
-    _baseURL = `http://localhost:${port}`;
   });
 
   afterEach(() => {
