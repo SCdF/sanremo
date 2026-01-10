@@ -1,6 +1,6 @@
 import { screen, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, test, vi } from 'vitest';
 import { Mocked } from 'vitest';
 import App from './App';
 import db, { Database } from './db';
@@ -74,12 +74,12 @@ describe('App Routing', () => {
 
   it('should handle /template/:id route', async () => {
     // Mock for template page
+    // biome-ignore lint/suspicious/noExplicitAny: Mock type for testing
     handle.get.mockResolvedValue({
       _id: 'repeatable:template:test',
       title: 'Test Template',
       markdown: 'Test markdown',
       values: [],
-      // biome-ignore lint/suspicious/noExplicitAny: Mock type for testing
     } as any);
 
     render(
@@ -98,9 +98,9 @@ describe('App Routing', () => {
 
   it('should handle /history route', async () => {
     // Mock for history page
+    // biome-ignore lint/suspicious/noExplicitAny: Mock type for testing
     handle.find.mockResolvedValue({
       docs: [],
-      // biome-ignore lint/suspicious/noExplicitAny: Mock type for testing
     } as any);
 
     render(
