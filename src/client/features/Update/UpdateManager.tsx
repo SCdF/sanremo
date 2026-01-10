@@ -56,7 +56,7 @@ function UpdateManager() {
       };
 
       serviceWorkerRegistration.register({
-        onUpdate: (reg) => {
+        onUpdate: () => {
           debug('update is possible');
           dispatch(updateReadyToInstall());
         },

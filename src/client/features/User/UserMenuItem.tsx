@@ -8,7 +8,7 @@ import {
   MenuItem,
   Typography,
 } from '@mui/material';
-import React, { FC, Fragment } from 'react';
+import React, { type FC, Fragment } from 'react';
 import { useSelector } from '../../store';
 import UserAuthenticationWidget, { Action } from './UserAuthenticationWidget';
 import { selectIsGuest } from './userSlice';
@@ -33,16 +33,14 @@ export const UserMenuItem = React.forwardRef<any, { onClick: () => void }>(({ on
   }
 
   return (
-    <Fragment>
-      <MenuItem onClick={onClick} ref={ref}>
-        <ListItemIcon>
-          <Badge color="secondary" variant="dot" invisible={!requiresReauthentication}>
-            <AccountCircle />
-          </Badge>
-        </ListItemIcon>
-        <Typography>{title}</Typography>
-      </MenuItem>
-    </Fragment>
+    <MenuItem onClick={onClick} ref={ref}>
+      <ListItemIcon>
+        <Badge color="secondary" variant="dot" invisible={!requiresReauthentication}>
+          <AccountCircle />
+        </Badge>
+      </ListItemIcon>
+      <Typography>{title}</Typography>
+    </MenuItem>
   );
 });
 
@@ -74,11 +72,9 @@ export const UserMenuDialog: FC<{ open: boolean; onClose: () => void }> = ({ ope
   }
 
   return (
-    <Fragment>
-      <Dialog open={open} onClose={onClose}>
-        <DialogTitle>{title}</DialogTitle>
-        <DialogContent>{content}</DialogContent>
-      </Dialog>
-    </Fragment>
+    <Dialog open={open} onClose={onClose}>
+      <DialogTitle>{title}</DialogTitle>
+      <DialogContent>{content}</DialogContent>
+    </Dialog>
   );
 };

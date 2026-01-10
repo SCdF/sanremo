@@ -1,8 +1,8 @@
 // To be run post-build, this correctly sets the manifest
 
-import crypto from 'crypto';
-import * as fs from 'fs';
-import * as path from 'path';
+import crypto from 'node:crypto';
+import * as fs from 'node:fs';
+import * as path from 'node:path';
 
 const getAllFiles = (dirPath, arrayOfFiles = []) => {
   const files = fs.readdirSync(dirPath);
@@ -29,7 +29,7 @@ const buildFiles = getAllFiles(DIR).filter(
 const stringManifest = buildFiles.map((filename) => {
   const url = filename.split(DIR)[1];
 
-  if (url.match(/\.[0-9a-f]{8}\.[^\.]+$/)) {
+  if (url.match(/\.[0-9a-f]{8}\.[^.]+$/)) {
     // File has .12345678.abc somewhere in it. we will presume this is Parcel's hash
     // eg. index.es.8f189f37.js
 

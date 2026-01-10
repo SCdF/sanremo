@@ -1,9 +1,10 @@
 import axios from 'axios';
 import cookie from 'cookie';
-import React, { FC, Fragment, useEffect } from 'react';
-import { User } from '../../../shared/types';
-import Loading from '../../Loading';
+import type React from 'react';
+import { type FC, Fragment, useEffect } from 'react';
+import type { User } from '../../../shared/types';
 import { debugClient } from '../../globals';
+import Loading from '../../Loading';
 import { useDispatch, useSelector } from '../../store';
 import { setUserAsGuest, setUserAsLoggedIn } from './userSlice';
 
@@ -112,7 +113,7 @@ const UserProvider: FC<{ children?: React.ReactNode }> = ({ children }) => {
     return <Loading />;
   }
 
-  // biome-ignore lint/complexity/noUselessFragments: TODO removing this causes type issues, investigate
+  // Fragment needed here for type compatibility
   return <Fragment>{children}</Fragment>;
 };
 

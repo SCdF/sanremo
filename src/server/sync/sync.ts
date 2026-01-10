@@ -1,6 +1,6 @@
-import { Doc, DocStub, User } from '../../shared/types';
+import type { Doc, DocStub, User } from '../../shared/types';
 import { getDocs, getStubsForUser, putDocs } from './db';
-import { Requests } from './types';
+import type { Requests } from './types';
 
 async function begin(user: User, clientStubs: DocStub[]): Promise<Requests> {
   const toReturn: Requests = {

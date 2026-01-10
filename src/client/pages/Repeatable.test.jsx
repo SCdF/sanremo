@@ -1,15 +1,12 @@
 import { fireEvent, screen, waitFor } from '@testing-library/react';
+// biome-ignore lint/correctness/noUnusedImports: React is required for JSX transform in .jsx files
 import React from 'react';
-import { Provider } from 'react-redux';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
-
-import db from '../db';
-import { render as wrappedRender } from '../test-utils';
-
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import db from '../db';
 import { setUserAsLoggedIn } from '../features/User/userSlice';
 import { createStore } from '../store';
-import { withStore } from '../test-utils';
+import { withStore, render as wrappedRender } from '../test-utils';
 import Repeatable from './Repeatable';
 
 vi.mock('react-router-dom');

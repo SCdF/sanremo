@@ -1,4 +1,4 @@
-import { TemplateDoc } from '../../shared/types';
+import type { TemplateDoc } from '../../shared/types';
 
 const doc = {
   // Making it version 2 so that when the user deletes it's always a soft delete

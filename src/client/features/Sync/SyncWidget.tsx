@@ -1,15 +1,14 @@
-import { Fragment } from 'react';
-import { useLocation } from 'react-router-dom';
-
 import CloudDoneRoundedIcon from '@mui/icons-material/CloudDoneRounded';
 import CloudOffRoundedIcon from '@mui/icons-material/CloudOffRounded';
 import CloudRoundedIcon from '@mui/icons-material/CloudRounded';
 import ErrorOutlineRoundedIcon from '@mui/icons-material/ErrorOutlineRounded';
 import { CircularProgress, Fade, IconButton, Tooltip } from '@mui/material';
+import { Fragment } from 'react';
+import { useLocation } from 'react-router-dom';
 
 import { useDispatch, useSelector } from '../../store';
 import { selectIsGuest } from '../User/userSlice';
-import { State, requestSync } from './syncSlice';
+import { requestSync, State } from './syncSlice';
 
 function SyncWidget() {
   const dispatch = useDispatch();

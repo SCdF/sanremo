@@ -1,4 +1,4 @@
-import { Doc, DocId, DocStub, User } from '../../shared/types';
+import type { Doc, DocId, DocStub, User } from '../../shared/types';
 import { db } from '../db';
 
 export async function getStubsForUser(user: User): Promise<DocStub[]> {

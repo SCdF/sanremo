@@ -1,5 +1,5 @@
 import { createSlice } from '@reduxjs/toolkit';
-import { Doc, RepeatableDoc, TemplateDoc } from '../../shared/types';
+import type { Doc, RepeatableDoc, TemplateDoc } from '../../shared/types';
 
 type State = {
   repeatable?: RepeatableDoc;

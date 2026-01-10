@@ -17,7 +17,8 @@ import {
   Typography,
 } from '@mui/material';
 
-import React, { FC, useState } from 'react';
+import type React from 'react';
+import { type FC, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import store, { useSelector } from '../../store';
@@ -28,7 +29,7 @@ import LogoutMenuItem from '../User/LogoutMenuItem';
 import UserMenuBadge from '../User/UserMenuBadge';
 import { UserMenuDialog, UserMenuItem } from '../User/UserMenuItem';
 import { selectIsGuest } from '../User/userSlice';
-import { PageContext } from './pageSlice';
+import type { PageContext } from './pageSlice';
 
 /**
  * Wrapper for Pages. Manages headers, sidebar etc
@@ -65,7 +66,7 @@ const Page: FC<{ children?: React.ReactNode }> = ({ children }) => {
       (delta: number): void;
     }
     */
-    // @ts-ignore this should work??? See above. Guessing it's because it crosses two definitions
+    // @ts-expect-error this should work??? See above. Guessing it's because it crosses two definitions
     rrdNavigate(to);
   }
   function showUserDialog() {

@@ -1,6 +1,5 @@
-import axios from 'axios';
-
 import { Link } from '@mui/material';
+import axios from 'axios';
 import { Fragment, useEffect, useState } from 'react';
 import { useDispatch } from 'react-redux';
 
@@ -17,7 +16,7 @@ function mapProps(parent, info) {
     .map((k) => [`${parent}.${k}`, info[k]]);
 }
 
-function About(props) {
+function About() {
   const dispatch = useDispatch();
 
   const loggedInUser = useSelector((state) => state.user.value);
@@ -47,7 +46,7 @@ function About(props) {
             ['Release', releaseVersion],
             [
               'Build Commit',
-              <Link href={`https://github.com/scdf/sanremo/commit/${hash}`}>
+              <Link key="commit-link" href={`https://github.com/scdf/sanremo/commit/${hash}`}>
                 {hash.substr(0, 7)}
               </Link>,
             ],
@@ -73,10 +72,10 @@ function About(props) {
   }, [dispatch]);
 
   const vars = [
-    [<h4>SERVER DETAILS</h4>],
-    ['Deployment Type', <b>{process.env.NODE_ENV.toUpperCase()}</b>],
+    [<h4 key="server-header">SERVER DETAILS</h4>],
+    ['Deployment Type', <b key="deploy-type">{process.env.NODE_ENV.toUpperCase()}</b>],
     ...serverInfo,
-    [<h4>LOCAL DETAILS</h4>],
+    [<h4 key="local-header">LOCAL DETAILS</h4>],
     ...idbInfo,
   ];
 

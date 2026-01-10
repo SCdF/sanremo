@@ -1,5 +1,5 @@
 import { createSlice } from '@reduxjs/toolkit';
-import { Doc, DocId } from '../../../shared/types';
+import type { Doc, DocId } from '../../../shared/types';
 
 type DocMap = Record<DocId, Doc>;
 type SerializableError = { name: string; message: string };

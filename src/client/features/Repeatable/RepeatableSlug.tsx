@@ -1,9 +1,9 @@
 import { Input } from '@mui/material';
-import { ChangeEvent, useState } from 'react';
-import { RepeatableDoc, TemplateDoc } from '../../../shared/types';
+import { type ChangeEvent, useState } from 'react';
+import type { RepeatableDoc, TemplateDoc } from '../../../shared/types';
 import db from '../../db';
 import { setRepeatable } from '../../state/docsSlice';
-import { RootState, useDispatch, useSelector } from '../../store';
+import { type RootState, useDispatch, useSelector } from '../../store';
 
 const inputStyle = {
   paddingLeft: '0.5em',
@@ -22,7 +22,7 @@ function RepeatableSlug() {
   const template = useSelector((state) => state.docs.template);
 
   function changeSlug({ target }: ChangeEvent) {
-    // @ts-ignore FIXME: check if nodeValue works
+    // @ts-expect-error FIXME: check if nodeValue works
     const targetValue = target.value;
     // we know that if anyone calls this function template has a value
     const value = ['date', 'timestamp'].includes((template as TemplateDoc).slug.type)

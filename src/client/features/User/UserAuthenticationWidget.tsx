@@ -1,9 +1,8 @@
 import { Button, Container, FormHelperText, TextField } from '@mui/material';
-import { FormEvent, useState } from 'react';
-import { useDispatch } from 'react-redux';
-
 import axios from 'axios';
-import { User } from '../../../shared/types';
+import { type FormEvent, useState } from 'react';
+import { useDispatch } from 'react-redux';
+import type { User } from '../../../shared/types';
 import { migrateFromGuest } from '../../db';
 import { setUserAsLoggedIn } from './userSlice';
 

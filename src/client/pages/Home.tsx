@@ -1,10 +1,8 @@
 import { Divider, List, Typography } from '@mui/material';
 import { Fragment, useEffect, useState } from 'react';
-
-import { set as setContext } from '../features/Page/pageSlice';
-
-import { RepeatableDoc, TemplateDoc } from '../../shared/types';
+import type { RepeatableDoc, TemplateDoc } from '../../shared/types';
 import db from '../db';
+import { set as setContext } from '../features/Page/pageSlice';
 import RepeatableListItem from '../features/Repeatable/RepeatableListItem';
 import TemplateListItem from '../features/Template/TemplateListItem';
 import { useDispatch, useSelector } from '../store';
@@ -74,7 +72,6 @@ function Home() {
       const templateMap = new Map(templates.map((t) => [t._id, t]));
       for (const r of repeatables) {
         r.timestamp = r.updated;
-        // biome-ignore lint/performance/noDelete: FIXME: check if we can change this
         delete r.updated;
         r.template = templateMap.get(r.template as string) as TemplateDoc;
       }

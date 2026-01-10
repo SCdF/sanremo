@@ -2,10 +2,10 @@ import IdbAdapter from 'pouchdb-adapter-idb';
 import PouchDB from 'pouchdb-core';
 import Find from 'pouchdb-find';
 
-import { Doc, User } from '../../shared/types';
+import type { Doc, User } from '../../shared/types';
 import mirrored from '../db-mirror';
 import { markStale } from '../features/Sync/syncSlice';
-import { Guest, GuestUser } from '../features/User/userSlice';
+import { type Guest, GuestUser } from '../features/User/userSlice';
 import store from '../store';
 import setup from './setup';
 

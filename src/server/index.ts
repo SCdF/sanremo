@@ -1,20 +1,14 @@
-import { debugServer } from './globals';
-
+import http from 'node:http';
 import compression from 'compression';
+import pgConnect from 'connect-pg-simple';
 import cookieParser from 'cookie-parser';
 import express from 'express';
-import session from 'express-session';
-import { SessionOptions } from 'express-session';
-
-import http from 'http';
+import session, { type SessionOptions } from 'express-session';
 import { Server as SocketServer } from 'socket.io';
-
-import pgConnect from 'connect-pg-simple';
-
-import { Response } from 'express-serve-static-core';
-import { ClientToServerEvents, ServerToClientEvents, User } from '../shared/types';
+import type { ClientToServerEvents, ServerToClientEvents, User } from '../shared/types';
 import { setupAuthRoutes } from './auth';
 import { db } from './db';
+import { debugServer } from './globals';
 import syncRoutes from './sync/routes';
 
 const debugInit = debugServer('init');
@@ -53,7 +47,7 @@ const sess: SessionOptions = {
 };
 const sesh = session(sess);
 
-// TODO: work out how to get socket.io to work with this as well without neding @ts-ignore
+// TODO: work out how to get socket.io to work with this as well without neding @ts-expect-error
 declare module 'express-session' {
   interface SessionData {
     user: User;
@@ -85,11 +79,11 @@ app.use(cookieParser(SECRET));
 // Setup authentication routes
 setupAuthRoutes(app, sess);
 
-// @ts-ignore TODO: make sure this works and if it does fix this ignore
+// @ts-expect-error TODO: make sure this works and if it does fix this ignore
 io.use((socket, next) => sesh(socket.request, {}, next)); // TODO: make sure this cares about double cookie middleware
 
 io.use((socket, next) => {
-  // @ts-ignore https://github.com/socketio/socket.io/issues/3890
+  // @ts-expect-error https://github.com/socketio/socket.io/issues/3890
   const user = socket.request?.session?.user;
   if (user) {
     // TODO: also care about the client-side cookie? Or is the server-side enough?

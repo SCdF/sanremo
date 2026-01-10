@@ -1,21 +1,25 @@
 // TODO: drop axios and just use fetch
 import axios from 'axios';
-import { Socket, io } from 'socket.io-client';
-
 import { useEffect, useState } from 'react';
+import { io, type Socket } from 'socket.io-client';
 
-import { Requests } from '../../../server/sync/types';
-import { ClientToServerEvents, Doc, DocStub, ServerToClientEvents } from '../../../shared/types';
-import db, { Database } from '../../db';
+import type { Requests } from '../../../server/sync/types';
+import type {
+  ClientToServerEvents,
+  Doc,
+  DocStub,
+  ServerToClientEvents,
+} from '../../../shared/types';
+import db, { type Database } from '../../db';
 import { debugClient } from '../../globals';
 import { update } from '../../state/docsSlice';
 import { useDispatch, useSelector } from '../../store';
 import { selectIsGuest, setUserAsUnauthenticated } from '../User/userSlice';
 import {
-  State,
   cleanStale,
   completeSync,
   requestSync,
+  State,
   socketConnected,
   socketDisconnected,
   startSync,
@@ -65,7 +69,7 @@ async function deletesFromRemote(handle: Database, deletes: Doc[]) {
     // If the client doesn't have this document, the row will have
     //error: "not_found"
     // and no _rev. No _rev is okay, pouch will create one
-    // @ts-ignore FIXME the types changed, work out what to do with erroring rows
+    // @ts-expect-error FIXME the types changed, work out what to do with erroring rows
     _rev: row?.value?.rev,
     _deleted: true,
   }));
@@ -135,7 +139,7 @@ function SyncManager() {
 
             await axios.post('/api/sync/update', {
               docs: result.rows.map(
-                // @ts-ignore FIXME the types changed, work out what to do with erroring rows
+                // @ts-expect-error FIXME the types changed, work out what to do with erroring rows
                 (r) => r.doc || { _id: r.id, _rev: r.value.rev, _deleted: r.value.deleted },
               ),
             });

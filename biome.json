@@ -11,12 +11,22 @@
     }
   },
   "files": {
-    "include": ["src", "scripts"],
-    "ignore": [
-      "dist",
-      "node_modules",
-      "package.json",
-      "src/client/db-mirror.ts"
-    ]
-  }
+    "ignoreUnknown": true
+  },
+  "vcs": {
+    "enabled": true,
+    "clientKind": "git",
+    "useIgnoreFile": true
+  },
+  "overrides": [
+    {
+      "includes": ["src/client/db-mirror.ts"],
+      "linter": {
+        "enabled": false
+      },
+      "formatter": {
+        "enabled": false
+      }
+    }
+  ]
 }

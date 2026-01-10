@@ -1,13 +1,12 @@
-import http from 'http';
+import http from 'node:http';
 import express from 'express';
 import session from 'express-session';
 import { DatabaseError } from 'pg-protocol';
 import { Server as SocketServer } from 'socket.io';
-import { io as SocketClient } from 'socket.io-client';
 import request from 'supertest';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { when } from 'vitest-when';
-import { User } from '../../shared/types';
+import type { User } from '../../shared/types';
 import syncRoutes from './routes';
 import sync from './sync';
 
@@ -17,7 +16,6 @@ describe('Sync Routes', () => {
   let app: express.Express;
   let server: http.Server;
   let io: SocketServer;
-  let baseURL: string;
   let consoleWarnSpy: ReturnType<typeof vi.spyOn>;
 
   const testUser: User = { id: 1, name: 'testuser' };
@@ -42,7 +40,7 @@ describe('Sync Routes', () => {
     );
 
     // Add test middleware to inject user into session
-    app.use((req, res, next) => {
+    app.use((req, _res, next) => {
       req.session.user = testUser;
       next();
     });
@@ -57,7 +55,6 @@ describe('Sync Routes', () => {
     // Start server on random port
     const port = Math.floor(Math.random() * 10000) + 30000;
     server.listen(port);
-    baseURL = `http://localhost:${port}`;
   });
 
   afterEach(() => {
@@ -109,7 +106,6 @@ describe('Sync Routes', () => {
 
       // First call fails with duplicate key error, second succeeds
       const duplicateError = new DatabaseError('duplicate key', 100, 'error');
-      // @ts-ignore - setting readonly property for test
       duplicateError.code = '23505';
 
       vi.mocked(sync.begin)
