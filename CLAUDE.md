@@ -38,9 +38,12 @@ yarn test                 # Run all tests (client + server) once
 yarn test:client          # Run client tests in watch mode
 yarn test:server          # Run server tests in watch mode
 
-# Run a single test file
-yarn test:client src/client/features/User/UserProvider.test.tsx
-yarn test:server src/server/sync/sync.test.ts
+# Run specific test files
+# IMPORTANT: Use --run flag to disable watch mode when verifying tests
+yarn test:client --run src/client/features/User/UserProvider.test.tsx
+yarn test:server --run src/server/sync/sync.test.ts
+
+# Only use watch mode (without --run) when actively developing and watching for changes
 ```
 
 ### Server Commands (requires PostgreSQL)

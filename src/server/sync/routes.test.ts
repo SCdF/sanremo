@@ -197,9 +197,7 @@ describe('Sync Routes', () => {
     });
 
     it('should return 500 on error', async () => {
-      when(vi.mocked(sync.update))
-        .calledWith(testUser, [])
-        .thenReject(new Error('Update failed'));
+      when(vi.mocked(sync.update)).calledWith(testUser, []).thenReject(new Error('Update failed'));
 
       await request(app).post('/api/sync/update').send({ docs: [] }).expect(500);
     });

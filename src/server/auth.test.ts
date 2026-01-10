@@ -2,136 +2,48 @@ import bcrypt from 'bcryptjs';
 import cookieParser from 'cookie-parser';
 import express from 'express';
 import session from 'express-session';
+import { SessionOptions } from 'express-session';
 import request from 'supertest';
-import { Mock, afterAll, beforeEach, describe, expect, it, vi } from 'vitest';
+import { Mock, beforeEach, describe, expect, it, vi } from 'vitest';
+import { setupAuthRoutes } from './auth';
 import { db } from './db';
 
 // Mock dependencies
 vi.mock('./db');
 vi.mock('bcryptjs');
 
-// Import after mocks are set up
-import { debugServer } from './globals';
-
 describe('Authentication Endpoints', () => {
   let app: express.Express;
   const SECRET = 'test-secret';
   const SERVER_COOKIE = 'sanremo';
-  const CLIENT_COOKIE = `${SERVER_COOKIE}-client`;
 
   beforeEach(() => {
     // Reset mocks
     vi.resetAllMocks();
 
-    // Create Express app with same middleware as server
+    // Create Express app with minimal middleware needed for auth
     app = express();
     app.use(express.urlencoded({ extended: true }));
     app.use(express.json());
-    app.use(
-      session({
-        secret: SECRET,
-        name: SERVER_COOKIE,
-        saveUninitialized: false,
-        resave: true,
-        rolling: true,
-        cookie: {
-          maxAge: 1000 * 60 * 60 * 24 * 14,
-          secure: false,
-          sameSite: true,
-        },
-      }),
-    );
-    app.use(cookieParser(SECRET));
 
-    // Helper function for client-side cookie
-    const clientSideCookie = (res: express.Response, user: { id: number; name: string }) => {
-      const cookie: express.CookieOptions = {
+    const sess: SessionOptions = {
+      secret: SECRET,
+      name: SERVER_COOKIE,
+      saveUninitialized: false,
+      resave: true,
+      rolling: true,
+      cookie: {
         maxAge: 1000 * 60 * 60 * 24 * 14,
         secure: false,
         sameSite: true,
-        httpOnly: false,
-        signed: true,
-      };
-      res.cookie(CLIENT_COOKIE, user, cookie);
+      },
     };
 
-    // POST /api/auth - Login
-    app.post('/api/auth', async (req, res) => {
-      const username = req.body?.username?.toLowerCase();
-      const password = req.body?.password;
+    app.use(session(sess));
+    app.use(cookieParser(SECRET));
 
-      if (!(username && password)) {
-        res.status(400);
-        return res.end();
-      }
-
-      const result = await db.query('SELECT id, password FROM users WHERE username = $1::text', [
-        username,
-      ]);
-
-      if (result?.rows.length === 1) {
-        const id = result.rows[0].id;
-        const hash = result.rows[0].password;
-        if (await bcrypt.compare(password, hash)) {
-          req.session.user = { id: id, name: username };
-          clientSideCookie(res, req.session.user);
-          return res.json(req.session.user);
-        }
-      }
-
-      res.status(401);
-      res.end();
-    });
-
-    // PUT /api/auth - Register
-    app.put('/api/auth', async (req, res) => {
-      const username = req.body?.username?.toLowerCase();
-      const password = req.body?.password;
-
-      if (!(username && password)) {
-        res.status(400);
-        return res.end();
-      }
-
-      const checkResult = await db.query('SELECT id FROM users WHERE username = $1::text', [
-        username,
-      ]);
-
-      if (checkResult?.rows.length === 1) {
-        res.status(403);
-        res.end();
-      } else {
-        const hash = await bcrypt.hash(password, 10);
-        await db.query('INSERT INTO users (username, password) VALUES ($1, $2)', [username, hash]);
-        const result = await db.query('SELECT id FROM users WHERE username = $1', [username]);
-
-        req.session.user = { id: result.rows[0].id, name: username };
-        clientSideCookie(res, req.session.user);
-        return res.json(req.session.user);
-      }
-    });
-
-    // Middleware to validate both cookies
-    app.use('/api/*', (req, res, next) => {
-      const serverUser = req.session.user;
-      const clientUser = req.signedCookies[CLIENT_COOKIE];
-
-      if (
-        serverUser &&
-        clientUser &&
-        clientUser.id === serverUser.id &&
-        clientUser.name === serverUser.name
-      ) {
-        clientSideCookie(res, clientUser);
-        next();
-      } else {
-        res.status(401);
-        return res.json({ error: 'invalid authentication' });
-      }
-    });
-
-    // GET /api/auth - Get current user
-    app.get('/api/auth', (req, res) => res.json(req.session.user));
+    // Setup auth routes using production code
+    setupAuthRoutes(app, sess);
   });
 
   describe('POST /api/auth (Login)', () => {
