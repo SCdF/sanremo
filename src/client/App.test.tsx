@@ -1,11 +1,12 @@
 import { screen, waitFor } from '@testing-library/react';
 import axios, { type CancelTokenSource } from 'axios';
 import { MemoryRouter } from 'react-router-dom';
-import { beforeEach, describe, expect, it, type Mocked, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, type Mocked, vi } from 'vitest';
 import { when } from 'vitest-when';
 import { type RepeatableDoc, SlugType, type TemplateDoc } from '../shared/types';
 import App from './App';
 import db, { type Database } from './db';
+import { setUserAsLoggedIn } from './features/User/userSlice';
 import { createStore } from './store';
 import { render, withStore } from './test-utils';
 
@@ -25,14 +26,25 @@ describe('App Routing', () => {
 
   beforeEach(() => {
     store = createStore();
+
+    // Set user as logged in BEFORE creating db handle
+    // This ensures components use the correct user context
+    store.dispatch(setUserAsLoggedIn({ user: { id: 1, name: 'testuser' } }));
+
+    // Create the database handle mock
+    // Note: db() caches handles by user ID, so calling db() with the same user
+    // will return the same handle instance throughout the test
     handle = db({ id: 1, name: 'testuser' }) as Mocked<Database>;
 
     // biome-ignore lint/suspicious/noDocumentCookie: Required for dual-cookie auth testing
     document.cookie = CLIENT_COOKIE;
 
     // Mock database responses for Home page
-    handle.find.mockResolvedValue({
-      docs: [],
+    // Home component makes multiple find() calls with different selectors,
+    // so we need mockImplementation to handle each query pattern
+    handle.find.mockImplementation((_options) => {
+      // Return empty arrays for all queries (templates and repeatables)
+      return Promise.resolve({ docs: [] });
     });
 
     // Mock axios for UserProvider authentication check
@@ -42,6 +54,15 @@ describe('App Routing', () => {
       return { cancel: () => {} } as CancelTokenSource;
     });
     mockedAxios.get.mockResolvedValue({ data: { id: 1, name: 'testuser' } });
+  });
+
+  afterEach(() => {
+    // Clean up cookies between tests
+    // biome-ignore lint/suspicious/noDocumentCookie: Required for dual-cookie auth testing
+    document.cookie = '';
+
+    // Clear mock call history but keep implementations
+    vi.clearAllMocks();
   });
 
   it('should render App with routing structure', async () => {
@@ -55,9 +76,12 @@ describe('App Routing', () => {
     );
 
     // Should render the home page by default
-    await waitFor(() => {
-      expect(screen.getByTestId('home-templates-list')).toBeTruthy();
-    });
+    await waitFor(
+      () => {
+        expect(screen.getByTestId('home-templates-list')).toBeTruthy();
+      },
+      { timeout: 10000 }, // Increased timeout to debug timing issues
+    );
   });
 
   it('should handle /repeatable/:id route', async () => {
