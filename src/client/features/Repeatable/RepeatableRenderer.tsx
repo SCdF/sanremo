@@ -65,7 +65,7 @@ const MarkdownCheckbox = React.memo((props: MarkdownCheckboxType) => {
           <Checkbox checked={!!value} edge="start" tabIndex={-1} />
         </ListItemIcon>
         <ListItemText>
-          <ReactMarkdown components={{ p: 'span' }}>{text}</ReactMarkdown>
+          <ReactMarkdown renderers={{ paragraph: 'span' }}>{text}</ReactMarkdown>
         </ListItemText>
       </ListItemButton>
     </ListItem>

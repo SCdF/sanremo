@@ -77,7 +77,6 @@ function Template() {
     } else {
       const used = await handle.find({
         selector: { template: { $gt: `${unversionedId}`, $lte: `${unversionedId}\uffff` } },
-        limit: 1000, // PouchDB 9+ requires explicit limit (default is 25)
       });
       soft = !used.docs.length;
     }
@@ -103,7 +102,6 @@ function Template() {
       selector: {
         template: copy._id,
       },
-      limit: 1000, // PouchDB 9+ requires explicit limit (default is 25)
     });
 
     if (used.docs.length) {
