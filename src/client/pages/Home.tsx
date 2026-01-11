@@ -44,6 +44,7 @@ function Home() {
           completed: { $exists: false },
         },
         fields: ['_id', 'template', 'updated', 'slug'],
+        limit: 1000, // PouchDB 9+ requires explicit limit (default is 25)
         // FIXME: there is a bug / missing feature in PouchDB where you sort won't work in this
         // situation because the query planner decides to use the default index, presumably because
         // sort doesn't match the selector (as written here it uses a [_id, completed] index).
@@ -67,6 +68,7 @@ function Home() {
           },
         },
         fields: ['_id', 'title', 'slug.type'],
+        limit: 1000, // PouchDB 9+ requires explicit limit (default is 25)
       })) as { docs: TemplateDoc[] };
 
       const templateMap = new Map(templates.map((t) => [t._id, t]));
@@ -99,6 +101,7 @@ function Home() {
       const { docs: allTemplates } = (await handle.find({
         selector: { _id: { $gt: 'repeatable:template:', $lte: 'repeatable:template:\uffff' } },
         fields: ['_id', 'title', 'deleted'],
+        limit: 1000, // PouchDB 9+ requires explicit limit (default is 25)
       })) as {
         docs: PouchDB.Core.ExistingDocument<TemplateDoc>[];
       };
