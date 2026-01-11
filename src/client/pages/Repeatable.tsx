@@ -2,7 +2,6 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import { Button, ButtonGroup } from '@mui/material';
 import qs from 'qs';
 import React, { Fragment, useCallback, useEffect, useState } from 'react';
-import ReactDOM from 'react-dom';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { v4 as uuid } from 'uuid';
 
@@ -79,18 +78,17 @@ function Repeatable() {
         const template: TemplateDoc = await handle.get(repeatable.template);
         debug('post template load');
 
-        ReactDOM.unstable_batchedUpdates(() => {
-          dispatch(
-            setContext({
-              title: template.title,
-              back: true,
-              under: 'home',
-            }),
-          );
-          dispatch(setRepeatable(repeatable));
-          dispatch(setTemplate(template));
-          setInitiallyOpen(!repeatable.completed);
-        });
+        // React 19+ automatically batches updates - no need for unstable_batchedUpdates
+        dispatch(
+          setContext({
+            title: template.title,
+            back: true,
+            under: 'home',
+          }),
+        );
+        dispatch(setRepeatable(repeatable));
+        dispatch(setTemplate(template));
+        setInitiallyOpen(!repeatable.completed);
       }
     }
 
@@ -145,10 +143,9 @@ function Repeatable() {
 
       await handle.userPut(copy);
 
-      ReactDOM.unstable_batchedUpdates(() => {
-        setEdited(true);
-        dispatch(setRepeatable(copy));
-      });
+      // React 19+ automatically batches updates - no need for unstable_batchedUpdates
+      setEdited(true);
+      dispatch(setRepeatable(copy));
     },
     [dispatch, handle, repeatable],
   );
@@ -166,23 +163,17 @@ function Repeatable() {
   // Instead, this is the current workaround. See the following:
   // https://github.com/mui-org/material-ui/issues/3008#issuecomment-284223777
   class CompleteButton extends React.Component<{ hasFocus: boolean }> {
+    private buttonRef = React.createRef<HTMLButtonElement>();
+
     componentDidMount() {
-      if (this.props.hasFocus) {
-        //@ts-expect-error
-        ReactDOM.findDOMNode(this.button).focus();
+      if (this.props.hasFocus && this.buttonRef.current) {
+        this.buttonRef.current.focus();
       }
     }
 
     render() {
       return (
-        <Button
-          onClick={complete}
-          color="primary"
-          variant="contained"
-          //@ts-expect-error
-          // biome-ignore lint/suspicious/noAssignInExpressions: FIXME come back to this madness
-          ref={(node) => (this.button = node)}
-        >
+        <Button onClick={complete} color="primary" variant="contained" ref={this.buttonRef}>
           Complete
         </Button>
       );
