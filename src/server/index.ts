@@ -69,10 +69,13 @@ if (process.env.NODE_ENV === 'production') {
 
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
-app.use(compression() as unknown as express.RequestHandler); // TODO: use static compression instead for assets (so it only happens once): https://parceljs.org/features/production/#compression
+// @ts-expect-error - compression types not fully compatible with Express 5 RequestHandler
+app.use(compression()); // TODO: use static compression instead for assets (so it only happens once): https://parceljs.org/features/production/#compression
 app.use(express.static('dist/client')); // i.e. these should be compressed on disk
-app.use(sesh as unknown as express.RequestHandler);
-app.use(cookieParser(SECRET) as unknown as express.RequestHandler);
+// @ts-expect-error - express-session types not fully compatible with Express 5 RequestHandler
+app.use(sesh);
+// @ts-expect-error - cookie-parser types not fully compatible with Express 5 RequestHandler
+app.use(cookieParser(SECRET));
 
 // Setup authentication routes
 setupAuthRoutes(app, sess);

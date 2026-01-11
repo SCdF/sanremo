@@ -38,8 +38,10 @@ describe('Authentication Endpoints', () => {
       },
     };
 
-    app.use(session(sess) as unknown as express.RequestHandler);
-    app.use(cookieParser(SECRET) as unknown as express.RequestHandler);
+    // @ts-expect-error - express-session types not fully compatible with Express 5
+    app.use(session(sess));
+    // @ts-expect-error - cookie-parser types not fully compatible with Express 5
+    app.use(cookieParser(SECRET));
 
     // Setup auth routes using production code
     setupAuthRoutes(app, sess);
