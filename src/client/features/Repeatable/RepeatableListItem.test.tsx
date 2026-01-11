@@ -1,4 +1,4 @@
-import { act, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 import { type NavigateFunction, useNavigate } from 'react-router-dom';
@@ -53,9 +53,7 @@ describe('Repeatable', () => {
     render(<RepeatableListItem {...params} />);
 
     expect(screen.getByRole('link')).toHaveAttribute('href', params.slug);
-    act(() => {
-      userEvent.click(screen.getByText('URL Test'));
-    });
+    await userEvent.click(screen.getByText('URL Test'));
     expect(navigate).toBeCalledWith('/repeatable/abc');
   });
 
