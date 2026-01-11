@@ -59,8 +59,7 @@ export default function routes(
       res.json(results);
     } catch (error) {
       console.warn('Unexpected error on /api/sync/begin', error);
-      res.status(500);
-      res.end();
+      res.status(500).end();
     }
   });
   app.post('/api/sync/request', async (req, res) => {
@@ -70,8 +69,7 @@ export default function routes(
       res.json(results);
     } catch (error) {
       console.warn('Unexpected error on /api/sync/request', error);
-      res.status(500);
-      res.end();
+      res.status(500).end();
     }
   });
   app.post('/api/sync/update', async (req, res) => {
@@ -86,8 +84,7 @@ export default function routes(
       res.end();
     } catch (error) {
       console.warn('Unexpected error on /api/sync/update', error);
-      res.status(500);
-      res.end();
+      res.status(500).end();
     }
   });
 

@@ -31,6 +31,7 @@ describe('Sync Routes', () => {
     app = express();
     app.use(express.json());
     app.use(
+      // @ts-expect-error - express-session types not fully compatible with Express 5
       session({
         secret: 'test-secret',
         resave: false,

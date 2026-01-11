@@ -60,9 +60,7 @@ if (process.env.NODE_ENV === 'production') {
 
   app.use((req, res, next) => {
     if (req.headers['x-forwarded-proto'] !== 'https') {
-      res.set('location', `https://${req.hostname}${req.url}`);
-      res.status(301);
-      res.send();
+      res.redirect(301, `https://${req.hostname}${req.url}`);
     } else {
       next();
     }
@@ -71,9 +69,12 @@ if (process.env.NODE_ENV === 'production') {
 
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
+// @ts-expect-error - compression types not fully compatible with Express 5 RequestHandler
 app.use(compression()); // TODO: use static compression instead for assets (so it only happens once): https://parceljs.org/features/production/#compression
 app.use(express.static('dist/client')); // i.e. these should be compressed on disk
+// @ts-expect-error - express-session types not fully compatible with Express 5 RequestHandler
 app.use(sesh);
+// @ts-expect-error - cookie-parser types not fully compatible with Express 5 RequestHandler
 app.use(cookieParser(SECRET));
 
 // Setup authentication routes
