@@ -1,4 +1,4 @@
-import { Link, ListItem, ListItemText } from '@mui/material';
+import { Link, ListItem, ListItemButton, ListItemText } from '@mui/material';
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import RelativeTime from '../../components/RelativeTime';
@@ -37,19 +37,20 @@ function RepeatableListItem(props) {
   }
 
   return (
-    <ListItem
-      button
-      disableRipple
-      onClick={(e) => {
-        // To let URL slugs (displayed inside this "button") have links that don't also trigger
-        // this navigation
-        if (e.target.nodeName !== 'A') {
-          navigate(`/repeatable/${_id}`);
-        }
-      }}
-    >
-      <ListItemText primary={title} secondary={<RelativeTime date={timestamp} />} />
-      {displaySlug}
+    <ListItem disablePadding>
+      <ListItemButton
+        disableRipple
+        onClick={(e) => {
+          // To let URL slugs (displayed inside this "button") have links that don't also trigger
+          // this navigation
+          if (e.target.nodeName !== 'A') {
+            navigate(`/repeatable/${_id}`);
+          }
+        }}
+      >
+        <ListItemText primary={title} secondary={<RelativeTime date={timestamp} />} />
+        {displaySlug}
+      </ListItemButton>
     </ListItem>
   );
 }
