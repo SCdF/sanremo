@@ -18,7 +18,7 @@
     "build:client": "parcel build --target client --reporter @parcel/reporter-bundle-analyzer",
     "build:server": "parcel build --target server --reporter @parcel/reporter-bundle-analyzer",
     "build": "yarn clean && parcel build --reporter @parcel/reporter-bundle-analyzer && node ./scripts/inject-manifest.mjs",
-    "dev": "parcel --target client",
+    "dev": "docker compose up --wait --detach && parcel --target client",
     "test:client": "vitest --config src/client/vitest.config.js src/client",
     "test:server": "vitest --config src/server/vitest.config.js src/server",
     "test": "yarn test:client --run && yarn test:server --run"
