@@ -38,8 +38,8 @@ describe('Authentication Endpoints', () => {
       },
     };
 
-    app.use(session(sess));
-    app.use(cookieParser(SECRET));
+    app.use(session(sess) as unknown as express.RequestHandler);
+    app.use(cookieParser(SECRET) as unknown as express.RequestHandler);
 
     // Setup auth routes using production code
     setupAuthRoutes(app, sess);

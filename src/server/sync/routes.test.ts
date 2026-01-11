@@ -36,7 +36,7 @@ describe('Sync Routes', () => {
         resave: false,
         saveUninitialized: true,
         cookie: { secure: false },
-      }),
+      }) as unknown as express.RequestHandler,
     );
 
     // Add test middleware to inject user into session

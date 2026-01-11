@@ -28,8 +28,7 @@ export function setupAuthRoutes(app: Express, sessionOptions: SessionOptions) {
     const password = req.body?.password;
 
     if (!(username && password)) {
-      res.status(400);
-      return res.end();
+      return res.status(400).end();
     }
 
     debugAuth(`/api/auth request for ${username}`);
@@ -54,8 +53,7 @@ export function setupAuthRoutes(app: Express, sessionOptions: SessionOptions) {
       debugAuth(`/api/auth request for ${username} denied, no user by that name`);
     }
 
-    res.status(401);
-    res.end();
+    res.status(401).end();
   });
 
   app.put('/api/auth', async (req, res) => {
@@ -63,8 +61,7 @@ export function setupAuthRoutes(app: Express, sessionOptions: SessionOptions) {
     const password = req.body?.password;
 
     if (!(username && password)) {
-      res.status(400);
-      return res.end();
+      return res.status(400).end();
     }
 
     debugAuth(`/api/auth create request for ${username}`);
@@ -72,8 +69,7 @@ export function setupAuthRoutes(app: Express, sessionOptions: SessionOptions) {
 
     if (result?.rows.length === 1) {
       debugAuth(`user ${username} already exists`);
-      res.status(403);
-      res.end();
+      return res.status(403).end();
     } else {
       const hash = await bcrypt.hash(password, 10); // TODO: read up and check if 10 is still a fine default
       await db.query('INSERT INTO users (username, password) VALUES ($1, $2)', [username, hash]);
@@ -89,7 +85,7 @@ export function setupAuthRoutes(app: Express, sessionOptions: SessionOptions) {
   });
 
   // Validate both cookies for api access
-  app.use('/api/*', (req, res, next) => {
+  app.use('/api/*splat', (req, res, next) => {
     const serverUser: User | undefined = req.session.user;
     const clientUser: User | undefined = req.signedCookies[CLIENT_COOKIE];
 
@@ -110,8 +106,7 @@ export function setupAuthRoutes(app: Express, sessionOptions: SessionOptions) {
       clientSideCookie(res, clientUser, sessionOptions.cookie as CookieOptions);
       next();
     } else {
-      res.status(401);
-      return res.json({ error: 'invalid authentication' });
+      return res.status(401).json({ error: 'invalid authentication' });
     }
   });
 
