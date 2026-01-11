@@ -142,12 +142,21 @@ psql < src/server/sql/20210602\ json.sql
 ### CRITICAL: Branch Strategy
 **NEVER commit code changes directly to `main`.**
 
-Before making ANY code changes:
-1. Check current branch: `git branch --show-current`
-2. If on `main`, create a branch first: `git checkout -b descriptive-branch-name`
-3. Make code changes
-4. Run pre-commit checks
-5. Commit and push
+**When starting NEW work:**
+1. Check out latest main: `git checkout main`
+2. Pull latest changes: `git pull`
+3. Create a new branch: `git checkout -b descriptive-branch-name`
+4. Make code changes
+5. Run pre-commit checks
+6. Commit and push
+
+**If you already made changes on the wrong branch:**
+1. Stash changes: `git stash`
+2. Check out main: `git checkout main`
+3. Pull latest: `git pull`
+4. Create new branch: `git checkout -b descriptive-branch-name`
+5. Restore changes: `git stash pop`
+6. Continue with pre-commit checks and commit
 
 ### Pre-Commit Checklist
 Always run before committing:
