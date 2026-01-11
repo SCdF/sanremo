@@ -190,6 +190,19 @@ import { MyComponent } from './MyComponent';
 - Testing library for React components
 - **vitest-when**: Use for binding mock return values to specific parameters
 
+**CRITICAL: Test Fixing Policy**
+- **NEVER fix failing tests by deleting or skipping them**
+- **NEVER use `.skip()` or `.only()` to avoid test failures**
+- When tests fail after code changes:
+  1. Investigate the root cause of the failure
+  2. Fix the test setup, mocks, or assertions to properly handle the new behavior
+  3. If the code change is correct and the test expectation is wrong, update the test
+  4. If the code change broke functionality, fix the code, not the test
+- Failing tests indicate either:
+  - A regression in functionality (fix the code)
+  - Outdated test expectations (update the test properly)
+  - Incorrect test setup/mocks (fix the mocks)
+
 **Mock Best Practices**:
 - Don't just mock return values - use `vitest-when` to bind return values to expected parameters
 - This tests both how the mock is called AND what's done with the response
@@ -204,6 +217,7 @@ import { MyComponent } from './MyComponent';
   handle.get.mockResolvedValue(mockDoc);
   ```
 - vitest-when API: `.thenReturn()` for sync, `.thenResolve()` for promises, `.thenThrow()` for errors
+- When a component makes multiple calls to the same mock with different parameters, use `mockImplementation` instead of `mockResolvedValue` to handle each call pattern
 
 **Locale Gotcha**: `toLocaleDateString()` and `toLocaleString()` format differently in CI vs local. Always use same formatting method in tests as component uses.
 

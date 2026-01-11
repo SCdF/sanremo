@@ -6,6 +6,7 @@ import { when } from 'vitest-when';
 import { type RepeatableDoc, SlugType, type TemplateDoc } from '../shared/types';
 import App from './App';
 import db, { type Database } from './db';
+import { setUserAsLoggedIn } from './features/User/userSlice';
 import { createStore } from './store';
 import { render, withStore } from './test-utils';
 
@@ -27,12 +28,18 @@ describe('App Routing', () => {
     store = createStore();
     handle = db({ id: 1, name: 'testuser' }) as Mocked<Database>;
 
+    // Set user as logged in to bypass UserProvider async authentication in tests
+    store.dispatch(setUserAsLoggedIn({ user: { id: 1, name: 'testuser' } }));
+
     // biome-ignore lint/suspicious/noDocumentCookie: Required for dual-cookie auth testing
     document.cookie = CLIENT_COOKIE;
 
     // Mock database responses for Home page
-    handle.find.mockResolvedValue({
-      docs: [],
+    // Home component makes multiple find() calls with different selectors,
+    // so we need mockImplementation to handle each query pattern
+    handle.find.mockImplementation((_options) => {
+      // Return empty arrays for all queries (templates and repeatables)
+      return Promise.resolve({ docs: [] });
     });
 
     // Mock axios for UserProvider authentication check
