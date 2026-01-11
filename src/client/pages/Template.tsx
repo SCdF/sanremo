@@ -1,5 +1,5 @@
 import DeleteIcon from '@mui/icons-material/Delete';
-import { Button, ButtonGroup, Grid, MenuItem, TextField } from '@mui/material';
+import { Button, ButtonGroup, GridLegacy as Grid, MenuItem, TextField } from '@mui/material';
 import { type ChangeEvent, type FormEvent, type MouseEvent, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 

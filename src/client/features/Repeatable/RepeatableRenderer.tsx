@@ -1,4 +1,11 @@
-import { Checkbox, List, ListItem, ListItemIcon, ListItemText } from '@mui/material';
+import {
+  Checkbox,
+  List,
+  ListItem,
+  ListItemButton,
+  ListItemIcon,
+  ListItemText,
+} from '@mui/material';
 import React, { useCallback, useEffect, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { debugClient } from '../../globals';
@@ -38,7 +45,7 @@ const MarkdownChunk = React.memo((props: { text: string }) => (
 ));
 
 type MarkdownCheckboxType = {
-  handleChange: (valueIdx: number, value: boolean) => React.MouseEventHandler<HTMLDivElement>;
+  handleChange: (valueIdx: number, value: boolean) => React.MouseEventHandler<HTMLElement>;
   valueIdx: number;
   value: boolean;
   disabled: boolean;
@@ -48,18 +55,19 @@ type MarkdownCheckboxType = {
 const MarkdownCheckbox = React.memo((props: MarkdownCheckboxType) => {
   const { handleChange, valueIdx, value, disabled, focused, text } = props;
   return (
-    <ListItem
-      button
-      onClick={handleChange(valueIdx, value)}
-      disabled={disabled}
-      autoFocus={focused}
-    >
-      <ListItemIcon>
-        <Checkbox checked={!!value} edge="start" tabIndex={-1} />
-      </ListItemIcon>
-      <ListItemText>
-        <ReactMarkdown renderers={{ paragraph: 'span' }}>{text}</ReactMarkdown>
-      </ListItemText>
+    <ListItem disablePadding>
+      <ListItemButton
+        onClick={handleChange(valueIdx, value)}
+        disabled={disabled}
+        autoFocus={focused}
+      >
+        <ListItemIcon>
+          <Checkbox checked={!!value} edge="start" tabIndex={-1} />
+        </ListItemIcon>
+        <ListItemText>
+          <ReactMarkdown renderers={{ paragraph: 'span' }}>{text}</ReactMarkdown>
+        </ListItemText>
+      </ListItemButton>
     </ListItem>
   );
 });
