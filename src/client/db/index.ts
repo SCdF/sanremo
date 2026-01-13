@@ -1,16 +1,59 @@
-import IdbAdapter from 'pouchdb-adapter-idb';
+import IndexeddbAdapter from 'pouchdb-adapter-indexeddb';
 import PouchDB from 'pouchdb-core';
 import Find from 'pouchdb-find';
 
 import type { Doc, User } from '../../shared/types';
-import mirrored from '../db-mirror';
 import { markStale } from '../features/Sync/syncSlice';
 import { type Guest, GuestUser } from '../features/User/userSlice';
 import store from '../store';
 import setup from './setup';
 
-PouchDB.plugin(IdbAdapter);
+PouchDB.plugin(IndexeddbAdapter);
 PouchDB.plugin(Find);
+
+/**
+ * Cleanup function to delete old IndexedDB databases from before the 2.0 migration.
+ * Old databases were named `sanremo-${username}` (with PouchDB prefix `_pouch_`).
+ * New databases are named `sanremo-2.0-${username}`.
+ */
+async function cleanupOldDatabases(username: string): Promise<void> {
+  // indexedDB.databases() is not available in all browsers, but is in modern ones
+  if (!indexedDB.databases) {
+    return;
+  }
+
+  try {
+    const databases = await indexedDB.databases();
+    const oldDbPrefix = `_pouch_sanremo-${username}`;
+    const newDbPrefix = `_pouch_sanremo-2.0-${username}`;
+
+    const oldDatabases = databases.filter(
+      (db) => db.name?.startsWith(oldDbPrefix) && !db.name?.startsWith(newDbPrefix),
+    );
+
+    for (const db of oldDatabases) {
+      if (db.name) {
+        console.log(`[db] Deleting old database: ${db.name}`);
+        await new Promise<void>((resolve, reject) => {
+          const request = indexedDB.deleteDatabase(db.name as string);
+          request.onsuccess = () => resolve();
+          request.onerror = () => reject(request.error);
+          request.onblocked = () => {
+            console.warn(`[db] Database deletion blocked: ${db.name}`);
+            resolve();
+          };
+        });
+      }
+    }
+
+    if (oldDatabases.length > 0) {
+      console.log(`[db] Cleaned up ${oldDatabases.length} old database(s)`);
+    }
+  } catch (error) {
+    // Non-critical cleanup, log but don't throw
+    console.warn('[db] Failed to cleanup old databases:', error);
+  }
+}
 
 export interface Database extends PouchDB.Database {
   // FIXME: we should be using redux for this. ie listen for redux changes and write to pouch in one place
@@ -21,14 +64,13 @@ export interface Database extends PouchDB.Database {
 // We delete the database when they user logs out, so there shouldn't be a conflict
 // NB: when logging in versus creating an account we would have to consider taking guest data
 function handle(loggedInUser: User | Guest): Database {
-  let db = new PouchDB(`sanremo-${loggedInUser.name}`, {
-    adapter: 'idb',
+  const db = new PouchDB(`sanremo-2.0-${loggedInUser.name}`, {
+    adapter: 'indexeddb',
     auto_compaction: true,
   }) as Database;
 
-  if (loggedInUser.id === 1) {
-    db = mirrored(db, loggedInUser);
-  }
+  // Cleanup old databases in the background (fire and forget)
+  cleanupOldDatabases(loggedInUser.name);
 
   db.userPut = async (doc: Doc): Promise<Doc> => {
     const { rev } = await db.put(doc);
