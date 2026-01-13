@@ -16,7 +16,7 @@ PouchDB.plugin(Find);
  * Old databases were named `sanremo-${username}` (with PouchDB prefix `_pouch_`).
  * New databases are named `sanremo-2.0-${username}`.
  */
-async function cleanupOldDatabases(username: string): Promise<void> {
+async function cleanupOldDatabases(): Promise<void> {
   // indexedDB.databases() is not available in all browsers, but is in modern ones
   if (!indexedDB.databases) {
     return;
@@ -24,11 +24,9 @@ async function cleanupOldDatabases(username: string): Promise<void> {
 
   try {
     const databases = await indexedDB.databases();
-    const oldDbPrefix = `_pouch_sanremo-${username}`;
-    const newDbPrefix = `_pouch_sanremo-2.0-${username}`;
 
     const oldDatabases = databases.filter(
-      (db) => db.name?.startsWith(oldDbPrefix) && !db.name?.startsWith(newDbPrefix),
+      (db) => db.name?.startsWith('_pouch_sanremo-') && !db.name?.startsWith('_pouch_sanremo-2.0-'),
     );
 
     for (const db of oldDatabases) {
@@ -70,7 +68,7 @@ function handle(loggedInUser: User | Guest): Database {
   }) as Database;
 
   // Cleanup old databases in the background (fire and forget)
-  cleanupOldDatabases(loggedInUser.name);
+  cleanupOldDatabases();
 
   db.userPut = async (doc: Doc): Promise<Doc> => {
     const { rev } = await db.put(doc);
