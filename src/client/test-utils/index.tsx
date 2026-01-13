@@ -6,7 +6,7 @@ import type { RootState } from '../store';
 import Themed from '../Themed';
 
 export function render(children: ReactElement) {
-  renderRtl(<Themed>{children}</Themed>);
+  return renderRtl(<Themed>{children}</Themed>);
 }
 
 export function withStore(store: EnhancedStore<RootState>, children: ReactElement) {
