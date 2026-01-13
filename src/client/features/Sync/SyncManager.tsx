@@ -14,6 +14,7 @@ import db, { type Database } from '../../db';
 import { debugClient } from '../../globals';
 import { update } from '../../state/docsSlice';
 import { useDispatch, useSelector } from '../../store';
+import { checkForUpdate } from '../Update/updateSlice';
 import { selectIsGuest, setUserAsUnauthenticated } from '../User/userSlice';
 import {
   cleanStale,
@@ -255,6 +256,7 @@ function SyncManager() {
       localSocket.on('connect', async () => {
         debug('socket connected');
         dispatch(requestSync());
+        dispatch(checkForUpdate());
       });
 
       localSocket.on('docUpdate', async (docs: Doc[]) => {
