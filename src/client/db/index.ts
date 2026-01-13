@@ -61,9 +61,12 @@ export default function db(user: User | Guest): Database {
 }
 
 export async function migrateFromGuest(user: User) {
+  // Dynamically load replication plugin only when needed
+  const Replication = (await import('pouchdb-replication')).default;
+  PouchDB.plugin(Replication);
+
   const userDb = handle(user);
   const guestDb = handle(GuestUser);
-  // FIXME: this function is undefined!? Parcel bug?
   await guestDb.replicate.to(userDb);
   await guestDb.destroy();
 }
