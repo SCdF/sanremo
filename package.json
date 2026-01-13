@@ -47,6 +47,7 @@
     "express-session": "1.18.2",
     "pg": "8.16.3",
     "pg-protocol": "1.10.3",
+    "pouchdb-replication": "^7.3.1",
     "socket.io": "4.8.3"
   },
   "devDependencies": {

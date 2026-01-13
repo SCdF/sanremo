@@ -8511,6 +8511,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"pouchdb-checkpointer@npm:7.3.1":
+  version: 7.3.1
+  resolution: "pouchdb-checkpointer@npm:7.3.1"
+  dependencies:
+    pouchdb-collate: "npm:7.3.1"
+    pouchdb-utils: "npm:7.3.1"
+  checksum: 0d28c5680a279889161f197a854ec4a0291fa64ddef630a35b9ef14b4f31d35d86a1fd5a7173fb8a9fd3a9038b6270c4add88efd7c31556f507fc6dc1692fbc1
+  languageName: node
+  linkType: hard
+
 "pouchdb-collate@npm:7.3.1":
   version: 7.3.1
   resolution: "pouchdb-collate@npm:7.3.1"
@@ -8576,6 +8586,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"pouchdb-generate-replication-id@npm:7.3.1":
+  version: 7.3.1
+  resolution: "pouchdb-generate-replication-id@npm:7.3.1"
+  dependencies:
+    pouchdb-collate: "npm:7.3.1"
+    pouchdb-md5: "npm:7.3.1"
+  checksum: 399109a6b3448369f7f70b06a34f41bbf676119d4b1f7a50aa63e0beba3bb4e256d1fc9122005e294d199255e2bb5d1506157d0bc7741203e81a69f9e16eb7ae
+  languageName: node
+  linkType: hard
+
 "pouchdb-json@npm:7.3.1":
   version: 7.3.1
   resolution: "pouchdb-json@npm:7.3.1"
@@ -8611,6 +8631,19 @@ __metadata:
   version: 7.3.1
   resolution: "pouchdb-merge@npm:7.3.1"
   checksum: 49432b6f6a1c98edb2c31f6a73f1b1ea420e79b46bab7e04c682ad429a22e33762c5c88b5d8904988b2321775130f6e15c7c2d8f88932597f06785530f22dbfa
+  languageName: node
+  linkType: hard
+
+"pouchdb-replication@npm:^7.3.1":
+  version: 7.3.1
+  resolution: "pouchdb-replication@npm:7.3.1"
+  dependencies:
+    inherits: "npm:2.0.4"
+    pouchdb-checkpointer: "npm:7.3.1"
+    pouchdb-errors: "npm:7.3.1"
+    pouchdb-generate-replication-id: "npm:7.3.1"
+    pouchdb-utils: "npm:7.3.1"
+  checksum: d38c2e0dfb23a9953491b196a6efb7cd0527159fcb97b2cd363d7e302e585678552c7681fc0b3355efe51509dec4dc5073add13cc41b6a89075d38bf3b647e64
   languageName: node
   linkType: hard
 
@@ -9346,6 +9379,7 @@ __metadata:
     pouchdb-adapter-indexeddb: "npm:^7.3.1"
     pouchdb-core: "npm:^7.3.1"
     pouchdb-find: "npm:^7.3.1"
+    pouchdb-replication: "npm:^7.3.1"
     process: "npm:^0.11.10"
     qs: "npm:^6.11.2"
     react: "npm:19.2.3"
