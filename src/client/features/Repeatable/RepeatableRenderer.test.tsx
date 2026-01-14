@@ -284,9 +284,8 @@ Middle text
       );
 
       const checkbox = await screen.findByRole('checkbox');
-      // The button containing the checkbox should be disabled
-      const button = checkbox.closest('div[role="button"]');
-      expect(button).toHaveAttribute('aria-disabled', 'true');
+      // The checkbox should be disabled
+      expect(checkbox).toBeDisabled();
     });
 
     it('treats missing values as unchecked', async () => {
@@ -323,19 +322,30 @@ Middle text
       await screen.findByText('three');
     });
 
-    it('renders checkbox with empty label', async () => {
+    it('renders checkbox with minimal label', async () => {
+      // Note: remark-gfm requires at least some content after the checkbox marker
       render(
-        <RepeatableRenderer hasFocus={NOOP} markdown={'- [ ] '} values={[false]} onChange={NOOP} />,
+        <RepeatableRenderer
+          hasFocus={NOOP}
+          markdown={'- [ ] x'}
+          values={[false]}
+          onChange={NOOP}
+        />,
       );
 
       const checkbox = await screen.findByRole('checkbox');
       expect(checkbox).toBeInTheDocument();
+      await screen.findByText('x');
     });
   });
 
   describe('focus behavior', () => {
+    // Helper to get the actual input elements (MUI Checkbox wraps input in a span)
+    const getCheckboxInputs = (container: HTMLElement) =>
+      Array.from(container.querySelectorAll('input[type="checkbox"]')) as HTMLInputElement[];
+
     it('initially focuses on first unchecked checkbox when takesFocus is true', async () => {
-      render(
+      const { container } = render(
         <RepeatableRenderer
           hasFocus={NOOP}
           markdown={'- [ ] first\n- [ ] second'}
@@ -346,14 +356,14 @@ Middle text
       );
 
       await waitFor(() => {
-        const buttons = screen.getAllByRole('button');
-        // First checkbox button should have focus
-        expect(buttons[0]).toHaveFocus();
+        const inputs = getCheckboxInputs(container);
+        // First checkbox input should have focus
+        expect(inputs[0]).toHaveFocus();
       });
     });
 
     it('focuses on first unchecked checkbox after checked ones', async () => {
-      render(
+      const { container } = render(
         <RepeatableRenderer
           hasFocus={NOOP}
           markdown={'- [ ] first\n- [ ] second\n- [ ] third'}
@@ -364,14 +374,14 @@ Middle text
       );
 
       await waitFor(() => {
-        const buttons = screen.getAllByRole('button');
-        // Third checkbox button (index 2) should have focus
-        expect(buttons[2]).toHaveFocus();
+        const inputs = getCheckboxInputs(container);
+        // Third checkbox input (index 2) should have focus
+        expect(inputs[2]).toHaveFocus();
       });
     });
 
     it('does not auto-focus when takesFocus is false', async () => {
-      render(
+      const { container } = render(
         <RepeatableRenderer
           hasFocus={NOOP}
           markdown={'- [ ] first\n- [ ] second'}
@@ -383,10 +393,10 @@ Middle text
 
       await screen.findAllByRole('checkbox');
 
-      // No button should have focus
-      const buttons = screen.getAllByRole('button');
-      buttons.forEach((button) => {
-        expect(button).not.toHaveFocus();
+      // No checkbox input should have focus
+      const inputs = getCheckboxInputs(container);
+      inputs.forEach((input) => {
+        expect(input).not.toHaveFocus();
       });
     });
 
@@ -395,7 +405,7 @@ Middle text
       // doesn't update the values prop. The parent is responsible for updating values.
       // We use rerender to simulate the parent updating state after onChange fires.
       const onChange = vi.fn();
-      const { rerender } = render(
+      const { container, rerender } = render(
         <RepeatableRenderer
           hasFocus={NOOP}
           markdown={'- [ ] first\n- [ ] second\n- [ ] third'}
@@ -407,8 +417,8 @@ Middle text
 
       // Wait for initial focus on first checkbox
       await waitFor(() => {
-        const buttons = screen.getAllByRole('button');
-        expect(buttons[0]).toHaveFocus();
+        const inputs = getCheckboxInputs(container);
+        expect(inputs[0]).toHaveFocus();
       });
 
       // Click the first checkbox - this calls onChange(0) but doesn't update values
@@ -428,14 +438,14 @@ Middle text
 
       // Focus should advance to second checkbox
       await waitFor(() => {
-        const buttons = screen.getAllByRole('button');
-        expect(buttons[1]).toHaveFocus();
+        const inputs = getCheckboxInputs(container);
+        expect(inputs[1]).toHaveFocus();
       });
     });
 
     it('stays on same checkbox when unchecking', async () => {
       const onChange = vi.fn();
-      const { rerender } = render(
+      const { container, rerender } = render(
         <RepeatableRenderer
           hasFocus={NOOP}
           markdown={'- [ ] first\n- [ ] second'}
@@ -447,8 +457,8 @@ Middle text
 
       // Initial focus should be on second (first unchecked)
       await waitFor(() => {
-        const buttons = screen.getAllByRole('button');
-        expect(buttons[1]).toHaveFocus();
+        const inputs = getCheckboxInputs(container);
+        expect(inputs[1]).toHaveFocus();
       });
 
       // Click the first checkbox to uncheck it
@@ -468,8 +478,8 @@ Middle text
 
       // Focus should stay on first checkbox (the one we just unchecked)
       await waitFor(() => {
-        const buttons = screen.getAllByRole('button');
-        expect(buttons[0]).toHaveFocus();
+        const inputs = getCheckboxInputs(container);
+        expect(inputs[0]).toHaveFocus();
       });
     });
 
@@ -611,10 +621,12 @@ Middle text
     });
 
     it('handles checkbox at very beginning of markdown', async () => {
+      // Note: In GFM, text on the line after a task list item is part of the item
+      // unless there's a blank line. Use blank line to separate.
       render(
         <RepeatableRenderer
           hasFocus={NOOP}
-          markdown={'- [ ] first checkbox\nSome text after'}
+          markdown={'- [ ] first checkbox\n\nSome text after'}
           values={[false]}
           onChange={NOOP}
         />,

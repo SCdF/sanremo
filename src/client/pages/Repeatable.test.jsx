@@ -176,7 +176,8 @@ describe('Repeatable', () => {
       expect(navigate.mock.calls.length).toBe(0);
       expect(handle.userPut.mock.calls[0][0].completed).not.toBeTruthy();
 
-      fireEvent.click(await waitFor(() => screen.getByText(/Something to change/)));
+      // Click the checkbox (not the text) to toggle it
+      fireEvent.click(await waitFor(() => screen.getByRole('checkbox', { name: /Task 1/ })));
       await waitFor(() => expect(handle.userPut.mock.calls.length).toBe(2));
 
       fireEvent.click(await waitFor(() => screen.getByText(/Complete/)));
