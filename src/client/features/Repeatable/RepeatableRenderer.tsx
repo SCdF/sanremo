@@ -6,6 +6,7 @@ import { debugClient } from '../../globals';
 import { CheckboxContext } from './CheckboxContext';
 import { MarkdownTaskCheckbox } from './MarkdownTaskCheckbox';
 import { rehypeCheckboxIndex } from './rehypeCheckboxIndex';
+import { TaskListItem } from './TaskListItem';
 
 const debug = debugClient('repeatable', 'render');
 
@@ -99,6 +100,8 @@ function RepeatableRenderer(props: RepeatableProps) {
               components={{
                 // Use our custom checkbox component for task list checkboxes
                 input: MarkdownTaskCheckbox,
+                // Use our custom li component for clickable task list items
+                li: TaskListItem,
               }}
             >
               {markdown || ''}

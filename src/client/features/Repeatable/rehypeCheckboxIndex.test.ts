@@ -67,6 +67,24 @@ describe('rehypeCheckboxIndex', () => {
     expect((items[2].children[0] as Element).properties?.dataCheckboxIndex).toBe(2);
   });
 
+  it('adds index to parent li elements for clickable labels', () => {
+    const tree: Root = {
+      type: 'root',
+      children: [ul([li([checkbox()]), li([checkbox()])])],
+    };
+
+    rehypeCheckboxIndex()(tree);
+
+    const list = tree.children[0] as Element;
+    const items = list.children as Element[];
+
+    // Both the checkbox and its parent li should have the index
+    expect(items[0].properties?.dataCheckboxIndex).toBe(0);
+    expect(items[1].properties?.dataCheckboxIndex).toBe(1);
+    expect((items[0].children[0] as Element).properties?.dataCheckboxIndex).toBe(0);
+    expect((items[1].children[0] as Element).properties?.dataCheckboxIndex).toBe(1);
+  });
+
   it('indexes nested checkboxes in document order', () => {
     // Simulates:
     // - [ ] Task 1
