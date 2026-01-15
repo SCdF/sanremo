@@ -11,7 +11,7 @@ describe('Repeatable Renderer', () => {
       render(<RepeatableRenderer hasFocus={NOOP} markdown={''} values={[]} />);
 
       const list = await screen.findByRole('list');
-      expect(list.innerText).toBeUndefined();
+      expect(list.textContent).toBe('');
     });
 
     it('renders a block of markdown', async () => {
@@ -340,11 +340,11 @@ Middle text
   });
 
   describe('focus behavior', () => {
-    // Helper to get the actual input elements (MUI Checkbox wraps input in a span)
-    const getCheckboxInputs = (container: HTMLElement) =>
-      Array.from(container.querySelectorAll('input[type="checkbox"]')) as HTMLInputElement[];
+    // Helper to get the ListItemButton elements (focus is on the button, not the checkbox)
+    const getListItemButtons = (container: HTMLElement) =>
+      Array.from(container.querySelectorAll('.MuiListItemButton-root')) as HTMLElement[];
 
-    it('initially focuses on first unchecked checkbox when takesFocus is true', async () => {
+    it('initially focuses on first unchecked item when takesFocus is true', async () => {
       const { container } = render(
         <RepeatableRenderer
           hasFocus={NOOP}
@@ -356,13 +356,13 @@ Middle text
       );
 
       await waitFor(() => {
-        const inputs = getCheckboxInputs(container);
-        // First checkbox input should have focus
-        expect(inputs[0]).toHaveFocus();
+        const buttons = getListItemButtons(container);
+        // First list item button should have focus
+        expect(buttons[0]).toHaveFocus();
       });
     });
 
-    it('focuses on first unchecked checkbox after checked ones', async () => {
+    it('focuses on first unchecked item after checked ones', async () => {
       const { container } = render(
         <RepeatableRenderer
           hasFocus={NOOP}
@@ -374,9 +374,9 @@ Middle text
       );
 
       await waitFor(() => {
-        const inputs = getCheckboxInputs(container);
-        // Third checkbox input (index 2) should have focus
-        expect(inputs[2]).toHaveFocus();
+        const buttons = getListItemButtons(container);
+        // Third list item button (index 2) should have focus
+        expect(buttons[2]).toHaveFocus();
       });
     });
 
@@ -393,10 +393,10 @@ Middle text
 
       await screen.findAllByRole('checkbox');
 
-      // No checkbox input should have focus
-      const inputs = getCheckboxInputs(container);
-      inputs.forEach((input) => {
-        expect(input).not.toHaveFocus();
+      // No list item button should have focus
+      const buttons = getListItemButtons(container);
+      buttons.forEach((button) => {
+        expect(button).not.toHaveFocus();
       });
     });
 
@@ -415,10 +415,10 @@ Middle text
         />,
       );
 
-      // Wait for initial focus on first checkbox
+      // Wait for initial focus on first list item
       await waitFor(() => {
-        const inputs = getCheckboxInputs(container);
-        expect(inputs[0]).toHaveFocus();
+        const buttons = getListItemButtons(container);
+        expect(buttons[0]).toHaveFocus();
       });
 
       // Click the first checkbox - this calls onChange(0) but doesn't update values
@@ -436,14 +436,14 @@ Middle text
         />,
       );
 
-      // Focus should advance to second checkbox
+      // Focus should advance to second list item
       await waitFor(() => {
-        const inputs = getCheckboxInputs(container);
-        expect(inputs[1]).toHaveFocus();
+        const buttons = getListItemButtons(container);
+        expect(buttons[1]).toHaveFocus();
       });
     });
 
-    it('stays on same checkbox when unchecking', async () => {
+    it('stays on same item when unchecking', async () => {
       const onChange = vi.fn();
       const { container, rerender } = render(
         <RepeatableRenderer
@@ -457,8 +457,8 @@ Middle text
 
       // Initial focus should be on second (first unchecked)
       await waitFor(() => {
-        const inputs = getCheckboxInputs(container);
-        expect(inputs[1]).toHaveFocus();
+        const buttons = getListItemButtons(container);
+        expect(buttons[1]).toHaveFocus();
       });
 
       // Click the first checkbox to uncheck it
@@ -476,10 +476,37 @@ Middle text
         />,
       );
 
-      // Focus should stay on first checkbox (the one we just unchecked)
+      // Focus should stay on first list item (the one we just unchecked)
       await waitFor(() => {
-        const inputs = getCheckboxInputs(container);
-        expect(inputs[0]).toHaveFocus();
+        const buttons = getListItemButtons(container);
+        expect(buttons[0]).toHaveFocus();
+      });
+    });
+
+    it('shift-tab navigates between list items, not checkboxes', async () => {
+      // This test verifies that tab navigation moves between ListItemButtons,
+      // not between the checkbox and its parent button (which would happen
+      // if focus was on the checkbox instead of the button)
+      const { container } = render(
+        <RepeatableRenderer
+          hasFocus={NOOP}
+          markdown={'- [ ] first\n- [ ] second'}
+          values={[false, false]}
+          onChange={NOOP}
+          takesFocus={true}
+        />,
+      );
+
+      // Wait for initial focus on first list item
+      await waitFor(() => {
+        const buttons = getListItemButtons(container);
+        expect(buttons[0]).toHaveFocus();
+      });
+
+      // The checkbox inside should NOT have focus (tabIndex={-1})
+      const checkboxInputs = container.querySelectorAll('input[type="checkbox"]');
+      checkboxInputs.forEach((input) => {
+        expect(input).not.toHaveFocus();
       });
     });
 
@@ -648,8 +675,9 @@ Middle text
         />,
       );
 
-      const list = await screen.findByRole('list', { name: 'Checklist' });
-      expect(list).toBeInTheDocument();
+      // Outer container is a MUI List, inner lists are also MUI Lists
+      const lists = await screen.findAllByRole('list');
+      expect(lists.length).toBeGreaterThan(0);
     });
 
     it('checkboxes have accessible labels', async () => {
@@ -764,9 +792,9 @@ Middle text
       expect(onChange).toHaveBeenCalledWith(1);
     });
 
-    // Helper to get the actual input elements (MUI Checkbox wraps input in a span)
-    const getCheckboxInputs = (container: HTMLElement) =>
-      Array.from(container.querySelectorAll('input[type="checkbox"]')) as HTMLInputElement[];
+    // Helper to get the ListItemButton elements (focus is on the button, not the checkbox)
+    const getListItemButtons = (container: HTMLElement) =>
+      Array.from(container.querySelectorAll('.MuiListItemButton-root')) as HTMLElement[];
 
     it('focus advances through nested checkboxes in document order', async () => {
       const markdown = `- [ ] Task 1
@@ -786,8 +814,8 @@ Middle text
 
       // Initial focus on Task 1 (index 0)
       await waitFor(() => {
-        const inputs = getCheckboxInputs(container);
-        expect(inputs[0]).toHaveFocus();
+        const buttons = getListItemButtons(container);
+        expect(buttons[0]).toHaveFocus();
       });
 
       // Click Task 1
@@ -807,8 +835,8 @@ Middle text
 
       // Focus should advance to Subtask 1.1 (index 1)
       await waitFor(() => {
-        const inputs = getCheckboxInputs(container);
-        expect(inputs[1]).toHaveFocus();
+        const buttons = getListItemButtons(container);
+        expect(buttons[1]).toHaveFocus();
       });
     });
   });

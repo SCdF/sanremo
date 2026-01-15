@@ -1,9 +1,10 @@
-import { List, ListItem, ListItemText } from '@mui/material';
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { List } from '@mui/material';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { debugClient } from '../../globals';
 import { CheckboxContext } from './CheckboxContext';
+import { MarkdownList } from './MarkdownList';
 import { MarkdownTaskCheckbox } from './MarkdownTaskCheckbox';
 import { rehypeCheckboxIndex } from './rehypeCheckboxIndex';
 import { TaskListItem } from './TaskListItem';
@@ -91,23 +92,19 @@ function RepeatableRenderer(props: RepeatableProps) {
 
   return (
     <CheckboxContext.Provider value={contextValue}>
-      <List disablePadding aria-label="Checklist">
-        <ListItem>
-          <ListItemText>
-            <ReactMarkdown
-              remarkPlugins={[remarkGfm]}
-              rehypePlugins={[rehypeCheckboxIndex]}
-              components={{
-                // Use our custom checkbox component for task list checkboxes
-                input: MarkdownTaskCheckbox,
-                // Use our custom li component for clickable task list items
-                li: TaskListItem,
-              }}
-            >
-              {markdown || ''}
-            </ReactMarkdown>
-          </ListItemText>
-        </ListItem>
+      <List disablePadding sx={{ '& > *': { px: 2 } }}>
+        <ReactMarkdown
+          remarkPlugins={[remarkGfm]}
+          rehypePlugins={[rehypeCheckboxIndex]}
+          components={{
+            // Map markdown elements to MUI components
+            ul: MarkdownList,
+            li: TaskListItem,
+            input: MarkdownTaskCheckbox,
+          }}
+        >
+          {markdown || ''}
+        </ReactMarkdown>
       </List>
     </CheckboxContext.Provider>
   );

@@ -1,4 +1,5 @@
-import React from 'react';
+import { ListItem, ListItemButton, ListItemIcon, ListItemText } from '@mui/material';
+import React, { useEffect, useRef } from 'react';
 import { useCheckboxContext } from './CheckboxContext';
 
 type Props = {
@@ -10,24 +11,44 @@ type Props = {
 };
 
 /**
- * Custom li component for react-markdown that makes task list items clickable.
- * When the li has a data-checkbox-index (added by rehypeCheckboxIndex plugin),
- * clicking anywhere on the item toggles the associated checkbox.
+ * Extracts checkbox element from children and returns [checkbox, remainingChildren].
+ * In task list items from remark-gfm, the checkbox is always the first child.
+ * This allows us to restructure the layout to match the original MUI styling.
+ */
+function extractCheckbox(children: React.ReactNode): [React.ReactNode, React.ReactNode[]] {
+  const childArray = React.Children.toArray(children);
+
+  // The checkbox (rendered by MarkdownTaskCheckbox) is always the first child
+  const checkbox = childArray[0] ?? null;
+  const remaining = childArray.slice(1);
+
+  return [checkbox, remaining];
+}
+
+/**
+ * Custom li component for react-markdown that renders task list items
+ * using MUI components matching the original styling.
+ *
+ * Focus is managed on the ListItemButton (not the checkbox) to match
+ * the original behavior where shift-tab moves between list items.
  */
 export const TaskListItem = React.memo((props: Props) => {
   const { className, children, dataCheckboxIndex, ...rest } = props;
   // Also check for kebab-case version that react-markdown might pass
   const idx =
     dataCheckboxIndex ?? (props['data-checkbox-index' as keyof Props] as number | undefined);
-  const { onChange, disabled } = useCheckboxContext();
+  const { onChange, disabled, focusedIdx } = useCheckboxContext();
+  const buttonRef = useRef<HTMLDivElement>(null);
 
   const isTaskListItem = idx !== undefined;
+  const shouldFocus = isTaskListItem && focusedIdx === idx;
 
-  const handleToggle = () => {
-    if (onChange && !disabled && idx !== undefined) {
-      onChange(idx);
+  // Focus the ListItemButton when this item should be focused
+  useEffect(() => {
+    if (shouldFocus && buttonRef.current) {
+      buttonRef.current.focus();
     }
-  };
+  }, [shouldFocus]);
 
   const handleClick = (e: React.MouseEvent) => {
     // Don't trigger if clicking directly on the checkbox (it handles itself)
@@ -41,42 +62,31 @@ export const TaskListItem = React.memo((props: Props) => {
     ) {
       return;
     }
-    handleToggle();
-  };
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    // Don't trigger if the event originated from an interactive element
-    const target = e.target as HTMLElement;
-    if (target.tagName === 'INPUT' || target.tagName === 'A') {
-      return;
-    }
-    // Toggle on Enter or Space
-    if (e.key === 'Enter' || e.key === ' ') {
-      e.preventDefault();
-      handleToggle();
+    if (onChange && !disabled && idx !== undefined) {
+      onChange(idx);
     }
   };
 
   if (!isTaskListItem) {
-    // Regular list item - render normally
+    // Regular list item - use MUI ListItem
     return (
-      <li className={className} {...rest}>
-        {children}
-      </li>
+      <ListItem className={className} {...rest}>
+        <ListItemText>{children}</ListItemText>
+      </ListItem>
     );
   }
 
-  // Task list item - make it clickable
+  // Task list item - extract checkbox and restructure to match original styling
+  const [checkbox, remainingChildren] = extractCheckbox(children);
+
   return (
-    <li
-      className={className}
-      onClick={handleClick}
-      onKeyDown={handleKeyDown}
-      style={{ cursor: disabled ? 'default' : 'pointer' }}
-      {...rest}
-    >
-      {children}
-    </li>
+    <ListItem className={className} {...rest}>
+      <ListItemButton ref={buttonRef} onClick={handleClick} disabled={disabled}>
+        <ListItemIcon>{checkbox}</ListItemIcon>
+        <ListItemText>{remainingChildren}</ListItemText>
+      </ListItemButton>
+    </ListItem>
   );
 });
 
