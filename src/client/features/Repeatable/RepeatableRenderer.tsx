@@ -91,7 +91,7 @@ function RepeatableRenderer(props: RepeatableProps) {
 
   return (
     <CheckboxContext.Provider value={contextValue}>
-      <List disablePadding>
+      <List disablePadding aria-label="Checklist">
         <ListItem>
           <ListItemText>
             <ReactMarkdown

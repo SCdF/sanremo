@@ -636,4 +636,180 @@ Middle text
       await screen.findByText('Some text after');
     });
   });
+
+  describe('accessibility', () => {
+    it('has accessible checklist container', async () => {
+      render(
+        <RepeatableRenderer
+          hasFocus={NOOP}
+          markdown={'- [ ] Task 1'}
+          values={[false]}
+          onChange={NOOP}
+        />,
+      );
+
+      const list = await screen.findByRole('list', { name: 'Checklist' });
+      expect(list).toBeInTheDocument();
+    });
+
+    it('checkboxes have accessible labels', async () => {
+      render(
+        <RepeatableRenderer
+          hasFocus={NOOP}
+          markdown={'- [ ] Task 1\n- [ ] Task 2'}
+          values={[false, false]}
+          onChange={NOOP}
+        />,
+      );
+
+      const checkbox1 = await screen.findByRole('checkbox', { name: 'Task 1' });
+      const checkbox2 = await screen.findByRole('checkbox', { name: 'Task 2' });
+      expect(checkbox1).toBeInTheDocument();
+      expect(checkbox2).toBeInTheDocument();
+    });
+  });
+
+  describe('nested checkboxes', () => {
+    it('renders nested checkboxes correctly', async () => {
+      const markdown = `- [ ] Task 1
+  - [ ] Subtask 1.1
+  - [ ] Subtask 1.2
+- [ ] Task 2`;
+
+      render(
+        <RepeatableRenderer
+          hasFocus={NOOP}
+          markdown={markdown}
+          values={[false, false, false, false]}
+          onChange={NOOP}
+        />,
+      );
+
+      const checkboxes = await screen.findAllByRole('checkbox');
+      expect(checkboxes).toHaveLength(4);
+
+      await screen.findByText('Task 1');
+      await screen.findByText('Subtask 1.1');
+      await screen.findByText('Subtask 1.2');
+      await screen.findByText('Task 2');
+    });
+
+    it('indexes nested checkboxes in document order', async () => {
+      const markdown = `- [ ] Task 1
+  - [ ] Subtask 1.1
+  - [ ] Subtask 1.2
+- [ ] Task 2`;
+
+      // Values: Task 1 checked, Subtask 1.1 unchecked, Subtask 1.2 checked, Task 2 unchecked
+      render(
+        <RepeatableRenderer
+          hasFocus={NOOP}
+          markdown={markdown}
+          values={[true, false, true, false]}
+          onChange={NOOP}
+        />,
+      );
+
+      const checkboxes = await screen.findAllByRole('checkbox');
+      expect(checkboxes[0]).toBeChecked(); // Task 1
+      expect(checkboxes[1]).not.toBeChecked(); // Subtask 1.1
+      expect(checkboxes[2]).toBeChecked(); // Subtask 1.2
+      expect(checkboxes[3]).not.toBeChecked(); // Task 2
+    });
+
+    it('calls onChange with correct index for nested checkbox', async () => {
+      const markdown = `- [ ] Task 1
+  - [ ] Subtask 1.1
+  - [ ] Subtask 1.2
+- [ ] Task 2`;
+
+      const onChange = vi.fn();
+      render(
+        <RepeatableRenderer
+          hasFocus={NOOP}
+          markdown={markdown}
+          values={[false, false, false, false]}
+          onChange={onChange}
+        />,
+      );
+
+      const checkboxes = await screen.findAllByRole('checkbox');
+
+      // Click Subtask 1.2 (index 2)
+      fireEvent.click(checkboxes[2]);
+      expect(onChange).toHaveBeenCalledWith(2);
+
+      // Click Task 2 (index 3)
+      fireEvent.click(checkboxes[3]);
+      expect(onChange).toHaveBeenCalledWith(3);
+    });
+
+    it('clicking nested checkbox label calls onChange with correct index', async () => {
+      const markdown = `- [ ] Task 1
+  - [ ] Subtask 1.1
+- [ ] Task 2`;
+
+      const onChange = vi.fn();
+      render(
+        <RepeatableRenderer
+          hasFocus={NOOP}
+          markdown={markdown}
+          values={[false, false, false]}
+          onChange={onChange}
+        />,
+      );
+
+      // Click on the label text for Subtask 1.1 (index 1)
+      fireEvent.click(await screen.findByText('Subtask 1.1'));
+      expect(onChange).toHaveBeenCalledWith(1);
+    });
+
+    // Helper to get the actual input elements (MUI Checkbox wraps input in a span)
+    const getCheckboxInputs = (container: HTMLElement) =>
+      Array.from(container.querySelectorAll('input[type="checkbox"]')) as HTMLInputElement[];
+
+    it('focus advances through nested checkboxes in document order', async () => {
+      const markdown = `- [ ] Task 1
+  - [ ] Subtask 1.1
+- [ ] Task 2`;
+
+      const onChange = vi.fn();
+      const { container, rerender } = render(
+        <RepeatableRenderer
+          hasFocus={NOOP}
+          markdown={markdown}
+          values={[false, false, false]}
+          onChange={onChange}
+          takesFocus
+        />,
+      );
+
+      // Initial focus on Task 1 (index 0)
+      await waitFor(() => {
+        const inputs = getCheckboxInputs(container);
+        expect(inputs[0]).toHaveFocus();
+      });
+
+      // Click Task 1
+      fireEvent.click(screen.getAllByRole('checkbox')[0]);
+      expect(onChange).toHaveBeenCalledWith(0);
+
+      // Rerender with Task 1 checked
+      rerender(
+        <RepeatableRenderer
+          hasFocus={NOOP}
+          markdown={markdown}
+          values={[true, false, false]}
+          onChange={onChange}
+          takesFocus
+        />,
+      );
+
+      // Focus should advance to Subtask 1.1 (index 1)
+      await waitFor(() => {
+        const inputs = getCheckboxInputs(container);
+        expect(inputs[1]).toHaveFocus();
+      });
+    });
+  });
 });
