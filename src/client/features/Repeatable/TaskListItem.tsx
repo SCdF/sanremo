@@ -1,5 +1,5 @@
 import { ListItem, ListItemButton, ListItemIcon, ListItemText } from '@mui/material';
-import React, { useEffect, useRef } from 'react';
+import React, { useCallback } from 'react';
 import { useCheckboxContext } from './CheckboxContext';
 
 type Props = {
@@ -29,26 +29,28 @@ function extractCheckbox(children: React.ReactNode): [React.ReactNode, React.Rea
  * Custom li component for react-markdown that renders task list items
  * using MUI components matching the original styling.
  *
- * Focus is managed on the ListItemButton (not the checkbox) to match
- * the original behavior where shift-tab moves between list items.
+ * Focus is managed imperatively via registerButton - when a button registers,
+ * the parent checks if it should be focused and focuses it directly.
+ * This avoids re-renders when focus changes.
  */
 export const TaskListItem = React.memo((props: Props) => {
   const { className, children, dataCheckboxIndex, ...rest } = props;
   // Also check for kebab-case version that react-markdown might pass
   const idx =
     dataCheckboxIndex ?? (props['data-checkbox-index' as keyof Props] as number | undefined);
-  const { onChange, disabled, focusedIdx } = useCheckboxContext();
-  const buttonRef = useRef<HTMLDivElement>(null);
+  const { onChange, disabled, registerButton } = useCheckboxContext();
 
   const isTaskListItem = idx !== undefined;
-  const shouldFocus = isTaskListItem && focusedIdx === idx;
 
-  // Focus the ListItemButton when this item should be focused
-  useEffect(() => {
-    if (shouldFocus && buttonRef.current) {
-      buttonRef.current.focus();
-    }
-  }, [shouldFocus]);
+  // Register the button ref with the parent for focus management
+  const buttonRefCallback = useCallback(
+    (element: HTMLDivElement | null) => {
+      if (idx !== undefined) {
+        registerButton(idx, element);
+      }
+    },
+    [idx, registerButton],
+  );
 
   const handleClick = (e: React.MouseEvent) => {
     // Don't trigger if clicking on a link or other interactive element
@@ -76,7 +78,7 @@ export const TaskListItem = React.memo((props: Props) => {
 
   return (
     <ListItem className={className} {...rest}>
-      <ListItemButton ref={buttonRef} onClick={handleClick} disabled={disabled}>
+      <ListItemButton ref={buttonRefCallback} onClick={handleClick} disabled={disabled}>
         <ListItemIcon>{checkbox}</ListItemIcon>
         <ListItemText>{remainingChildren}</ListItemText>
       </ListItemButton>
