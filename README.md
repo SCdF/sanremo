@@ -4,9 +4,18 @@ Easy to use repeatable checklists in an offline first PWA.
 
 Hosted at: https://sanremo.sdufresne.info
 
+# What / Why
+
+I wrote this originally to experiemnt with coding with my voice, using [Talon](https://talonvoice.com/) and [Cursorless](https://github.com/cursorless-dev/cursorless-talon), as well as to have a test bed for some [PouchDB](https://github.com/apache/pouchdb) changes I was working on.
+
+Now I'm updating it to experiment with using Claude effectively.
+
+It's my Half Life I guess?
+
 ## Local Development
 
-To dev without a server, you can just `yarn` then `yarn dev`.
+To dev without a server, you can just
+`yarn` then `yarn dev`.
 
 If you also want the server server for user support you'll need to: install postgres; init the schema; then build and boot the server.
 
