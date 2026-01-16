@@ -1,0 +1,51 @@
+import { Checkbox } from '@mui/material';
+import React from 'react';
+import { useCheckboxContext } from './CheckboxContext';
+
+type Props = {
+  node?: unknown;
+  checked?: boolean;
+  disabled?: boolean;
+  type?: string;
+  // Added by rehypeCheckboxIndex plugin
+  dataCheckboxIndex?: number;
+};
+
+/**
+ * Custom input component for react-markdown that renders task list checkboxes.
+ * Uses CheckboxContext to get state and callbacks.
+ *
+ * Click handling is done by the parent TaskListItem's ListItemButton,
+ * not here on the checkbox itself. This matches the original behavior
+ * where clicking anywhere on the row toggles the checkbox.
+ */
+export const MarkdownTaskCheckbox = React.memo((props: Props) => {
+  // react-markdown passes data attributes with their camelCase names
+  const idx =
+    props.dataCheckboxIndex ?? (props['data-checkbox-index' as keyof Props] as number | undefined);
+  const { values, disabled } = useCheckboxContext();
+
+  // Determine checkbox state
+  const isValidCheckbox = idx !== undefined;
+  const isChecked = isValidCheckbox ? (values[idx] ?? false) : false;
+
+  // Only handle checkbox inputs with an index from our rehype plugin
+  if (!isValidCheckbox) {
+    // Fallback: render a standard input for non-task-list checkboxes
+    return <input {...(props as React.InputHTMLAttributes<HTMLInputElement>)} />;
+  }
+
+  return (
+    <Checkbox
+      checked={isChecked}
+      disabled={disabled}
+      edge="start"
+      tabIndex={-1}
+      inputProps={{
+        'aria-label': `Task ${idx + 1}`,
+      }}
+    />
+  );
+});
+
+MarkdownTaskCheckbox.displayName = 'MarkdownTaskCheckbox';

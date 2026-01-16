@@ -1,14 +1,13 @@
-import {
-  Checkbox,
-  List,
-  ListItem,
-  ListItemButton,
-  ListItemIcon,
-  ListItemText,
-} from '@mui/material';
-import React, { useCallback, useEffect, useState } from 'react';
+import { List } from '@mui/material';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { debugClient } from '../../globals';
+import { CheckboxContext } from './CheckboxContext';
+import { MarkdownList } from './MarkdownList';
+import { MarkdownTaskCheckbox } from './MarkdownTaskCheckbox';
+import { rehypeCheckboxIndex } from './rehypeCheckboxIndex';
+import { TaskListItem } from './TaskListItem';
 
 const debug = debugClient('repeatable', 'render');
 
@@ -22,135 +21,52 @@ export type RepeatableProps = {
   takesFocus?: boolean;
 };
 
-type RenderableMarkdown = {
-  type: 'markdown';
-  start: number;
-  end: number;
-  text: string;
-};
-type RenderableCheckbox = {
-  type: 'checkbox';
-  valueIdx: number;
-  chunkIdx: number;
-  text: string;
-};
-type Renderable = RenderableMarkdown | RenderableCheckbox;
-
-const MarkdownChunk = React.memo((props: { text: string }) => (
-  <ListItem>
-    <ListItemText>
-      <ReactMarkdown>{props.text}</ReactMarkdown>
-    </ListItemText>
-  </ListItem>
-));
-
-type MarkdownCheckboxType = {
-  handleChange: (valueIdx: number, value: boolean) => React.MouseEventHandler<HTMLElement>;
-  valueIdx: number;
-  value: boolean;
-  disabled: boolean;
-  focused: boolean;
-  text: string;
-};
-const MarkdownCheckbox = React.memo((props: MarkdownCheckboxType) => {
-  const { handleChange, valueIdx, value, disabled, focused, text } = props;
-  return (
-    <ListItem disablePadding>
-      <ListItemButton
-        onClick={handleChange(valueIdx, value)}
-        disabled={disabled}
-        autoFocus={focused}
-      >
-        <ListItemIcon>
-          <Checkbox checked={!!value} edge="start" tabIndex={-1} />
-        </ListItemIcon>
-        <ListItemText>
-          <ReactMarkdown components={{ p: 'span' }}>{text}</ReactMarkdown>
-        </ListItemText>
-      </ListItemButton>
-    </ListItem>
-  );
-});
+/**
+ * Calculate the initial focus index based on the values array.
+ * Focus goes to the first unchecked checkbox, or past the end if all are checked.
+ */
+function calculateInitialFocusIndex(values: boolean[]): number {
+  // Find the last checked checkbox and focus on the one after it
+  for (let i = values.length - 1; i >= 0; i--) {
+    if (values[i]) {
+      return i + 1;
+    }
+  }
+  return 0;
+}
 
 function RepeatableRenderer(props: RepeatableProps) {
   const { markdown, values, onChange: changeValue, hasFocus: hasFocusCb, takesFocus } = props;
 
-  // Initially auto-select the value AFTER whatever the last entered value is
-  // NB: we're going to calculate focus regardless of whether `takesFocus` is true, for readability
-  let initialNextIndex = 0;
-  for (let i = values.length - 1; i >= 0; i--) {
-    if (values[i]) {
-      initialNextIndex = i + 1;
-      break;
-    }
-  }
+  debug('markdown render start');
 
   // Used for auto-focus (hammer spacebar to tick everything and close)
-  const [nextIdx, setNextIdx] = useState(initialNextIndex); // the next index that the user should focus on
+  const [nextIdx, setNextIdx] = useState(() => calculateInitialFocusIndex(values));
 
-  // Caching this value internally
+  // Caching this value internally to detect changes
   const [hasFocus, setHasFocus] = useState(true);
 
+  // Count checkboxes in markdown to determine maxIdx
+  // This is a simple heuristic - remark-gfm will parse these properly
+  const maxIdx = useMemo(() => {
+    const matches = markdown?.match(/- \[ \]/g);
+    return matches ? matches.length : 0;
+  }, [markdown]);
+
   const handleChange = useCallback(
-    (idx: number, currentValue: boolean) => {
-      // returning the call fn here binds the passed idx
-      return () => {
-        if (changeValue) {
-          changeValue(idx);
-          // Toggling a checkbox, with true -> false not advancing focus
-          setNextIdx(currentValue ? idx : idx + 1);
-        }
-      };
+    (idx: number) => {
+      if (changeValue) {
+        changeValue(idx);
+        // Advance focus if checking (value was false, now true)
+        // Stay on same checkbox if unchecking (value was true, now false)
+        const wasChecked = values[idx];
+        setNextIdx(wasChecked ? idx : idx + 1);
+      }
     },
-    [changeValue],
+    [changeValue, values],
   );
 
-  debug('markdown render compilation start');
-  const renderables = [] as Renderable[];
-  const markdownChunks: string[] = markdown?.split('\n').map((s) => s.trim()) || [];
-  debug(`splitting into ${markdownChunks.length} markdown chunks`);
-
-  let lastChunkIdxWithInput = -1; // tracking the last time we say an input (eg checkbox)
-  let valueIdx = 0; // tracking which input we're up to
-  for (const [chunkIdx, chunk] of markdownChunks.entries()) {
-    // we have found a custom piece of markdown: a checkbox!
-    if (chunk.startsWith('- [ ]')) {
-      // if we are neither at the very start nor directly after an input there will be markdown to render
-      // between the last time we rendered a custom input and now
-      if (chunkIdx > 0 && lastChunkIdxWithInput + 1 < chunkIdx) {
-        const text = markdownChunks.slice(lastChunkIdxWithInput + 1, chunkIdx).join('\n');
-        renderables.push({
-          type: 'markdown',
-          start: lastChunkIdxWithInput + 1,
-          end: chunkIdx - 1,
-          text,
-        });
-      }
-
-      lastChunkIdxWithInput = chunkIdx;
-
-      const text = chunk.substring(5); // - [ ]
-
-      renderables.push({ type: 'checkbox', valueIdx, chunkIdx, text });
-
-      valueIdx++;
-    }
-  }
-
-  // If there were subsequent markdown chunks after the last input render them
-  const lastChunkIdx = markdownChunks.length - 1;
-  if (lastChunkIdxWithInput !== lastChunkIdx) {
-    const text = markdownChunks.slice(lastChunkIdxWithInput + 1).join('\n');
-    renderables.push({
-      type: 'markdown',
-      start: lastChunkIdxWithInput + 1,
-      end: lastChunkIdx,
-      text,
-    });
-  }
-  const maxIdx = valueIdx;
-  debug('postrender');
-
+  // Notify parent when focus exits checkboxes
   useEffect(() => {
     if (takesFocus && hasFocusCb && nextIdx !== undefined && maxIdx !== undefined) {
       const newHasFocus = nextIdx < maxIdx;
@@ -161,30 +77,37 @@ function RepeatableRenderer(props: RepeatableProps) {
     }
   }, [hasFocus, hasFocusCb, maxIdx, nextIdx, takesFocus]);
 
-  const renderedChunks = [];
-  for (const renderable of renderables) {
-    if (renderable.type === 'markdown') {
-      renderedChunks.push(
-        <MarkdownChunk
-          key={`chunk(${renderable.start}-${renderable.end})`}
-          text={renderable.text}
-        />,
-      );
-    } else {
-      renderedChunks.push(
-        <MarkdownCheckbox
-          key={`value[${renderable.valueIdx}]chunk(${renderable.chunkIdx})`}
-          handleChange={handleChange}
-          valueIdx={renderable.valueIdx}
-          value={values[renderable.valueIdx]}
-          disabled={!changeValue}
-          focused={!!takesFocus && renderable.valueIdx === nextIdx}
-          text={renderable.text}
-        />,
-      );
-    }
-  }
-  return <List disablePadding>{renderedChunks}</List>;
+  // Context value for checkbox components
+  const contextValue = useMemo(
+    () => ({
+      values,
+      onChange: handleChange,
+      disabled: !changeValue,
+      focusedIdx: takesFocus ? nextIdx : null,
+    }),
+    [values, handleChange, changeValue, takesFocus, nextIdx],
+  );
+
+  debug('markdown render end');
+
+  return (
+    <CheckboxContext.Provider value={contextValue}>
+      <List disablePadding sx={{ '& > *': { px: 2 } }}>
+        <ReactMarkdown
+          remarkPlugins={[remarkGfm]}
+          rehypePlugins={[rehypeCheckboxIndex]}
+          components={{
+            // Map markdown elements to MUI components
+            ul: MarkdownList,
+            li: TaskListItem,
+            input: MarkdownTaskCheckbox,
+          }}
+        >
+          {markdown || ''}
+        </ReactMarkdown>
+      </List>
+    </CheckboxContext.Provider>
+  );
 }
 
 export default RepeatableRenderer;

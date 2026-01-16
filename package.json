@@ -47,7 +47,9 @@
     "express-session": "1.18.2",
     "pg": "8.16.3",
     "pg-protocol": "1.10.3",
-    "socket.io": "4.8.3"
+    "remark-gfm": "^4.0.1",
+    "socket.io": "4.8.3",
+    "unist-util-visit": "^5.0.0"
   },
   "devDependencies": {
     "@babel/core": "7.28.6",
@@ -77,6 +79,7 @@
     "@types/events": "^3.0.3",
     "@types/express": "^5.0.6",
     "@types/express-session": "1.18.2",
+    "@types/hast": "^3.0.4",
     "@types/node": "25.0.8",
     "@types/pouchdb": "^6.4.2",
     "@types/react": "19.2.8",
