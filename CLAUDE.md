@@ -15,6 +15,7 @@ Sanremo is an offline-first PWA for managing repeatable checklists. It uses Pouc
 - Always use `yarn` or `yarn add` commands
 - Never use `npm install` or `npm` commands
 - Package manager is enforced via `.yarnrc` configuration
+- Yarn is located at `/home/scdf/.volta/bin/yarn`
 
 ## Development Commands
 

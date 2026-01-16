@@ -1,6 +1,8 @@
 import type { Element, Parent, Root } from 'hast';
 import { visit } from 'unist-util-visit';
 
+export type CheckboxCountCallback = (count: number) => void;
+
 /**
  * Rehype plugin that adds data-checkbox-index attribute to task list checkboxes
  * and their parent li elements.
@@ -20,8 +22,10 @@ import { visit } from 'unist-util-visit';
  *   data-checkbox-index="2" for Task 2
  *
  * And the parent li elements will also have the same data-checkbox-index.
+ *
+ * @param onCount - Optional callback that receives the total checkbox count after traversal
  */
-export function rehypeCheckboxIndex() {
+export function rehypeCheckboxIndex(onCount?: CheckboxCountCallback) {
   return (tree: Root) => {
     let index = 0;
     visit(tree, 'element', (node: Element, _idx, parent: Parent | undefined) => {
@@ -35,5 +39,6 @@ export function rehypeCheckboxIndex() {
         index++;
       }
     });
+    onCount?.(index);
   };
 }

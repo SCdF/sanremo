@@ -1,7 +1,8 @@
 import { List } from '@mui/material';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import type { PluggableList } from 'unified';
 import { debugClient } from '../../globals';
 import { CheckboxContext } from './CheckboxContext';
 import { MarkdownList } from './MarkdownList';
@@ -46,12 +47,23 @@ function RepeatableRenderer(props: RepeatableProps) {
   // Caching this value internally to detect changes
   const [hasFocus, setHasFocus] = useState(true);
 
-  // Count checkboxes in markdown to determine maxIdx
-  // This is a simple heuristic - remark-gfm will parse these properly
-  const maxIdx = useMemo(() => {
-    const matches = markdown?.match(/- \[ \]/g);
-    return matches ? matches.length : 0;
-  }, [markdown]);
+  // Checkbox count is determined by the rehype plugin during rendering.
+  // We use a ref to capture the count synchronously during the render phase,
+  // avoiding the "setState during render" warning.
+  const checkboxCountRef = useRef(0);
+
+  // Memoize the rehype plugins array to maintain referential stability
+  const rehypePlugins: PluggableList = useMemo(
+    () => [
+      [
+        rehypeCheckboxIndex,
+        (count: number) => {
+          checkboxCountRef.current = count;
+        },
+      ],
+    ],
+    [],
+  );
 
   const handleChange = useCallback(
     (idx: number) => {
@@ -67,7 +79,9 @@ function RepeatableRenderer(props: RepeatableProps) {
   );
 
   // Notify parent when focus exits checkboxes
+  // Uses checkboxCountRef directly since it's updated during ReactMarkdown render
   useEffect(() => {
+    const maxIdx = checkboxCountRef.current;
     if (takesFocus && hasFocusCb && nextIdx !== undefined && maxIdx !== undefined) {
       const newHasFocus = nextIdx < maxIdx;
       if (newHasFocus !== hasFocus) {
@@ -75,7 +89,7 @@ function RepeatableRenderer(props: RepeatableProps) {
         setHasFocus(newHasFocus);
       }
     }
-  }, [hasFocus, hasFocusCb, maxIdx, nextIdx, takesFocus]);
+  }, [hasFocus, hasFocusCb, nextIdx, takesFocus]);
 
   // Context value for checkbox components
   const contextValue = useMemo(
@@ -95,7 +109,7 @@ function RepeatableRenderer(props: RepeatableProps) {
       <List disablePadding sx={{ '& > *': { px: 2 } }}>
         <ReactMarkdown
           remarkPlugins={[remarkGfm]}
-          rehypePlugins={[rehypeCheckboxIndex]}
+          rehypePlugins={rehypePlugins}
           components={{
             // Map markdown elements to MUI components
             ul: MarkdownList,
