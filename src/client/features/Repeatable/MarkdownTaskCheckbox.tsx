@@ -15,15 +15,15 @@ type Props = {
  * Custom input component for react-markdown that renders task list checkboxes.
  * Uses CheckboxContext to get state and callbacks.
  *
- * Focus is NOT managed here - it's handled by TaskListItem on the ListItemButton
- * to match the original behavior where tab navigation moves between list items,
- * not between checkboxes.
+ * Click handling is done by the parent TaskListItem's ListItemButton,
+ * not here on the checkbox itself. This matches the original behavior
+ * where clicking anywhere on the row toggles the checkbox.
  */
 export const MarkdownTaskCheckbox = React.memo((props: Props) => {
   // react-markdown passes data attributes with their camelCase names
   const idx =
     props.dataCheckboxIndex ?? (props['data-checkbox-index' as keyof Props] as number | undefined);
-  const { values, onChange, disabled } = useCheckboxContext();
+  const { values, disabled } = useCheckboxContext();
 
   // Determine checkbox state
   const isValidCheckbox = idx !== undefined;
@@ -35,16 +35,9 @@ export const MarkdownTaskCheckbox = React.memo((props: Props) => {
     return <input {...(props as React.InputHTMLAttributes<HTMLInputElement>)} />;
   }
 
-  const handleChange = () => {
-    if (onChange && !disabled) {
-      onChange(idx);
-    }
-  };
-
   return (
     <Checkbox
       checked={isChecked}
-      onChange={handleChange}
       disabled={disabled}
       edge="start"
       tabIndex={-1}

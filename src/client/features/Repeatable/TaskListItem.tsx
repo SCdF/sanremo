@@ -51,15 +51,9 @@ export const TaskListItem = React.memo((props: Props) => {
   }, [shouldFocus]);
 
   const handleClick = (e: React.MouseEvent) => {
-    // Don't trigger if clicking directly on the checkbox (it handles itself)
-    // or if clicking on a link or other interactive element
+    // Don't trigger if clicking on a link or other interactive element
     const target = e.target as HTMLElement;
-    if (
-      target.tagName === 'INPUT' ||
-      target.tagName === 'A' ||
-      target.closest('input') ||
-      target.closest('a')
-    ) {
+    if (target.tagName === 'A' || target.closest('a')) {
       return;
     }
 
