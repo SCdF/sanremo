@@ -1,6 +1,12 @@
 import DeleteIcon from '@mui/icons-material/Delete';
-import { Button, ButtonGroup, GridLegacy as Grid, MenuItem, TextField } from '@mui/material';
-import { type ChangeEvent, type FormEvent, type MouseEvent, useEffect } from 'react';
+import { Button, ButtonGroup, Grid, MenuItem, TextField } from '@mui/material';
+import {
+  type ChangeEvent,
+  type FormEvent,
+  type KeyboardEvent,
+  type MouseEvent,
+  useEffect,
+} from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import { v4 as uuid } from 'uuid';
@@ -141,6 +147,65 @@ function Template() {
     dispatch(setTemplate(copy));
   }
 
+  function handleMarkdownKeyDown(event: KeyboardEvent<HTMLDivElement>) {
+    if (event.key !== 'Enter') {
+      return;
+    }
+
+    const target = event.target as HTMLTextAreaElement;
+    const { value, selectionStart } = target;
+
+    // Find the start of the current line
+    const lineStart = value.lastIndexOf('\n', selectionStart - 1) + 1;
+    const currentLine = value.slice(lineStart, selectionStart);
+
+    // Match bullet point (* or -) or checkbox at start of line
+    const match = currentLine.match(/^(\s*[-*]\s*(?:\[[ x]\]\s*)?)/);
+    if (!match) {
+      return;
+    }
+
+    const prefix = match[1];
+    const trimmed = currentLine.trim();
+
+    // If the line is just the prefix (empty item), clear it instead of continuing
+    if (trimmed === '-' || trimmed === '*' || /^[-*] \[[ x]\]$/.test(trimmed)) {
+      event.preventDefault();
+      const before = value.slice(0, lineStart);
+      const after = value.slice(selectionStart);
+      const newValue = `${before}\n${after}`;
+      const newCursorPos = lineStart + 1;
+
+      const copy = Object.assign({}, template);
+      copy.markdown = newValue;
+      dispatch(setTemplate(copy));
+
+      // Set cursor position after React updates the value
+      requestAnimationFrame(() => {
+        target.selectionStart = target.selectionEnd = newCursorPos;
+      });
+      return;
+    }
+
+    event.preventDefault();
+
+    const before = value.slice(0, selectionStart);
+    const after = value.slice(selectionStart);
+    // For checkboxes, always insert unchecked version
+    const insertPrefix = prefix.replace('[x]', '[ ]');
+    const newValue = `${before}\n${insertPrefix}${after}`;
+    const newCursorPos = selectionStart + 1 + insertPrefix.length;
+
+    const copy = Object.assign({}, template);
+    copy.markdown = newValue;
+    dispatch(setTemplate(copy));
+
+    // Set cursor position after React updates the value
+    requestAnimationFrame(() => {
+      target.selectionStart = target.selectionEnd = newCursorPos;
+    });
+  }
+
   if (!template) {
     return null;
   }
@@ -148,7 +213,7 @@ function Template() {
   return (
     <form onSubmit={handleSubmit} noValidate autoComplete="off" data-testid="template-page">
       <Grid container spacing={2}>
-        <Grid item xs={12}>
+        <Grid size={12}>
           <TextField
             required
             variant="filled"
@@ -161,7 +226,7 @@ function Template() {
         </Grid>
       </Grid>
       <Grid container spacing={2}>
-        <Grid item xs={12} sm={4}>
+        <Grid size={{ xs: 12, sm: 4 }}>
           <TextField
             required
             variant="filled"
@@ -188,7 +253,7 @@ function Template() {
           </TextField>
         </Grid>
         {['string', 'url'].includes(template.slug.type) && (
-          <Grid item xs={12} sm={8}>
+          <Grid size={{ xs: 12, sm: 8 }}>
             <TextField
               variant="filled"
               fullWidth
@@ -202,7 +267,7 @@ function Template() {
         )}
       </Grid>
       <Grid container spacing={2}>
-        <Grid item md={6} sm={12} xs={12}>
+        <Grid size={{ xs: 12, md: 6 }}>
           <TextField
             required
             variant="filled"
@@ -213,12 +278,13 @@ function Template() {
             name="markdown"
             value={template.markdown}
             onChange={handleChange}
+            onKeyDown={handleMarkdownKeyDown}
           />
         </Grid>
-        <Grid item md={6} sm={12} xs={12}>
+        <Grid size={{ xs: 12, md: 6 }}>
           <RepeatableRenderer markdown={template.markdown} values={[]} />
         </Grid>
-        <Grid item xs={12}>
+        <Grid size={12}>
           <ButtonGroup>
             <Button onClick={handleSubmit} color="primary" variant="contained">
               Save
