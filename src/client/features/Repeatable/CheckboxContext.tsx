@@ -7,15 +7,15 @@ export type CheckboxContextType = {
   onChange?: (idx: number) => void;
   /** Whether checkboxes are disabled (derived from onChange being undefined) */
   disabled: boolean;
-  /** Index of the checkbox that should receive focus, or null if none */
-  focusedIdx: number | null;
+  /** Register a button ref for focus management. Returns cleanup function. */
+  registerButton: (idx: number, element: HTMLElement | null) => void;
 };
 
 const defaultContext: CheckboxContextType = {
   values: [],
   onChange: undefined,
   disabled: true,
-  focusedIdx: null,
+  registerButton: () => {},
 };
 
 export const CheckboxContext = createContext<CheckboxContextType>(defaultContext);

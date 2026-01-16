@@ -11,6 +11,7 @@ import { rehypeCheckboxIndex } from './rehypeCheckboxIndex';
 import { TaskListItem } from './TaskListItem';
 
 const debug = debugClient('repeatable', 'render');
+const debugFocus = debugClient('repeatable', 'focus');
 
 export type RepeatableProps = {
   markdown: string;
@@ -41,8 +42,12 @@ function RepeatableRenderer(props: RepeatableProps) {
 
   debug('markdown render start');
 
-  // Used for auto-focus (hammer spacebar to tick everything and close)
-  const [nextIdx, setNextIdx] = useState(() => calculateInitialFocusIndex(values));
+  // Ref-based focus management - stores button elements by index
+  const buttonRefs = useRef<Map<number, HTMLElement>>(new Map());
+  // Track whether we've initialized focus (to avoid re-initializing on every render)
+  const hasInitializedFocus = useRef(false);
+  // Track which index should be focused (stored in ref to avoid re-renders)
+  const focusedIdxRef = useRef<number | null>(null);
 
   // Caching this value internally to detect changes
   const [hasFocus, setHasFocus] = useState(true);
@@ -65,6 +70,80 @@ function RepeatableRenderer(props: RepeatableProps) {
     [],
   );
 
+  // Initialize focus index on mount or when takesFocus becomes true
+  // Using a ref to track initialization so we don't need values in the dep array
+  if (takesFocus && !hasInitializedFocus.current) {
+    hasInitializedFocus.current = true;
+    const initialIdx = calculateInitialFocusIndex(values);
+    focusedIdxRef.current = initialIdx;
+  } else if (!takesFocus && hasInitializedFocus.current) {
+    hasInitializedFocus.current = false;
+    focusedIdxRef.current = null;
+  }
+
+  // Focus the initial button after mount and notify parent if focus is outside checkboxes
+  useEffect(() => {
+    if (takesFocus && focusedIdxRef.current !== null) {
+      debugFocus(
+        'useEffect: focusedIdxRef=%d, activeElement=%o',
+        focusedIdxRef.current,
+        document.activeElement,
+      );
+      const button = buttonRefs.current.get(focusedIdxRef.current);
+      if (button) {
+        debugFocus('useEffect: focusing button %d', focusedIdxRef.current);
+        button.focus();
+        debugFocus('useEffect: after focus, activeElement=%o', document.activeElement);
+      }
+
+      // Notify parent when initial focus is beyond the last checkbox (all checked)
+      if (hasFocusCb) {
+        const maxIdx = checkboxCountRef.current;
+        const newHasFocus = focusedIdxRef.current < maxIdx;
+        if (newHasFocus !== hasFocus) {
+          hasFocusCb(newHasFocus);
+          setHasFocus(newHasFocus);
+        }
+      }
+    }
+  }, [takesFocus, hasFocusCb, hasFocus]);
+
+  // Register button refs from TaskListItem components
+  const registerButton = useCallback((idx: number, element: HTMLElement | null) => {
+    if (element) {
+      debugFocus(
+        'registerButton: idx=%d, focusedIdxRef=%d, activeElement=%o',
+        idx,
+        focusedIdxRef.current,
+        document.activeElement,
+      );
+      buttonRefs.current.set(idx, element);
+      // If this button should be focused, focus it now
+      if (focusedIdxRef.current === idx) {
+        debugFocus('registerButton: focusing button %d', idx);
+        element.focus();
+        debugFocus('registerButton: after focus, activeElement=%o', document.activeElement);
+      }
+    } else {
+      debugFocus('registerButton: unregistering idx=%d', idx);
+      buttonRefs.current.delete(idx);
+    }
+  }, []);
+
+  // Focus a specific index imperatively (called after checkbox toggle)
+  const focusIndex = useCallback((idx: number) => {
+    debugFocus('focusIndex: idx=%d, activeElement=%o', idx, document.activeElement);
+    focusedIdxRef.current = idx;
+    const button = buttonRefs.current.get(idx);
+    if (button) {
+      debugFocus('focusIndex: focusing button %d', idx);
+      button.focus();
+      debugFocus('focusIndex: after focus, activeElement=%o', document.activeElement);
+    } else {
+      debugFocus('focusIndex: no button found for idx=%d', idx);
+    }
+  }, []);
+
   const handleChange = useCallback(
     (idx: number) => {
       if (changeValue) {
@@ -72,34 +151,50 @@ function RepeatableRenderer(props: RepeatableProps) {
         // Advance focus if checking (value was false, now true)
         // Stay on same checkbox if unchecking (value was true, now false)
         const wasChecked = values[idx];
-        setNextIdx(wasChecked ? idx : idx + 1);
+        const nextFocusIdx = wasChecked ? idx : idx + 1;
+
+        if (takesFocus) {
+          focusIndex(nextFocusIdx);
+
+          // Notify parent when focus exits checkboxes
+          if (hasFocusCb) {
+            const maxIdx = checkboxCountRef.current;
+            const newHasFocus = nextFocusIdx < maxIdx;
+            if (newHasFocus !== hasFocus) {
+              hasFocusCb(newHasFocus);
+              setHasFocus(newHasFocus);
+            }
+          }
+        }
       }
     },
-    [changeValue, values],
+    [changeValue, values, takesFocus, focusIndex, hasFocusCb, hasFocus],
   );
 
-  // Notify parent when focus exits checkboxes
-  // Uses checkboxCountRef directly since it's updated during ReactMarkdown render
-  useEffect(() => {
-    const maxIdx = checkboxCountRef.current;
-    if (takesFocus && hasFocusCb && nextIdx !== undefined && maxIdx !== undefined) {
-      const newHasFocus = nextIdx < maxIdx;
-      if (newHasFocus !== hasFocus) {
-        hasFocusCb(newHasFocus);
-        setHasFocus(newHasFocus);
-      }
-    }
-  }, [hasFocus, hasFocusCb, nextIdx, takesFocus]);
-
-  // Context value for checkbox components
+  // Context value for checkbox components - no focusedIdx, uses registerButton instead
   const contextValue = useMemo(
     () => ({
       values,
       onChange: handleChange,
       disabled: !changeValue,
-      focusedIdx: takesFocus ? nextIdx : null,
+      registerButton,
     }),
-    [values, handleChange, changeValue, takesFocus, nextIdx],
+    [values, handleChange, changeValue, registerButton],
+  );
+
+  const renderedMarkdown = (
+    <ReactMarkdown
+      remarkPlugins={[remarkGfm]}
+      rehypePlugins={rehypePlugins}
+      components={{
+        // Map markdown elements to MUI components
+        ul: MarkdownList,
+        li: TaskListItem,
+        input: MarkdownTaskCheckbox,
+      }}
+    >
+      {markdown || ''}
+    </ReactMarkdown>
   );
 
   debug('markdown render end');
@@ -107,18 +202,7 @@ function RepeatableRenderer(props: RepeatableProps) {
   return (
     <CheckboxContext.Provider value={contextValue}>
       <List disablePadding sx={{ '& > *': { px: 2 } }}>
-        <ReactMarkdown
-          remarkPlugins={[remarkGfm]}
-          rehypePlugins={rehypePlugins}
-          components={{
-            // Map markdown elements to MUI components
-            ul: MarkdownList,
-            li: TaskListItem,
-            input: MarkdownTaskCheckbox,
-          }}
-        >
-          {markdown || ''}
-        </ReactMarkdown>
+        {renderedMarkdown}
       </List>
     </CheckboxContext.Provider>
   );
