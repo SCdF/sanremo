@@ -1,7 +1,6 @@
 Quick list
 
 Better bullet points
-- real markdown bullet points should show as bullet points, support standard markdown bullet points (- / * / more?), as well as adding [ ] for checkbox
 - hitting enter creates next line with new point of same style
 - nested bullet points
 

@@ -1,6 +1,8 @@
-import { ListItem, ListItemButton, ListItemIcon, ListItemText } from '@mui/material';
+import { ListItem, ListItemButton, ListItemIcon, ListItemText, Typography } from '@mui/material';
 import React, { useCallback } from 'react';
 import { useCheckboxContext } from './CheckboxContext';
+
+const BULLET = '•';
 
 type Props = {
   node?: unknown;
@@ -65,9 +67,12 @@ export const TaskListItem = React.memo((props: Props) => {
   };
 
   if (!isTaskListItem) {
-    // Regular list item - use MUI ListItem
+    // Regular list item - use MUI ListItem with bullet point
     return (
       <ListItem className={className} {...rest}>
+        <ListItemIcon sx={{ minWidth: 24 }}>
+          <Typography>{BULLET}</Typography>
+        </ListItemIcon>
         <ListItemText>{children}</ListItemText>
       </ListItem>
     );

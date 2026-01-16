@@ -9,6 +9,7 @@
   }
 }
 
-li {
+// Task list items (checkboxes) don't need bullets, MUI provides the checkbox icon
+li.contains-task-list {
   list-style: none;
 }
