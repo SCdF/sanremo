@@ -36,7 +36,6 @@ function Template() {
           title: '',
           slug: {
             type: SlugType.Timestamp,
-            placeholder: '',
           },
           markdown: '',
           created: now,
@@ -133,12 +132,18 @@ function Template() {
     const name = target.name;
 
     if (name === 'slugType') {
-      copy.slug = Object.assign({}, copy.slug);
-      copy.slug.type = value as SlugType;
+      const newType = value as SlugType;
+      // When changing type, create appropriate slug config
+      if (newType === SlugType.String || newType === SlugType.URL) {
+        copy.slug = { type: newType, placeholder: '' };
+      } else {
+        copy.slug = { type: newType };
+      }
     } else if (name === 'slugPlaceholder') {
-      copy.slug = Object.assign({}, copy.slug);
-
-      copy.slug.placeholder = value as string;
+      // Only String and URL types support placeholder
+      if (copy.slug.type === SlugType.String || copy.slug.type === SlugType.URL) {
+        copy.slug = { ...copy.slug, placeholder: value as string };
+      }
     } else {
       // @ts-expect-error
       copy[name] = value;
@@ -252,7 +257,7 @@ function Template() {
             </MenuItem>
           </TextField>
         </Grid>
-        {['string', 'url'].includes(template.slug.type) && (
+        {(template.slug.type === SlugType.String || template.slug.type === SlugType.URL) && (
           <Grid size={{ xs: 12, sm: 8 }}>
             <TextField
               variant="filled"

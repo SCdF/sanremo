@@ -1,7 +1,6 @@
 import { screen } from '@testing-library/react';
-// biome-ignore lint/correctness/noUnusedImports: React is required for JSX transform in .jsx files
-import React from 'react';
 import { MemoryRouter } from 'react-router-dom';
+import { expect, test } from 'vitest';
 import { render } from '../../test-utils';
 
 import TemplateListItem from './TemplateListItem';

@@ -3,8 +3,9 @@ import userEvent from '@testing-library/user-event';
 
 import { type NavigateFunction, useNavigate } from 'react-router-dom';
 import { beforeEach, describe, expect, it, type Mock, vi } from 'vitest';
+import { SlugType } from '../../../shared/types';
 import { render } from '../../test-utils';
-import RepeatableListItem from './RepeatableListItem';
+import RepeatableListItem, { type RepeatableListItemProps } from './RepeatableListItem';
 
 vi.mock('react-router-dom');
 
@@ -18,15 +19,14 @@ describe('Repeatable', () => {
   });
 
   it('renders without crashing', async () => {
-    const params = {
+    const params: RepeatableListItemProps = {
       _id: 'abc',
       timestamp: Date.now(),
       slug: 'http://example.com',
       template: {
         title: 'Checklist ListItem',
         slug: {
-          type: 'url',
-          label: 'For',
+          type: SlugType.URL,
         },
       },
     };
@@ -38,14 +38,14 @@ describe('Repeatable', () => {
   });
 
   it('url slug renders (and does not effect slug click)', async () => {
-    const params = {
+    const params: RepeatableListItemProps = {
       _id: 'abc',
       timestamp: Date.now(),
       slug: 'http://example.com',
       template: {
         title: 'URL Test',
         slug: {
-          type: 'url',
+          type: SlugType.URL,
         },
       },
     };
@@ -58,14 +58,14 @@ describe('Repeatable', () => {
   });
 
   it('date slug', async () => {
-    const params = {
+    const params: RepeatableListItemProps = {
       _id: 'abc',
       timestamp: Date.now(),
       slug: new Date(2020, 0, 1).getTime(),
       template: {
         title: 'Date test',
         slug: {
-          type: 'date',
+          type: SlugType.Date,
         },
       },
     };
@@ -77,14 +77,14 @@ describe('Repeatable', () => {
   });
 
   it('timestamp slug', async () => {
-    const params = {
+    const params: RepeatableListItemProps = {
       _id: 'abc',
       timestamp: Date.now(),
       slug: new Date(2020, 0, 1, 10, 20).getTime(),
       template: {
         title: 'Timestamp test',
         slug: {
-          type: 'timestamp',
+          type: SlugType.Timestamp,
         },
       },
     };
@@ -95,14 +95,14 @@ describe('Repeatable', () => {
     expect(screen.getByText(expectedTimestamp)).toBeTruthy();
   });
   it('plain text slug', async () => {
-    const params = {
+    const params: RepeatableListItemProps = {
       _id: 'abc',
       timestamp: Date.now(),
       slug: 'some text for you',
       template: {
         title: 'Plain Text test',
         slug: {
-          type: 'string',
+          type: SlugType.String,
         },
       },
     };

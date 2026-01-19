@@ -140,7 +140,7 @@ describe('App Routing', () => {
       title: 'Test Template',
       markdown: 'Test markdown',
       values: [],
-      slug: { type: SlugType.Date, placeholder: '' },
+      slug: { type: SlugType.Date },
       created: Date.now(),
       updated: Date.now(),
       versioned: Date.now(),

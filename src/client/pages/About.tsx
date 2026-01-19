@@ -1,6 +1,6 @@
 import { Link } from '@mui/material';
 import axios from 'axios';
-import { Fragment, useEffect, useState } from 'react';
+import { Fragment, type ReactNode, useEffect, useState } from 'react';
 import { useDispatch } from 'react-redux';
 
 import db from '../db';
@@ -10,10 +10,12 @@ import SyncPanel from '../features/Sync/SyncPanel';
 import UpdatePanel from '../features/Update/UpdatePanel';
 import { useSelector } from '../store';
 
-function mapProps(parent, info) {
+type InfoRow = [string | ReactNode, (string | ReactNode)?];
+
+function mapProps(parent: string, info: Record<string, unknown>): InfoRow[] {
   return Object.keys(info)
     .sort()
-    .map((k) => [`${parent}.${k}`, info[k]]);
+    .map((k) => [`${parent}.${k}`, String(info[k])]);
 }
 
 function About() {
@@ -23,11 +25,13 @@ function About() {
   // eslint-disable-next-line no-unused-vars
   const handle = db(loggedInUser); // pull it in to force the caching to happen if this is a fresh refresh
 
-  const [idbInfo, setIdbInfo] = useState([]);
-  const [serverInfo, setServerInfo] = useState([]);
+  const [idbInfo, setIdbInfo] = useState<InfoRow[]>([]);
+  const [serverInfo, setServerInfo] = useState<InfoRow[]>([]);
 
   useEffect(() => {
-    handle.info().then((info) => setIdbInfo(mapProps('db', info)));
+    handle
+      .info()
+      .then((info) => setIdbInfo(mapProps('db', info as unknown as Record<string, unknown>)));
   }, [handle]);
 
   useEffect(() => {
@@ -41,7 +45,7 @@ function About() {
             deploy_commit: hash,
           } = response.data;
 
-          const data = [
+          const data: InfoRow[] = [
             ['Deploy Version', deployVersion],
             ['Release', releaseVersion],
             [
@@ -71,9 +75,9 @@ function About() {
     );
   }, [dispatch]);
 
-  const vars = [
+  const vars: InfoRow[] = [
     [<h4 key="server-header">SERVER DETAILS</h4>],
-    ['Deployment Type', <b key="deploy-type">{process.env.NODE_ENV.toUpperCase()}</b>],
+    ['Deployment Type', <b key="deploy-type">{process.env.NODE_ENV?.toUpperCase()}</b>],
     ...serverInfo,
     [<h4 key="local-header">LOCAL DETAILS</h4>],
     ...idbInfo,

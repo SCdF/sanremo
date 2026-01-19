@@ -1,6 +1,6 @@
 import { Input } from '@mui/material';
 import { type ChangeEvent, useState } from 'react';
-import type { RepeatableDoc, TemplateDoc } from '../../../shared/types';
+import { type RepeatableDoc, SlugType, type TemplateDoc } from '../../../shared/types';
 import db from '../../db';
 import { setRepeatable } from '../../state/docsSlice';
 import { type RootState, useDispatch, useSelector } from '../../store';
@@ -25,9 +25,11 @@ function RepeatableSlug() {
     // @ts-expect-error FIXME: check if nodeValue works
     const targetValue = target.value;
     // we know that if anyone calls this function template has a value
-    const value = ['date', 'timestamp'].includes((template as TemplateDoc).slug.type)
-      ? new Date(targetValue).getTime()
-      : targetValue;
+    const slugType = (template as TemplateDoc).slug.type;
+    const value =
+      slugType === SlugType.Date || slugType === SlugType.Timestamp
+        ? new Date(targetValue).getTime()
+        : targetValue;
 
     setSlug(value);
   }
@@ -47,7 +49,7 @@ function RepeatableSlug() {
   }
 
   let slugInput: React.ReactElement;
-  if (['url', 'string'].includes(template.slug.type)) {
+  if (template.slug.type === SlugType.URL || template.slug.type === SlugType.String) {
     slugInput = (
       <Input
         type="text"
@@ -58,7 +60,7 @@ function RepeatableSlug() {
         onBlur={storeSlugChange}
       />
     );
-  } else if ('date' === template.slug.type) {
+  } else if (template.slug.type === SlugType.Date) {
     // FIXME: Clean This Up! The format required for the native date input type cannot
     // be manufactured from the native JavaScript date type. If we were in raw HTML
     // we could post-set it with Javascript by using valueAsNumber, but not in situ

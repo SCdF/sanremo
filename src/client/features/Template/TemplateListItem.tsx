@@ -9,7 +9,12 @@ const horizontal = {
   width: 'auto',
 };
 
-function TemplateListItem(props) {
+interface TemplateListItemProps {
+  _id?: string;
+  title?: string;
+}
+
+function TemplateListItem(props: TemplateListItemProps) {
   const { _id, title } = props;
 
   if (!_id) {

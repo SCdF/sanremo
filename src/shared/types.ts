@@ -22,6 +22,22 @@ export enum SlugType {
   URL = 'url',
   String = 'string',
 }
+
+// Discriminated union for slug configuration - each type has its own shape
+export type SlugConfig =
+  | { type: SlugType.String; placeholder?: string }
+  | { type: SlugType.URL; placeholder?: string }
+  | { type: SlugType.Date }
+  | { type: SlugType.Timestamp };
+
+// Discriminated union pairing slug config with its value type
+// The discriminant 'type' is at the top level so TypeScript can narrow properly
+export type SlugData =
+  | { type: SlugType.String; placeholder?: string; value: string }
+  | { type: SlugType.URL; placeholder?: string; value: string }
+  | { type: SlugType.Date; value: number }
+  | { type: SlugType.Timestamp; value: number };
+
 export interface RepeatableDoc extends Doc {
   template: DocId;
   slug: string | number | undefined;
@@ -34,10 +50,7 @@ export interface RepeatableDoc extends Doc {
 export interface TemplateDoc extends Doc {
   deleted?: boolean;
   title: string;
-  slug: {
-    type: SlugType;
-    placeholder?: string;
-  };
+  slug: SlugConfig;
   markdown: string;
   created: number;
   updated: number;

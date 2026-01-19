@@ -2,8 +2,8 @@ import type { Store } from '@reduxjs/toolkit';
 import { screen, waitFor } from '@testing-library/react';
 import type { JSX } from 'react/jsx-runtime';
 import { MemoryRouter } from 'react-router-dom';
-import { beforeEach, describe, expect, it, type Mocked, vi } from 'vitest';
-import db, { type Database } from '../db';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { getMockDb, type MockDatabase } from '../db/__mocks__';
 import { setUserAsLoggedIn } from '../features/User/userSlice';
 import { createStore } from '../store';
 import { withStore, render as wrappedRender } from '../test-utils';
@@ -11,14 +11,24 @@ import Home from './Home';
 
 vi.mock('../db');
 
+interface FindOptions {
+  selector?: {
+    _id?: {
+      $gt?: string;
+      $lt?: string;
+      $in?: string[];
+    };
+  };
+}
+
 describe('Home', () => {
   const user = { id: 1, name: 'Tester Test' };
   let store: Store;
-  let handle: Mocked<Database>;
+  let handle: MockDatabase;
   beforeEach(() => {
     store = createStore();
     store.dispatch(setUserAsLoggedIn({ user }));
-    handle = db(user) as Mocked<Database>;
+    handle = getMockDb();
   });
 
   function render(children: JSX.Element) {
@@ -27,12 +37,13 @@ describe('Home', () => {
 
   it('renders without crashing', async () => {
     handle.find.mockImplementation((options) => {
-      if (!(options?.selector?._id instanceof Object)) {
+      const opts = options as FindOptions;
+      if (!(opts?.selector?._id instanceof Object)) {
         throw Error('noimplementation');
       }
 
       // Repeatable list needs
-      if (options?.selector?._id?.$gt === 'repeatable:instance:') {
+      if (opts?.selector?._id?.$gt === 'repeatable:instance:') {
         return Promise.resolve({
           docs: [
             {
@@ -47,8 +58,8 @@ describe('Home', () => {
       }
 
       if (
-        options?.selector?._id?.$in?.length === 1 &&
-        options?.selector?._id?.$in[0] === 'repeatable:template:test:1'
+        opts?.selector?._id?.$in?.length === 1 &&
+        opts?.selector?._id?.$in[0] === 'repeatable:template:test:1'
       ) {
         return Promise.resolve({
           docs: [
@@ -63,7 +74,7 @@ describe('Home', () => {
       }
 
       // Template list needs
-      if (options?.selector?._id?.$gt === 'repeatable:template:') {
+      if (opts?.selector?._id?.$gt === 'repeatable:template:') {
         return Promise.resolve({
           docs: [
             {
@@ -91,17 +102,18 @@ describe('Home', () => {
   describe('template visibility', () => {
     it('when there are more than one version only show the latest', async () => {
       handle.find.mockImplementation((options) => {
-        if (!(options?.selector?._id instanceof Object)) {
+        const opts = options as FindOptions;
+        if (!(opts?.selector?._id instanceof Object)) {
           throw Error('noimplementation');
         }
 
         // No repeatables
-        if (options?.selector?._id?.$gt === 'repeatable:instance:') {
+        if (opts?.selector?._id?.$gt === 'repeatable:instance:') {
           return Promise.resolve({ docs: [] });
         }
 
         // Multiple versions of the same template
-        if (options?.selector?._id?.$gt === 'repeatable:template:') {
+        if (opts?.selector?._id?.$gt === 'repeatable:template:') {
           return Promise.resolve({
             docs: [
               { _id: 'repeatable:template:test:1', _rev: '1-abc', title: 'Old template version' },
@@ -129,17 +141,18 @@ describe('Home', () => {
 
     it('if the latest version is deleted, do not display any versions of that template', async () => {
       handle.find.mockImplementation((options) => {
-        if (!(options?.selector?._id instanceof Object)) {
+        const opts = options as FindOptions;
+        if (!(opts?.selector?._id instanceof Object)) {
           throw Error('noimplementation');
         }
 
         // No repeatables
-        if (options?.selector?._id?.$gt === 'repeatable:instance:') {
+        if (opts?.selector?._id?.$gt === 'repeatable:instance:') {
           return Promise.resolve({ docs: [] });
         }
 
         // Multiple versions of the same template
-        if (options?.selector?._id?.$gt === 'repeatable:template:') {
+        if (opts?.selector?._id?.$gt === 'repeatable:template:') {
           return Promise.resolve({
             docs: [
               { _id: 'repeatable:template:test:1', _rev: '1-abc', title: 'Old template version' },
