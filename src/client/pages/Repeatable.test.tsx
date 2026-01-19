@@ -1,34 +1,45 @@
+import type { Store } from '@reduxjs/toolkit';
 import { fireEvent, screen, waitFor } from '@testing-library/react';
-// biome-ignore lint/correctness/noUnusedImports: React is required for JSX transform in .jsx files
-import React from 'react';
+import type { JSX } from 'react/jsx-runtime';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
-import db from '../db';
+import { beforeEach, describe, expect, it, type Mock, vi } from 'vitest';
+import { type RepeatableDoc, SlugType, type TemplateDoc } from '../../shared/types';
+import { getMockDb, type MockDatabase } from '../db/__mocks__';
 import { setUserAsLoggedIn } from '../features/User/userSlice';
 import { createStore } from '../store';
 import { withStore, render as wrappedRender } from '../test-utils';
 import Repeatable from './Repeatable';
 
-vi.mock('react-router-dom');
+vi.mock('react-router-dom', async () => {
+  return {
+    useNavigate: vi.fn(),
+    useLocation: vi.fn(),
+    useParams: vi.fn(),
+  };
+});
 vi.mock('../db');
+
+const mockUseNavigate = useNavigate as Mock;
+const mockUseLocation = useLocation as Mock;
+const mockUseParams = useParams as Mock;
 
 describe('Repeatable', () => {
   const user = { id: 1, name: 'Tester Test' };
-  let navigate;
-  let store;
-  let handle;
+  let navigate: Mock;
+  let store: Store;
+  let handle: MockDatabase;
 
   beforeEach(() => {
     navigate = vi.fn();
-    useNavigate.mockReturnValue(navigate);
+    mockUseNavigate.mockReturnValue(navigate);
 
     store = createStore();
     store.dispatch(setUserAsLoggedIn({ user }));
 
-    handle = db(user);
+    handle = getMockDb();
   });
 
-  function render(children) {
+  function render(children: JSX.Element) {
     wrappedRender(withStore(store, children));
   }
 
@@ -38,14 +49,14 @@ describe('Repeatable', () => {
         _id: 'repeatable:instance:1234',
         template: 'repeatable:template:5678',
         values: [],
-      })
+      } satisfies Partial<RepeatableDoc>)
       .mockResolvedValueOnce({
         _id: 'repeatable:template:5678',
         title: 'A Repeatable',
         markdown: 'Some text',
-      });
-    useLocation.mockReturnValue();
-    useParams.mockReturnValue({ repeatableId: '1234' });
+      } satisfies Partial<TemplateDoc>);
+    mockUseLocation.mockReturnValue(undefined);
+    mockUseParams.mockReturnValue({ repeatableId: '1234' });
 
     render(<Repeatable />);
 
@@ -59,24 +70,24 @@ describe('Repeatable', () => {
         _id: 'repeatable:template:1234',
         _rev: '42-abc',
         slug: {
-          type: 'string',
+          type: SlugType.String,
         },
-      })
+      } satisfies Partial<TemplateDoc>)
       .mockResolvedValueOnce({
         _id: 'repeatable:instance:1234',
         _rev: '42-abc',
         slug: 'test',
         values: [],
-      });
-    handle.userPut.mockResolvedValue({ id: '4321' });
-    useLocation.mockReturnValue({
+      } satisfies Partial<RepeatableDoc>);
+    handle.userPut.mockResolvedValue({ _id: '4321' });
+    mockUseLocation.mockReturnValue({
       search: '?template=repeatable:template:1234',
     });
-    useParams
+    mockUseParams
       .mockReturnValueOnce({ repeatableId: 'new' })
       .mockReturnValue({ repeatableId: '5678' });
 
-    render(<Repeatable db={handle} />);
+    render(<Repeatable />);
 
     expect(handle.get).toBeCalled();
     expect(handle.get.mock.calls[0][0]).toBe('repeatable:template:1234');
@@ -85,7 +96,7 @@ describe('Repeatable', () => {
     expect(navigate.mock.calls[0][0]).toMatch(/\/repeatable\/repeatable:instance:/);
 
     expect(handle.userPut).toBeCalled();
-    const storedRepeatable = handle.userPut.mock.calls[0][0];
+    const storedRepeatable = handle.userPut.mock.calls[0][0] as RepeatableDoc;
     expect(storedRepeatable).toBeTruthy();
     expect(storedRepeatable._id).toMatch(/^repeatable:instance:/);
     expect(storedRepeatable._rev).not.toBeTruthy();
@@ -97,13 +108,14 @@ describe('Repeatable', () => {
   });
 
   describe('completion redirection semantics', () => {
-    let repeatable;
-    let template;
+    let repeatable: Partial<RepeatableDoc>;
+    let template: Partial<TemplateDoc>;
+
     beforeEach(() => {
       handle.get.mockReset();
       handle.userPut.mockReset();
-      useLocation.mockReset();
-      useParams.mockReset();
+      mockUseLocation.mockReset();
+      mockUseParams.mockReset();
 
       repeatable = {
         _id: 'repeatable:instance:1234',
@@ -116,22 +128,22 @@ describe('Repeatable', () => {
         values: [false],
       };
 
-      handle.get.mockImplementation((docId) => {
+      handle.get.mockImplementation((docId: string) => {
         if (docId === 'repeatable:instance:1234') {
           return Promise.resolve(repeatable);
         }
         if (docId === 'repeatable:template:5678') {
           return Promise.resolve(template);
         }
-        return Promise.reject(`Bad ${docId}`);
+        return Promise.reject(new Error(`Bad ${docId}`));
       });
-      useLocation.mockReturnValue();
-      useParams.mockReturnValue({ repeatableId: 'repeatable:instance:1234' });
-      handle.userPut.mockResolvedValue({ rev: '2-abc' });
+      mockUseLocation.mockReturnValue(undefined);
+      mockUseParams.mockReturnValue({ repeatableId: 'repeatable:instance:1234' });
+      handle.userPut.mockResolvedValue({ _id: 'repeatable:instance:1234', _rev: '2-abc' });
     });
 
     it('redirects when completing a fresh repeatable', async () => {
-      render(<Repeatable db={handle} />);
+      render(<Repeatable />);
       await waitFor(() => screen.getByText(/Some text/));
 
       fireEvent.click(await waitFor(() => screen.getByText(/Complete/)));
@@ -140,41 +152,41 @@ describe('Repeatable', () => {
     it('doesnt redirect when uncompleting a repeatable', async () => {
       repeatable.completed = 123456789;
 
-      render(<Repeatable db={handle} />);
+      render(<Repeatable />);
       await waitFor(() => screen.getByText(/Some text/));
 
       fireEvent.click(await waitFor(() => screen.getByText(/Un-complete/)));
       await waitFor(() => expect(handle.userPut.mock.calls.length).toBe(1));
 
       expect(navigate.mock.calls.length).toBe(0);
-      expect(handle.userPut.mock.calls[0][0].completed).not.toBeTruthy();
+      expect((handle.userPut.mock.calls[0][0] as RepeatableDoc).completed).not.toBeTruthy();
     });
     it('doesnt redirect when completing a just uncompleted repeatable', async () => {
       repeatable.completed = 123456789;
 
-      render(<Repeatable db={handle} />);
+      render(<Repeatable />);
       await waitFor(() => screen.getByText(/Some text/));
 
       fireEvent.click(await waitFor(() => screen.getByText(/Un-complete/)));
       await waitFor(() => expect(handle.userPut.mock.calls.length).toBe(1));
       expect(navigate.mock.calls.length).toBe(0);
-      expect(handle.userPut.mock.calls[0][0].completed).not.toBeTruthy();
+      expect((handle.userPut.mock.calls[0][0] as RepeatableDoc).completed).not.toBeTruthy();
 
       fireEvent.click(await waitFor(() => screen.getByText(/Complete/)));
       await waitFor(() => expect(handle.userPut.mock.calls.length).toBe(2));
       expect(navigate.mock.calls.length).toBe(0);
-      expect(handle.userPut.mock.calls[1][0].completed).toBeTruthy();
+      expect((handle.userPut.mock.calls[1][0] as RepeatableDoc).completed).toBeTruthy();
     });
     it('does redirect when completing a just uncompleted repeatable if you change something', async () => {
       repeatable.completed = 123456789;
 
-      render(<Repeatable db={handle} />);
+      render(<Repeatable />);
       await waitFor(() => screen.getByText(/Something to change/));
 
       fireEvent.click(await waitFor(() => screen.getByText(/Un-complete/)));
       await waitFor(() => expect(handle.userPut.mock.calls.length).toBe(1));
       expect(navigate.mock.calls.length).toBe(0);
-      expect(handle.userPut.mock.calls[0][0].completed).not.toBeTruthy();
+      expect((handle.userPut.mock.calls[0][0] as RepeatableDoc).completed).not.toBeTruthy();
 
       fireEvent.click(await waitFor(() => screen.getByText(/Something to change/)));
       await waitFor(() => expect(handle.userPut.mock.calls.length).toBe(2));
@@ -182,7 +194,7 @@ describe('Repeatable', () => {
       fireEvent.click(await waitFor(() => screen.getByText(/Complete/)));
       await waitFor(() => expect(handle.userPut.mock.calls.length).toBe(3));
       expect(navigate.mock.calls.length).toBe(1);
-      expect(handle.userPut.mock.calls[2][0].completed).toBeTruthy();
+      expect((handle.userPut.mock.calls[2][0] as RepeatableDoc).completed).toBeTruthy();
       expect(navigate.mock.calls[0][0]).toBe('/');
     });
   });

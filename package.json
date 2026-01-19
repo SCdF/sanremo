@@ -4,8 +4,6 @@
   "version": "0.5.0",
   "packageManager": "yarn@4.0.2",
   "//": [
-    " TODO update everything else thing by thing",
-    " TODO migrate off heroku (fly.io?)",
     " TODO redux -> https://github.com/pmndrs/zustand"
   ],
   "scripts": {
@@ -19,8 +17,8 @@
     "build:server": "parcel build --target server --reporter @parcel/reporter-bundle-analyzer",
     "build": "yarn clean && parcel build --reporter @parcel/reporter-bundle-analyzer && node ./scripts/inject-manifest.mjs",
     "dev": "parcel --target client",
-    "test:client": "vitest --config src/client/vitest.config.js src/client",
-    "test:server": "vitest --config src/server/vitest.config.js src/server",
+    "test:client": "vitest --config src/client/vitest.config.ts src/client",
+    "test:server": "vitest --config src/server/vitest.config.ts src/server",
     "test": "yarn test:client --run && yarn test:server --run"
   },
   "targets": {
