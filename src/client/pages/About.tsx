@@ -10,7 +10,7 @@ import SyncPanel from '../features/Sync/SyncPanel';
 import UpdatePanel from '../features/Update/UpdatePanel';
 import { useSelector } from '../store';
 
-type InfoRow = [ReactNode, ReactNode?];
+type InfoRow = [string | ReactNode, (string | ReactNode)?];
 
 function mapProps(parent: string, info: Record<string, unknown>): InfoRow[] {
   return Object.keys(info)

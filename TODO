@@ -1,8 +1,6 @@
 Quick list
 
-Better bullet points
-- hitting enter creates next line with new point of same style
-- nested bullet points
+Revisit typing. We should have internal types not bound to PouchDB structures that mean the slug against the repeatable are cleanly typed with no ambiguiity.
 
 Button to edit template on repeatable view. Will edit existing repeatables. This has downsides because repeatable data is just an array of booleans, not a map. Think about that but probably don't care for now.
 
