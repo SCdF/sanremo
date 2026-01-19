@@ -38,17 +38,6 @@ export type SlugData =
   | { type: SlugType.Date; value: number }
   | { type: SlugType.Timestamp; value: number };
 
-// Helper to extract value type from a SlugConfig
-export type SlugValueFor<T extends SlugConfig> = T extends { type: SlugType.String }
-  ? string
-  : T extends { type: SlugType.URL }
-    ? string
-    : T extends { type: SlugType.Date }
-      ? number
-      : T extends { type: SlugType.Timestamp }
-        ? number
-        : never;
-
 export interface RepeatableDoc extends Doc {
   template: DocId;
   slug: string | number | undefined;
