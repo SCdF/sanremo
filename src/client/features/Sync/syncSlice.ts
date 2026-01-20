@@ -1,5 +1,10 @@
+import type { Middleware } from '@reduxjs/toolkit';
 import { createSlice } from '@reduxjs/toolkit';
 import type { Doc, DocId } from '../../../shared/types';
+import { debugClient } from '../../globals';
+import { getSocket } from './socketRegistry';
+
+const debug = debugClient('sync');
 
 type DocMap = Record<DocId, Doc>;
 type SerializableError = { name: string; message: string };
@@ -92,3 +97,26 @@ export const {
   socketDisconnected,
 } = syncSlice.actions;
 export default syncSlice.reducer;
+
+// Middleware to emit socket events when docs are marked stale
+export const syncMiddleware: Middleware = (storeApi) => (next) => (action) => {
+  const result = next(action);
+
+  if (syncSlice.actions.markStale.match(action)) {
+    const state = storeApi.getState() as { sync: SyncState };
+    const socket = getSocket();
+
+    // Only emit if we're fully connected (not during initial sync)
+    if (socket?.connected && state.sync.state === State.connected) {
+      const doc = action.payload;
+      debug(`emitting docUpdate for ${doc._id}`);
+      socket.emit('docUpdate', [doc]);
+    }
+
+    // Always clean stale docs after processing
+    // If offline, the full sync on reconnect will handle them
+    storeApi.dispatch(cleanStale([action.payload]));
+  }
+
+  return result;
+};

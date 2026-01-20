@@ -3,7 +3,7 @@ import * as RR from 'react-redux';
 
 import debugSlice, { debugMiddleware } from './features/Debug/debugSlice';
 import pageSlice from './features/Page/pageSlice';
-import syncSlice from './features/Sync/syncSlice';
+import syncSlice, { syncMiddleware } from './features/Sync/syncSlice';
 import updateSlice from './features/Update/updateSlice';
 import userReducer from './features/User/userSlice';
 import docsSlice from './state/docsSlice';
@@ -18,7 +18,8 @@ function createStore() {
       debug: debugSlice,
       update: updateSlice,
     },
-    middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(debugMiddleware),
+    middleware: (getDefaultMiddleware) =>
+      getDefaultMiddleware().concat(debugMiddleware, syncMiddleware),
     // devTools: process.env.NODE_ENV !== 'production',
   });
 }
