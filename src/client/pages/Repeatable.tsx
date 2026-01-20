@@ -7,7 +7,7 @@ import { v4 as uuid } from 'uuid';
 
 import type { RepeatableDoc, TemplateDoc } from '../../shared/types';
 import db from '../db';
-import { set as setContext } from '../features/Page/pageSlice';
+import { usePageContext } from '../features/Page/pageSlice';
 import RepeatableRenderer from '../features/Repeatable/RepeatableRenderer';
 import { debugClient } from '../globals';
 import { clearRepeatable, clearTemplate, setRepeatable, setTemplate } from '../state/docsSlice';
@@ -79,13 +79,6 @@ function Repeatable() {
         debug('post template load');
 
         // React 19+ automatically batches updates - no need for unstable_batchedUpdates
-        dispatch(
-          setContext({
-            title: template.title,
-            back: true,
-            under: 'home',
-          }),
-        );
         dispatch(setRepeatable(repeatable));
         dispatch(setTemplate(template));
         setInitiallyOpen(!repeatable.completed);
@@ -98,6 +91,13 @@ function Repeatable() {
       dispatch(clearTemplate());
     };
   }, [dispatch, handle, repeatableId, location, navigate]);
+
+  // Set page context based on loaded template
+  usePageContext({
+    title: template?.title,
+    back: true,
+    under: 'home',
+  });
 
   async function deleteRepeatable() {
     const copy = Object.assign({}, repeatable);

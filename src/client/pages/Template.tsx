@@ -13,7 +13,7 @@ import { v4 as uuid } from 'uuid';
 
 import { SlugType, type TemplateDoc } from '../../shared/types';
 import db from '../db';
-import { set as setContext } from '../features/Page/pageSlice';
+import { usePageContext } from '../features/Page/pageSlice';
 import RepeatableRenderer from '../features/Repeatable/RepeatableRenderer';
 import { clearTemplate, setTemplate } from '../state/docsSlice';
 import { useDispatch, useSelector } from '../store';
@@ -60,15 +60,11 @@ function Template() {
     };
   }, [handle, templateId, navigate, dispatch]);
 
-  useEffect(() => {
-    dispatch(
-      setContext({
-        title: `${template?.title || 'New Template'} | edit`,
-        back: true,
-        under: 'home',
-      }),
-    );
-  }, [dispatch, template?.title]);
+  usePageContext({
+    title: `${template?.title || 'New Template'} | edit`,
+    back: true,
+    under: 'home',
+  });
 
   async function handleDelete(event: MouseEvent<HTMLButtonElement>) {
     event.preventDefault();

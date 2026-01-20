@@ -2,10 +2,10 @@ import { Divider, List, Typography } from '@mui/material';
 import { Fragment, useEffect, useState } from 'react';
 import type { RepeatableDoc, TemplateDoc } from '../../shared/types';
 import db from '../db';
-import { set as setContext } from '../features/Page/pageSlice';
+import { usePageContext } from '../features/Page/pageSlice';
 import RepeatableListItem from '../features/Repeatable/RepeatableListItem';
 import TemplateListItem from '../features/Template/TemplateListItem';
-import { useDispatch, useSelector } from '../store';
+import { useSelector } from '../store';
 
 export type SortableRepeatableDoc = Omit<RepeatableDoc, 'template'> & {
   timestamp?: number;
@@ -14,7 +14,7 @@ export type SortableRepeatableDoc = Omit<RepeatableDoc, 'template'> & {
 };
 
 function Home() {
-  const dispatch = useDispatch();
+  usePageContext({ title: 'Repeatable Checklists', under: 'home' });
 
   const user = useSelector((state) => state.user.value);
   const handle = db(user);
@@ -24,15 +24,6 @@ function Home() {
 
   const [templates, setTemplates] = useState([] as TemplateDoc[]);
   const [repeatables, setRepeatables] = useState([] as SortableRepeatableDoc[]);
-
-  useEffect(() => {
-    dispatch(
-      setContext({
-        title: 'Repeatable Checklists',
-        under: 'home',
-      }),
-    );
-  }, [dispatch]);
 
   // NB: this code also exists in History.js using completed instead of updated
   // biome-ignore lint/correctness/useExhaustiveDependencies: TODO confirm this is OK, I think we need lastSynced as an effective "try again"

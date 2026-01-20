@@ -168,7 +168,7 @@ yarn check && yarn test
 Both must pass with no errors before committing.
 
 ### After Pushing
-1. Create draft PR: `gh pr create --draft`
+1. Create PR: `gh pr create`
 2. Check CI status: `gh pr checks`
 3. Fix any CI failures on the branch
 4. Note: CI environment differs (locale, timezone, Node version)
