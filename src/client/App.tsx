@@ -3,7 +3,6 @@ import './App.scss';
 import { Typography } from '@mui/material';
 import { lazy, Suspense } from 'react';
 import { Route, Routes } from 'react-router-dom';
-import DebugManager from './features/Debug/DebugManager';
 import Page from './features/Page/Page';
 import SyncManager from './features/Sync/SyncManager';
 import UpdateManager from './features/Update/UpdateManager';
@@ -24,7 +23,6 @@ function App() {
 
   return (
     <Themed>
-      <DebugManager />
       {process.env.NODE_ENV !== 'development' && <UpdateManager />}
       <UserProvider>
         <SyncManager />

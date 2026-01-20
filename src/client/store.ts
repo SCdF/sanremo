@@ -1,7 +1,7 @@
 import { configureStore } from '@reduxjs/toolkit';
 import * as RR from 'react-redux';
 
-import debugSlice from './features/Debug/debugSlice';
+import debugSlice, { debugMiddleware } from './features/Debug/debugSlice';
 import pageSlice from './features/Page/pageSlice';
 import syncSlice from './features/Sync/syncSlice';
 import updateSlice from './features/Update/updateSlice';
@@ -18,6 +18,7 @@ function createStore() {
       debug: debugSlice,
       update: updateSlice,
     },
+    middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(debugMiddleware),
     // devTools: process.env.NODE_ENV !== 'production',
   });
 }
