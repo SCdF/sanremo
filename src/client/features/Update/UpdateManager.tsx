@@ -3,6 +3,7 @@ import { debugClient } from '../../globals';
 
 import * as serviceWorkerRegistration from '../../serviceWorkerRegistration';
 import { useDispatch, useSelector } from '../../store';
+import { getRegistration, setRegistration } from './registration';
 import { checkForUpdate, noUpdateReady, updateReadyToInstall } from './updateSlice';
 
 const debug = debugClient('update');
@@ -16,25 +17,15 @@ const UPDATE_CHECK_INTERVAL = 1000 * 60 * 60 * 4;
 function UpdateManager() {
   const dispatch = useDispatch();
 
-  const userReadyToUpdate = useSelector((state) => state.update.userReadyToUpdate);
-  const waitingToInstall = useSelector((state) => state.update.waitingToInstall);
   const lastChecked = useSelector((state) => state.update.lastChecked);
 
-  const [registration, setRegistration] = useState(
-    undefined as unknown as ServiceWorkerRegistration,
-  );
-
-  useEffect(() => {
-    if (registration && waitingToInstall && userReadyToUpdate) {
-      debug('prepped update is set to install');
-      // registration.update(); // maybe to get freshest freshest?
-      registration.waiting?.postMessage({ type: 'SKIP_WAITING' });
-    }
-  }, [registration, userReadyToUpdate, waitingToInstall]);
+  // Track when registration becomes available for the update check effect
+  const [registrationReady, setRegistrationReady] = useState(false);
 
   useEffect(() => {
     const updateCheck = async () => {
-      if (registration && !lastChecked) {
+      const registration = getRegistration();
+      if (registrationReady && registration && !lastChecked) {
         debug('checking for updates');
         const reg = (await registration.update()) as unknown as ServiceWorkerRegistration;
         if (reg?.waiting) {
@@ -45,7 +36,7 @@ function UpdateManager() {
       }
     };
     updateCheck();
-  }, [dispatch, lastChecked, registration]);
+  }, [dispatch, lastChecked, registrationReady]);
 
   useEffect(() => {
     const initializeServiceWorker = () => {
@@ -64,6 +55,7 @@ function UpdateManager() {
           debug('service worker registered successfully');
           dispatch(noUpdateReady());
           setRegistration(reg);
+          setRegistrationReady(true);
 
           setInterval(() => {
             dispatch(checkForUpdate());

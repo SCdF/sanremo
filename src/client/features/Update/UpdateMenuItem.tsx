@@ -1,14 +1,13 @@
 import GetAppIcon from '@mui/icons-material/GetApp';
 import { Badge, ListItemIcon, MenuItem, Typography } from '@mui/material';
-import { useDispatch, useSelector } from '../../store';
-import { userReadyToUpdate } from './updateSlice';
+import { useSelector } from '../../store';
+import { triggerUpdate } from './registration';
 
 function UpdateMenuItem(props: { onClick: () => void }) {
-  const dispatch = useDispatch();
   const updateNeeded = useSelector((state) => state.update.waitingToInstall);
 
   function handleOnClick() {
-    dispatch(userReadyToUpdate());
+    triggerUpdate();
     props.onClick();
   }
 

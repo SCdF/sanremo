@@ -35,16 +35,16 @@ yarn check                # Runs Biome linter + TypeScript type checking
 yarn biome                # Biome linter only
 
 # Testing
-yarn test                 # Run all tests (client + server) once
+yarn test                 # Run all tests (client + server) once (already includes --run)
 yarn test:client          # Run client tests in watch mode
 yarn test:server          # Run server tests in watch mode
 
-# Run specific test files
-# IMPORTANT: Use --run flag to disable watch mode when verifying tests
+# Run specific test files (use --run to disable watch mode)
 yarn test:client --run src/client/features/User/UserProvider.test.tsx
 yarn test:server --run src/server/sync/sync.test.ts
 
-# Only use watch mode (without --run) when actively developing and watching for changes
+# NOTE: yarn test already includes --run, so don't add --run when using it
+# Only add --run to test:client or test:server when you want single-run mode
 ```
 
 ### Server Commands (requires PostgreSQL)
