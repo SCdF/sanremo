@@ -31,10 +31,11 @@ export const debugMiddleware: Middleware = () => (next) => (action) => {
 
   if (debugSlice.actions.set.match(action)) {
     const newValue = action.payload;
-    if (newValue === null) {
+    if (!newValue) {
+      // null or empty string - clear debug
       debugModule.disable();
       localStorage.removeItem(DEBUG_KEY);
-    } else if (newValue) {
+    } else {
       debugModule.enable(newValue);
       localStorage.setItem(DEBUG_KEY, newValue);
     }
