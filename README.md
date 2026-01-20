@@ -6,7 +6,7 @@ Hosted at: https://sanremo.sdufresne.info
 
 # What / Why
 
-I wrote this originally to experiemnt with coding with my voice, using [Talon](https://talonvoice.com/) and [Cursorless](https://github.com/cursorless-dev/cursorless-talon), as well as to have a test bed for some [PouchDB](https://github.com/apache/pouchdb) changes I was working on.
+I wrote this originally to experiment with coding with my voice, using [Talon](https://talonvoice.com/) and [Cursorless](https://github.com/cursorless-dev/cursorless-talon), as well as to have a test bed for some [PouchDB](https://github.com/apache/pouchdb) changes I was working on.
 
 Now I'm updating it to experiment with using Claude effectively.
 
