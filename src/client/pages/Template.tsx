@@ -59,6 +59,7 @@ function Template() {
       dispatch(clearTemplate());
     };
   }, [handle, templateId, navigate, dispatch]);
+
   useEffect(() => {
     dispatch(
       setContext({
@@ -67,7 +68,7 @@ function Template() {
         under: 'home',
       }),
     );
-  });
+  }, [dispatch, template?.title]);
 
   async function handleDelete(event: MouseEvent<HTMLButtonElement>) {
     event.preventDefault();
