@@ -2,29 +2,21 @@ import { List, Typography } from '@mui/material';
 import { useEffect, useState } from 'react';
 import type { TemplateDoc } from '../../shared/types';
 import db from '../db';
-import { set as setContext } from '../features/Page/pageSlice';
+import { usePageContext } from '../features/Page/pageSlice';
 import RepeatableListItem from '../features/Repeatable/RepeatableListItem';
-import { useDispatch, useSelector } from '../store';
+import { useSelector } from '../store';
 import type { SortableRepeatableDoc } from './Home';
 
 function History() {
+  usePageContext({ title: 'History', under: 'history' });
+
   const [repeatables, setRepeatables] = useState([] as SortableRepeatableDoc[]);
-  const dispatch = useDispatch();
 
   const user = useSelector((state) => state.user.value);
   const handle = db(user);
 
   // we don't actually care about this value, we just use it to trigger list reloading
   const lastSynced = useSelector((state) => state.docs.lastSynced);
-
-  useEffect(() => {
-    dispatch(
-      setContext({
-        title: 'History',
-        under: 'history',
-      }),
-    );
-  }, [dispatch]);
 
   // NB: this code also exists in Home.js using updated instead of completed
   // biome-ignore lint/correctness/useExhaustiveDependencies: we need the timestamp to trigger

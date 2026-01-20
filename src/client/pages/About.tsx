@@ -1,11 +1,10 @@
 import { Link } from '@mui/material';
 import axios from 'axios';
 import { Fragment, type ReactNode, useEffect, useState } from 'react';
-import { useDispatch } from 'react-redux';
 
 import db from '../db';
 import DebugPanel from '../features/Debug/DebugPanel';
-import { set as setContext } from '../features/Page/pageSlice';
+import { usePageContext } from '../features/Page/pageSlice';
 import SyncPanel from '../features/Sync/SyncPanel';
 import UpdatePanel from '../features/Update/UpdatePanel';
 import { useSelector } from '../store';
@@ -19,7 +18,7 @@ function mapProps(parent: string, info: Record<string, unknown>): InfoRow[] {
 }
 
 function About() {
-  const dispatch = useDispatch();
+  usePageContext({ title: 'About', back: true, under: 'about' });
 
   const loggedInUser = useSelector((state) => state.user.value);
   // eslint-disable-next-line no-unused-vars
@@ -65,15 +64,6 @@ function About() {
         .catch(console.error);
     }
   }, []);
-  useEffect(() => {
-    dispatch(
-      setContext({
-        title: 'About',
-        back: true,
-        under: 'about',
-      }),
-    );
-  }, [dispatch]);
 
   const vars: InfoRow[] = [
     [<h4 key="server-header">SERVER DETAILS</h4>],

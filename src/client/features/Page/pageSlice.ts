@@ -1,4 +1,6 @@
 import { createSlice } from '@reduxjs/toolkit';
+import { useLayoutEffect } from 'react';
+import { useDispatch } from '../../store';
 
 export interface PageContext {
   /** identifier for the sidebar heading this page appears under */
@@ -27,3 +29,21 @@ export const pageSlice = createSlice({
 
 export const { set } = pageSlice.actions;
 export default pageSlice.reducer;
+
+/**
+ * Sets the page context (title, back button, sidebar highlight).
+ *
+ * This hook centralizes the page context setting pattern, replacing individual
+ * useEffect calls in each page component. It uses useLayoutEffect to ensure
+ * the context is set synchronously before paint, avoiding visual flicker.
+ *
+ * The hook re-runs when any context value changes.
+ */
+export function usePageContext(context: PageContext): void {
+  const dispatch = useDispatch();
+  const { title, back, under } = context;
+
+  useLayoutEffect(() => {
+    dispatch(set({ title, back, under }));
+  }, [dispatch, title, back, under]);
+}
