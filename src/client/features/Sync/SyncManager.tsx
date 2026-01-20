@@ -1,6 +1,6 @@
 // TODO: drop axios and just use fetch
 import axios from 'axios';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { io, type Socket } from 'socket.io-client';
 
 import type { Requests } from '../../../server/sync/types';
@@ -16,8 +16,8 @@ import { update } from '../../state/docsSlice';
 import { useDispatch, useSelector } from '../../store';
 import { checkForUpdate } from '../Update/updateSlice';
 import { selectIsGuest, setUserAsUnauthenticated } from '../User/userSlice';
+import { registerSocket } from './socketRegistry';
 import {
-  cleanStale,
   completeSync,
   requestSync,
   State,
@@ -85,12 +85,15 @@ function SyncManager() {
   const isGuest = useSelector(selectIsGuest);
   const handle = db(user);
 
-  const stale = useSelector((state) => state.sync.stale);
   const state = useSelector((state) => state.sync.state);
 
   const [socket, setSocket] = useState(
     undefined as unknown as Socket<ServerToClientEvents, ClientToServerEvents>,
   );
+
+  // Ref to access current socket from sync handlers without adding socket to dependencies
+  const socketRef = useRef(socket);
+  socketRef.current = socket;
 
   useEffect(() => {
     // PERF: make this work more in parallel, benchmark it to see if it makes a difference etc
@@ -187,6 +190,15 @@ function SyncManager() {
         }
 
         dispatch(completeSync());
+
+        // Signal ready and transition to connected state directly after sync completes
+        // Using socketRef to access current socket without adding it to useEffect dependencies
+        const currentSocket = socketRef.current;
+        if (currentSocket?.connected) {
+          debug('sync complete, emitting ready signal');
+          currentSocket.emit('ready');
+          dispatch(socketConnected());
+        }
       } catch (e) {
         if (axios.isAxiosError(e) && e.response?.status === 401) {
           debug('sync failed as user is no longer authenticated');
@@ -208,34 +220,6 @@ function SyncManager() {
     }
   }, [handle, dispatch, state]);
 
-  useEffect(() => {
-    const processStaleQueue = () => {
-      const docs = Object.values(stale);
-      // Don't emit if we're disconnected. Otherwise we'll queue up a bunch of emits that could contradict each other.
-      // Once we reconnect a full sync will occur anyway
-      // TODO: and when we are State.connected, i.e. full "ready"
-      if (docs.length && socket && socket.connected && state === State.connected) {
-        debug(`stale server update for ${docs.length} docs`);
-
-        socket.emit('docUpdate', docs);
-      }
-
-      // Always clean the docs we're aware of out though. Again, they aren't needed in the stale queue if we're offline
-      dispatch(cleanStale(docs));
-    };
-
-    processStaleQueue();
-  }, [dispatch, socket, stale, state]);
-
-  useEffect(() => {
-    if (socket?.connected && state === State.completed) {
-      socket.emit('ready');
-      dispatch(socketConnected());
-    } else {
-      // TODO: emit a not ready or disconnect to force socket communication only while not syncing
-    }
-  }, [dispatch, socket, state]);
-
   // we are using the trigger of this to
   // close the socket, so we can't also pass in the socket because when it's created it would be
   // deleted again straight away
@@ -244,6 +228,7 @@ function SyncManager() {
     const initSocket = () => {
       if (socket) {
         socket.close();
+        registerSocket(null);
       }
 
       if (isGuest) {
@@ -281,6 +266,7 @@ function SyncManager() {
       });
 
       setSocket(localSocket);
+      registerSocket(localSocket);
     };
 
     initSocket();
