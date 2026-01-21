@@ -93,6 +93,7 @@
     "deep-diff": "^1.0.2",
     "events": "^3.3.0",
     "jsdom": "27.4.0",
+    "msw": "^2.12.7",
     "parcel": "2.16.3",
     "pouchdb-adapter-indexeddb": "^9.0.0",
     "pouchdb-core": "^9.0.0",

@@ -1,5 +1,5 @@
 import { screen, waitFor } from '@testing-library/react';
-import axios, { type CancelTokenSource } from 'axios';
+import { HttpResponse, http } from 'msw';
 import { MemoryRouter } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, type Mocked, vi } from 'vitest';
 import { when } from 'vitest-when';
@@ -9,12 +9,10 @@ import db, { type Database } from './db';
 import { setUserAsLoggedIn } from './features/User/userSlice';
 import { createStore } from './store';
 import { render, withStore } from './test-utils';
+import { server } from './test-utils/msw-server';
 
-// Mock the database and axios
+// Mock the database
 vi.mock('./db');
-vi.mock('axios');
-
-const mockedAxios = axios as Mocked<typeof axios>;
 
 describe('App Routing', () => {
   let store: ReturnType<typeof createStore>;
@@ -47,13 +45,12 @@ describe('App Routing', () => {
       return Promise.resolve({ docs: [] });
     });
 
-    // Mock axios for UserProvider authentication check
-    mockedAxios.isAxiosError.mockImplementation((e) => e.isAxiosError);
-    mockedAxios.isCancel.mockImplementation((e) => e.isCancel);
-    mockedAxios.CancelToken.source = vi.fn(() => {
-      return { cancel: () => {} } as CancelTokenSource;
-    });
-    mockedAxios.get.mockResolvedValue({ data: { id: 1, name: 'testuser' } });
+    // Mock /api/auth to return the logged-in user
+    server.use(
+      http.get('/api/auth', () => {
+        return HttpResponse.json({ id: 1, name: 'testuser' });
+      }),
+    );
   });
 
   afterEach(() => {
@@ -209,7 +206,6 @@ describe('App Routing', () => {
   it('should show guest user message when user is guest', async () => {
     // biome-ignore lint/suspicious/noDocumentCookie: Required for dual-cookie auth testing
     document.cookie = 'sanremo-client=';
-    mockedAxios.get.mockResolvedValue({ data: { id: 1, name: 'testuser' } });
 
     render(
       withStore(
