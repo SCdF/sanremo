@@ -1,5 +1,3 @@
-// TODO: drop axios and just use fetch
-import axios from 'axios';
 import { useEffect, useRef, useState } from 'react';
 import { io, type Socket } from 'socket.io-client';
 
@@ -114,11 +112,21 @@ function SyncManager() {
 
         // Work out the difference between us and the server
         debug('checking with the server');
-        const serverState: Requests = await axios
-          .post('/api/sync/begin', {
-            docs: stubs,
-          })
-          .then(({ data }) => data);
+        const beginResponse = await fetch('/api/sync/begin', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ docs: stubs }),
+        });
+        if (!beginResponse.ok) {
+          if (beginResponse.status === 401) {
+            debug('sync failed as user is no longer authenticated');
+            dispatch(setUserAsUnauthenticated());
+            dispatch(socketDisconnected());
+            return;
+          }
+          throw new Error(`Sync begin failed: HTTP ${beginResponse.status}`);
+        }
+        const serverState: Requests = await beginResponse.json();
         debug(
           `the server needs ${serverState.server.length}, we need ${serverState.client.length}`,
         );
@@ -141,12 +149,25 @@ function SyncManager() {
             });
             debug('-> got local');
 
-            await axios.post('/api/sync/update', {
-              docs: result.rows.map(
-                // @ts-expect-error FIXME the types changed, work out what to do with erroring rows
-                (r) => r.doc || { _id: r.id, _rev: r.value.rev, _deleted: r.value.deleted },
-              ),
+            const updateResponse = await fetch('/api/sync/update', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                docs: result.rows.map(
+                  // @ts-expect-error FIXME the types changed, work out what to do with erroring rows
+                  (r) => r.doc || { _id: r.id, _rev: r.value.rev, _deleted: r.value.deleted },
+                ),
+              }),
             });
+            if (!updateResponse.ok) {
+              if (updateResponse.status === 401) {
+                debug('sync failed as user is no longer authenticated');
+                dispatch(setUserAsUnauthenticated());
+                dispatch(socketDisconnected());
+                return;
+              }
+              throw new Error(`Sync update failed: HTTP ${updateResponse.status}`);
+            }
             debug('-> sent');
 
             docCount += batch.length;
@@ -168,11 +189,21 @@ function SyncManager() {
             }
 
             if (writes.length) {
-              const result: Doc[] = await axios
-                .post('/api/sync/request', {
-                  docs: writes,
-                })
-                .then(({ data }) => data);
+              const requestResponse = await fetch('/api/sync/request', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ docs: writes }),
+              });
+              if (!requestResponse.ok) {
+                if (requestResponse.status === 401) {
+                  debug('sync failed as user is no longer authenticated');
+                  dispatch(setUserAsUnauthenticated());
+                  dispatch(socketDisconnected());
+                  return;
+                }
+                throw new Error(`Sync request failed: HTTP ${requestResponse.status}`);
+              }
+              const result: Doc[] = await requestResponse.json();
               debug('<- got server');
 
               await writesFromRemote(handle, result);
@@ -200,14 +231,8 @@ function SyncManager() {
           dispatch(socketConnected());
         }
       } catch (e) {
-        if (axios.isAxiosError(e) && e.response?.status === 401) {
-          debug('sync failed as user is no longer authenticated');
-          dispatch(setUserAsUnauthenticated());
-          dispatch(socketDisconnected());
-        } else {
-          console.error('Failed to sync', e);
-          dispatch(syncError(e));
-        }
+        console.error('Failed to sync', e);
+        dispatch(syncError(e));
       } finally {
         debug('finished');
       }

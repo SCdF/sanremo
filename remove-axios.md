@@ -390,11 +390,11 @@ Given the small number of call sites (8 total), either approach works. Raw fetch
 - [x] Phase 2: Add SyncManager tests
 - [x] Phase 2: Add UserAuthenticationWidget tests
 - [x] Phase 2: Review About.tsx coverage needs
-- [ ] Phase 3: Decide on utility vs raw fetch
-- [ ] Phase 3: Migrate About.tsx
-- [ ] Phase 3: Migrate UserAuthenticationWidget.tsx
-- [ ] Phase 3: Migrate UserProvider.tsx
-- [ ] Phase 3: Migrate SyncManager.tsx
-- [ ] Phase 3: Remove axios dependency
-- [ ] Phase 4: Full test suite passes
+- [x] Phase 3: Decide on utility vs raw fetch (chose raw fetch - simpler for our small codebase)
+- [x] Phase 3: Migrate About.tsx
+- [x] Phase 3: Migrate UserAuthenticationWidget.tsx
+- [x] Phase 3: Migrate UserProvider.tsx
+- [x] Phase 3: Migrate SyncManager.tsx
+- [x] Phase 3: Remove axios dependency
+- [x] Phase 4: Full test suite passes
 - [ ] Phase 4: Manual testing complete

@@ -95,7 +95,8 @@ describe('UserAuthenticationWidget', () => {
         }),
       );
 
-      render(Action.Authenticate);expect(store.getState().user.value).toEqual(GuestUser);
+      render(Action.Authenticate);
+      expect(store.getState().user.value).toEqual(GuestUser);
       await fillAndSubmit('testuser', 'password123');
 
       await waitFor(() => {
