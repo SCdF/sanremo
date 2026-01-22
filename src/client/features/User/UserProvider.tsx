@@ -1,4 +1,3 @@
-import axios from 'axios';
 import cookie from 'cookie';
 import type React from 'react';
 import { type FC, Fragment, useEffect } from 'react';
@@ -19,29 +18,35 @@ const UserProvider: FC<{ children?: React.ReactNode }> = ({ children }) => {
     // Check the server for authentication against the server-side cookie
     async function networkCheck(): Promise<User | 'auth_error' | undefined> {
       debug('server authentication check');
-      const source = axios.CancelToken.source();
-      setTimeout(() => source.cancel(), 1000);
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 1000);
       try {
-        const response = await axios.get('/api/auth', {
-          cancelToken: source.token,
+        const response = await fetch('/api/auth', {
+          signal: controller.signal,
           headers: {
             'Cache-Control': 'no-cache',
           },
         });
-        debug('got valid server response');
-        return response.data;
-      } catch (error) {
-        if (axios.isCancel(error)) {
-          debug('server authentication check timed out');
-        } else if (axios.isAxiosError(error)) {
-          if (error.response?.status === 401) {
+        clearTimeout(timeoutId);
+
+        if (!response.ok) {
+          if (response.status === 401) {
             // authentication failed, either because they have no cookie or because it's wrong / outdated
             debug('server authentication check failed');
             return 'auth_error';
           }
-          debug(`network (axios) issues: ${error.message}`);
+          debug(`network issues: HTTP ${response.status}`);
+          return undefined;
+        }
+
+        debug('got valid server response');
+        return await response.json();
+      } catch (error) {
+        clearTimeout(timeoutId);
+        if (error instanceof Error && error.name === 'AbortError') {
+          debug('server authentication check timed out');
         } else {
-          console.error('unexpected error in networkCheck', error, source);
+          console.error('unexpected error in networkCheck', error);
         }
       }
     }

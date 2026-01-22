@@ -1,7 +1,13 @@
 import '@testing-library/jest-dom/vitest';
-import { vi } from 'vitest';
+import { afterAll, afterEach, beforeAll, vi } from 'vitest';
+import { server } from './msw-server';
 
-// Mock localStorage to ensure it works properly in all test environments
+beforeAll(() => server.listen({ onUnhandledRequest: 'error' }));
+
+afterEach(() => server.resetHandlers());
+
+afterAll(() => server.close());
+
 const localStorageMock = {
   getItem: vi.fn((_key: string) => null),
   setItem: vi.fn((_key: string, _value: string) => {}),

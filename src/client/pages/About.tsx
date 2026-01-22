@@ -1,5 +1,4 @@
 import { Link } from '@mui/material';
-import axios from 'axios';
 import { Fragment, type ReactNode, useEffect, useState } from 'react';
 
 import db from '../db';
@@ -35,14 +34,19 @@ function About() {
 
   useEffect(() => {
     if (process.env.NODE_ENV === 'production') {
-      axios
-        .get('./api/deployment')
+      fetch('./api/deployment')
         .then((response) => {
+          if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+          }
+          return response.json();
+        })
+        .then((responseData) => {
           const {
             deploy_version: deployVersion,
             release_version: releaseVersion,
             deploy_commit: hash,
-          } = response.data;
+          } = responseData;
 
           const data: InfoRow[] = [
             ['Deploy Version', deployVersion],
@@ -55,7 +59,7 @@ function About() {
             ],
           ];
 
-          for (const user of response.data.users) {
+          for (const user of responseData.users) {
             data.push([`${user.id}.${user.username}`, user.count]);
           }
 

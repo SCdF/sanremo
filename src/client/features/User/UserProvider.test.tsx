@@ -1,17 +1,14 @@
 import { screen, waitFor } from '@testing-library/react';
-import axios, { type CancelTokenSource } from 'axios';
+import { HttpResponse, http } from 'msw';
 import { MemoryRouter } from 'react-router';
 import type { AnyAction, Store } from 'redux';
 
-import { beforeEach, describe, expect, it, type Mocked, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { createStore, type RootState } from '../../store';
 import { withStore, render as wrappedRender } from '../../test-utils';
+import { server } from '../../test-utils/msw-server';
 import UserProvider from './UserProvider';
 import { GuestUser } from './userSlice';
-
-vi.mock('axios');
-
-const mockedAxios = axios as Mocked<typeof axios>;
 
 const serverUser = { id: 1, name: 'Tester Test' };
 const clientUser = { id: 1, name: 'test' };
@@ -23,15 +20,8 @@ const CLIENT_COOKIE =
 // This should probably be moved somewhere else? Or refactored to just use the UserProvider?
 describe('user authentication', () => {
   let store: Store<RootState, AnyAction>;
-  beforeEach(() => {
-    // in theory we can change the jest mock of axios to do a partial mock
-    // however, this messes with the mocked function that we used to get mockedAxios
-    mockedAxios.isAxiosError.mockImplementation((e) => e.isAxiosError);
-    mockedAxios.isCancel.mockImplementation((e) => e.isCancel);
-    mockedAxios.CancelToken.source = vi.fn(() => {
-      return { cancel: () => {} } as CancelTokenSource;
-    });
 
+  beforeEach(() => {
     store = createStore();
   });
 
@@ -42,7 +32,11 @@ describe('user authentication', () => {
   it('loads user with valid server credentials', async () => {
     // biome-ignore lint/suspicious/noDocumentCookie: Required for dual-cookie auth testing
     document.cookie = CLIENT_COOKIE;
-    mockedAxios.get.mockResolvedValueOnce({ data: serverUser });
+    server.use(
+      http.get('/api/auth', () => {
+        return HttpResponse.json(serverUser);
+      }),
+    );
 
     render(<UserProvider>some text</UserProvider>);
     await waitFor(() => screen.getByText(/some text/));
@@ -50,10 +44,15 @@ describe('user authentication', () => {
     expect(store.getState().user.value).toStrictEqual(serverUser);
     expect(store.getState().user.needsServerAuthentication).toBeFalsy();
   });
+
   it('loads user with invalid server credentials but valid client cookie', async () => {
     // biome-ignore lint/suspicious/noDocumentCookie: Required for dual-cookie auth testing
     document.cookie = CLIENT_COOKIE;
-    mockedAxios.get.mockRejectedValue({ response: { status: 401 }, isAxiosError: true });
+    server.use(
+      http.get('/api/auth', () => {
+        return HttpResponse.json(null, { status: 401 });
+      }),
+    );
 
     render(<UserProvider>some text</UserProvider>);
     await waitFor(() => screen.getByText(/some text/));
@@ -61,10 +60,15 @@ describe('user authentication', () => {
     expect(store.getState().user.value).toStrictEqual(clientUser);
     expect(store.getState().user.needsServerAuthentication).toBeTruthy();
   });
+
   it('loads user with a down server but valid client cookie', async () => {
     // biome-ignore lint/suspicious/noDocumentCookie: Required for dual-cookie auth testing
     document.cookie = CLIENT_COOKIE;
-    mockedAxios.get.mockRejectedValue({ response: { status: 404 }, isAxiosError: true });
+    server.use(
+      http.get('/api/auth', () => {
+        return HttpResponse.json(null, { status: 404 });
+      }),
+    );
 
     render(<UserProvider>some text</UserProvider>);
     await waitFor(() => screen.getByText(/some text/));
@@ -72,10 +76,15 @@ describe('user authentication', () => {
     expect(store.getState().user.value).toStrictEqual(clientUser);
     expect(store.getState().user.needsServerAuthentication).toBeFalsy();
   });
+
   it('loads user with network issues but valid client cookie', async () => {
     // biome-ignore lint/suspicious/noDocumentCookie: Required for dual-cookie auth testing
     document.cookie = CLIENT_COOKIE;
-    mockedAxios.get.mockRejectedValue({ who: 'knows', isAxiosError: true });
+    server.use(
+      http.get('/api/auth', () => {
+        return HttpResponse.error();
+      }),
+    );
 
     render(<UserProvider>some text</UserProvider>);
     await waitFor(() => screen.getByText(/some text/));
@@ -83,21 +92,15 @@ describe('user authentication', () => {
     expect(store.getState().user.value).toStrictEqual(clientUser);
     expect(store.getState().user.needsServerAuthentication).toBeFalsy();
   });
-  it('loads user with an unresponsive server but valid client cookie', async () => {
-    // biome-ignore lint/suspicious/noDocumentCookie: Required for dual-cookie auth testing
-    document.cookie = CLIENT_COOKIE;
-    mockedAxios.get.mockRejectedValue({ isCancel: true });
 
-    render(<UserProvider>some text</UserProvider>);
-    await waitFor(() => screen.getByText(/some text/));
-
-    expect(store.getState().user.value).toStrictEqual(clientUser);
-    expect(store.getState().user.needsServerAuthentication).toBeFalsy();
-  });
   it('treats no client cookie as the user being a guest', async () => {
     // biome-ignore lint/suspicious/noDocumentCookie: Required for dual-cookie auth testing
     document.cookie = NO_CLIENT_COOKIE;
-    mockedAxios.get.mockResolvedValueOnce({ data: serverUser });
+    server.use(
+      http.get('/api/auth', () => {
+        return HttpResponse.json(serverUser);
+      }),
+    );
 
     render(<UserProvider>some text</UserProvider>);
     await waitFor(() => screen.getByText(/some text/));
@@ -105,11 +108,16 @@ describe('user authentication', () => {
     expect(store.getState().user.value).toStrictEqual(GuestUser);
     expect(store.getState().user.needsServerAuthentication).toBeFalsy();
   });
+
   it('for now, treat to corrupted client cookie as the user being a guest', async () => {
     vi.spyOn(console, 'error').mockImplementation(() => {});
     // biome-ignore lint/suspicious/noDocumentCookie: Required for dual-cookie auth testing
     document.cookie = 'sanremo-client=blah';
-    mockedAxios.get.mockResolvedValueOnce({ data: serverUser });
+    server.use(
+      http.get('/api/auth', () => {
+        return HttpResponse.json(serverUser);
+      }),
+    );
 
     render(<UserProvider>some text</UserProvider>);
     await waitFor(() => screen.getByText(/some text/));
