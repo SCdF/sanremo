@@ -383,13 +383,13 @@ Given the small number of call sites (8 total), either approach works. Raw fetch
 
 ## Checklist
 
-- [ ] Phase 1: Install MSW and setup test infrastructure
-- [ ] Phase 1: Migrate UserProvider.test.tsx to MSW
-- [ ] Phase 1: Migrate App.test.tsx to MSW
-- [ ] Phase 1: Verify all tests pass with axios still in code
-- [ ] Phase 2: Add SyncManager tests
-- [ ] Phase 2: Add UserAuthenticationWidget tests
-- [ ] Phase 2: Review About.tsx coverage needs
+- [x] Phase 1: Install MSW and setup test infrastructure
+- [x] Phase 1: Migrate UserProvider.test.tsx to MSW
+- [x] Phase 1: Migrate App.test.tsx to MSW
+- [x] Phase 1: Verify all tests pass with axios still in code
+- [x] Phase 2: Add SyncManager tests
+- [x] Phase 2: Add UserAuthenticationWidget tests
+- [x] Phase 2: Review About.tsx coverage needs
 - [ ] Phase 3: Decide on utility vs raw fetch
 - [ ] Phase 3: Migrate About.tsx
 - [ ] Phase 3: Migrate UserAuthenticationWidget.tsx
