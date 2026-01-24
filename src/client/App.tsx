@@ -16,7 +16,6 @@ import Themed from './Themed';
 const About = lazy(() => import('./pages/About'));
 const History = lazy(() => import('./pages/History'));
 const Home = lazy(() => import('./pages/Home'));
-const InlineTemplateEdit = lazy(() => import('./pages/InlineTemplateEdit'));
 const Repeatable = lazy(() => import('./pages/Repeatable'));
 const Template = lazy(() => import('./pages/Template'));
 
@@ -35,10 +34,7 @@ function App() {
                 <Route path="about" element={<About />} />
                 <Route path="repeatable/:repeatableId" element={<Repeatable />} />
                 <Route path="template/:templateId" element={<Template />} />
-                <Route
-                  path="template/:templateId/from/:repeatableId"
-                  element={<InlineTemplateEdit />}
-                />
+                <Route path="template/:templateId/from/:repeatableId" element={<Template />} />
                 <Route path="history" element={<History />} />
                 <Route path="*" element={<Home />} />
               </Routes>
