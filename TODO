@@ -4,7 +4,9 @@ inline edit:
 - fix back button behaviour
 - generalise migrations
 
-WYSIWYG editor.
+WYSIWYG editor:
+- template edited with WYSIWYG
+- editing a template from a repeatable, do we need to change anything to make that look seamless now?
 
 Revisit typing. We should have internal types not bound to PouchDB structures that mean the slug against the repeatable are cleanly typed with no ambiguiity.
 

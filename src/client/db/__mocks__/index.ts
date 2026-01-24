@@ -10,7 +10,6 @@ export interface MockDatabase {
   userPut: Mock<(doc: Doc) => Promise<Doc>>;
   info: Mock<() => Promise<Record<string, unknown>>>;
   changes: Mock<(options?: unknown) => Promise<{ results: unknown[] }>>;
-  allDocs: Mock<(options?: unknown) => Promise<{ rows: unknown[] }>>;
   bulkDocs: Mock<(docs: Doc[], options?: unknown) => Promise<unknown[]>>;
 }
 
@@ -21,7 +20,6 @@ const mockDb: MockDatabase = {
   userPut: vi.fn(),
   info: vi.fn(),
   changes: vi.fn(),
-  allDocs: vi.fn(),
   bulkDocs: vi.fn(),
 };
 
