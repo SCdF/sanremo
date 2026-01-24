@@ -39,6 +39,8 @@ describe('App Routing', () => {
     // biome-ignore lint/suspicious/noDocumentCookie: Required for dual-cookie auth testing
     document.cookie = CLIENT_COOKIE;
 
+    handle.allDocs.mockResolvedValue({ rows: [], total_rows: 0, offset: 0 });
+
     // Mock database responses for Home page
     // Home component makes multiple find() calls with different selectors,
     // so we need mockImplementation to handle each query pattern
@@ -89,21 +91,23 @@ describe('App Routing', () => {
     const mockRepeatable: RepeatableDoc = {
       _id: 'test-id',
       template: 'repeatable:template:test',
-      values: [],
+      values: {},
       created: Date.now(),
       updated: Date.now(),
       slug: '',
+      schemaVersion: 2,
     };
 
     const mockTemplate: TemplateDoc = {
       _id: 'repeatable:template:test',
       title: 'Test Template',
-      markdown: '- [ ] Test item',
+      markdown: '- [ ] Test item <!-- cb:cb1 -->',
       slug: { type: SlugType.Date },
       created: Date.now(),
       updated: Date.now(),
       versioned: Date.now(),
-      values: [],
+      values: [{ id: 'cb1', default: false }],
+      schemaVersion: 2,
     };
 
     // Repeatable page calls handle.get with the route param (just 'test-id')
@@ -144,6 +148,7 @@ describe('App Routing', () => {
       created: Date.now(),
       updated: Date.now(),
       versioned: Date.now(),
+      schemaVersion: 2,
     };
 
     // biome-ignore lint/suspicious/noExplicitAny: PouchDB.get has overloaded signatures; using any for vitest-when compatibility

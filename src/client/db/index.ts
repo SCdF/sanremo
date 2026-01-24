@@ -16,8 +16,8 @@ PouchDB.plugin(Find);
  * Old databases were named `sanremo-${username}` (with PouchDB prefix `_pouch_`).
  * New databases are named `sanremo-2.0-${username}`.
  */
+//  FIXME: use a metadata document (same as migrating documents to version two)
 async function cleanupOldDatabases(): Promise<void> {
-  // indexedDB.databases() is not available in all browsers, but is in modern ones
   if (!indexedDB.databases) {
     return;
   }

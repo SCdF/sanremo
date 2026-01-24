@@ -9,61 +9,61 @@ import {
 } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
-import { v4 as uuid } from 'uuid';
-
-import { CURRENT_SCHEMA_VERSION, SlugType, type TemplateDoc } from '../../shared/types';
+import {
+  CURRENT_SCHEMA_VERSION,
+  type RepeatableDoc,
+  SlugType,
+  type TemplateDoc,
+} from '../../shared/types';
 import db from '../db';
 import { usePageContext } from '../features/Page/pageSlice';
+import { migrateRepeatableValues } from '../features/Repeatable/migrateValues';
 import RepeatableRenderer from '../features/Repeatable/RepeatableRenderer';
 import { ensureCheckboxIds, parseCheckboxIds } from '../features/Template/checkboxIds';
-import { clearTemplate, setTemplate } from '../state/docsSlice';
+import { clearRepeatable, clearTemplate, setRepeatable, setTemplate } from '../state/docsSlice';
 import { useDispatch, useSelector } from '../store';
 
-function Template() {
+/**
+ * Inline Template Edit page.
+ *
+ * Similar to Template.tsx but:
+ * - Shows the repeatable's current checkbox values in preview (not empty)
+ * - On save: creates new template version, migrates the source repeatable, redirects back to repeatable
+ *
+ * Route: /template/:templateId/from/:repeatableId
+ */
+function InlineTemplateEdit() {
   const template = useSelector((state) => state.docs.template);
+  const repeatable = useSelector((state) => state.docs.repeatable);
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
   const user = useSelector((state) => state.user.value);
   const handle = db(user);
-  const { templateId } = useParams();
+  const { templateId, repeatableId } = useParams();
 
   useEffect(() => {
-    async function loadTemplate() {
-      if (templateId === 'new') {
-        const now = Date.now();
-        const template: TemplateDoc = {
-          _id: `repeatable:template:${uuid()}:1`,
-          title: '',
-          slug: {
-            type: SlugType.Timestamp,
-          },
-          markdown: '',
-          created: now,
-          updated: now,
-          versioned: now,
-          values: [],
-          schemaVersion: CURRENT_SCHEMA_VERSION,
-        };
+    async function loadData() {
+      if (templateId && repeatableId) {
+        const [loadedTemplate, loadedRepeatable] = await Promise.all([
+          handle.get(templateId) as Promise<TemplateDoc>,
+          handle.get(repeatableId) as Promise<RepeatableDoc>,
+        ]);
 
-        await handle.userPut(template);
-
-        navigate(`/template/${template._id}`, { replace: true });
-      } else if (templateId) {
-        const template: TemplateDoc = await handle.get(templateId);
-
-        dispatch(setTemplate(template));
+        dispatch(setTemplate(loadedTemplate));
+        dispatch(setRepeatable(loadedRepeatable));
       }
     }
 
-    loadTemplate();
+    loadData();
     return () => {
       dispatch(clearTemplate());
+      dispatch(clearRepeatable());
     };
-  }, [handle, templateId, navigate, dispatch]);
+  }, [handle, templateId, repeatableId, dispatch]);
 
   usePageContext({
-    title: `${template?.title || 'New Template'} | edit`,
+    title: `${template?.title || 'Template'} | inline edit`,
     back: true,
     under: 'home',
   });
@@ -81,13 +81,12 @@ function Template() {
     } else {
       const used = await handle.find({
         selector: { template: { $gt: `${unversionedId}`, $lte: `${unversionedId}\uffff` } },
-        limit: 1000, // PouchDB 9+ requires explicit limit (default is 25)
+        limit: 1000,
       });
       soft = !used.docs.length;
     }
 
     if (soft) {
-      // TODO: consider: should we also update datetimes, bump version?
       copy.deleted = true;
     } else {
       copy._deleted = true;
@@ -100,57 +99,58 @@ function Template() {
   async function handleSubmit(event: FormEvent<HTMLFormElement> | MouseEvent<HTMLButtonElement>) {
     event.preventDefault();
 
-    const copy = Object.assign({}, template);
-    copy.updated = Date.now();
+    if (!template || !repeatable) return;
+
+    const templateCopy = Object.assign({}, template);
+    templateCopy.updated = Date.now();
 
     // Ensure all checkboxes have IDs embedded in the markdown
-    copy.markdown = ensureCheckboxIds(copy.markdown);
+    templateCopy.markdown = ensureCheckboxIds(templateCopy.markdown);
 
     // Parse checkbox IDs and update the values array
-    const checkboxInfos = parseCheckboxIds(copy.markdown);
-    const existingValues = new Map(copy.values.map((v) => [v.id, v.default]));
-    copy.values = checkboxInfos.map((info) => ({
+    const checkboxInfos = parseCheckboxIds(templateCopy.markdown);
+    const existingValues = new Map(templateCopy.values.map((v) => [v.id, v.default]));
+    templateCopy.values = checkboxInfos.map((info) => ({
       id: info.id,
       default: existingValues.get(info.id) ?? false,
     }));
 
-    const used = await handle.find({
-      selector: {
-        template: copy._id,
-      },
-      limit: 1000, // PouchDB 9+ requires explicit limit (default is 25)
-    });
+    // Always create a new version (we came from a repeatable, so instances exist)
+    templateCopy.versioned = templateCopy.updated;
+    templateCopy.schemaVersion = CURRENT_SCHEMA_VERSION;
 
-    if (used.docs.length) {
-      copy.versioned = copy.updated;
+    const splitId = templateCopy._id.split(':');
+    splitId[3] = String(Number(splitId[3]) + 1);
+    templateCopy._id = splitId.join(':');
+    delete templateCopy._rev;
 
-      const splitId = copy._id.split(':');
-      splitId[3] = String(Number(splitId[3]) + 1);
-      copy._id = splitId.join(':');
-      delete copy._rev;
-    }
+    await handle.userPut(templateCopy);
 
-    await handle.userPut(copy);
+    // Migrate the source repeatable to the new template version
+    const repeatableCopy = Object.assign({}, repeatable);
+    repeatableCopy.values = migrateRepeatableValues(repeatableCopy.values, templateCopy);
+    repeatableCopy.template = templateCopy._id;
+    repeatableCopy.updated = Date.now();
 
-    navigate(-1);
+    await handle.userPut(repeatableCopy);
+
+    // Navigate back to the repeatable
+    navigate(`/repeatable/${repeatable._id}`);
   }
 
-  // TODO: replace this with slice actions so we don't have to do dumb (and slow presumably) copies
-  async function handleChange({ target }: ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) {
+  function handleChange({ target }: ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) {
     const copy = Object.assign({}, template);
     const value = target.type === 'checkbox' ? (target as HTMLInputElement).checked : target.value;
     const name = target.name;
 
     if (name === 'slugType') {
       const newType = value as SlugType;
-      // When changing type, create appropriate slug config
       if (newType === SlugType.String || newType === SlugType.URL) {
         copy.slug = { type: newType, placeholder: '' };
       } else {
         copy.slug = { type: newType };
       }
     } else if (name === 'slugPlaceholder') {
-      // Only String and URL types support placeholder
       if (copy.slug.type === SlugType.String || copy.slug.type === SlugType.URL) {
         copy.slug = { ...copy.slug, placeholder: value as string };
       }
@@ -170,11 +170,9 @@ function Template() {
     const target = event.target as HTMLTextAreaElement;
     const { value, selectionStart } = target;
 
-    // Find the start of the current line
     const lineStart = value.lastIndexOf('\n', selectionStart - 1) + 1;
     const currentLine = value.slice(lineStart, selectionStart);
 
-    // Match bullet point (* or -) or checkbox at start of line
     const match = currentLine.match(/^(\s*[-*]\s*(?:\[[ x]\]\s*)?)/);
     if (!match) {
       return;
@@ -183,7 +181,6 @@ function Template() {
     const prefix = match[1];
     const trimmed = currentLine.trim();
 
-    // If the line is just the prefix (empty item), clear it instead of continuing
     if (trimmed === '-' || trimmed === '*' || /^[-*] \[[ x]\]$/.test(trimmed)) {
       event.preventDefault();
       const before = value.slice(0, lineStart);
@@ -195,7 +192,6 @@ function Template() {
       copy.markdown = newValue;
       dispatch(setTemplate(copy));
 
-      // Set cursor position after React updates the value
       requestAnimationFrame(() => {
         target.selectionStart = target.selectionEnd = newCursorPos;
       });
@@ -206,7 +202,6 @@ function Template() {
 
     const before = value.slice(0, selectionStart);
     const after = value.slice(selectionStart);
-    // For checkboxes, always insert unchecked version
     const insertPrefix = prefix.replace('[x]', '[ ]');
     const newValue = `${before}\n${insertPrefix}${after}`;
     const newCursorPos = selectionStart + 1 + insertPrefix.length;
@@ -215,18 +210,21 @@ function Template() {
     copy.markdown = newValue;
     dispatch(setTemplate(copy));
 
-    // Set cursor position after React updates the value
     requestAnimationFrame(() => {
       target.selectionStart = target.selectionEnd = newCursorPos;
     });
   }
 
-  if (!template) {
+  if (!template || !repeatable) {
     return null;
   }
 
+  // Create preview values from the repeatable's current state
+  // This shows the actual checkbox states in the preview
+  const previewValues = repeatable.values;
+
   return (
-    <form onSubmit={handleSubmit} noValidate autoComplete="off" data-testid="template-page">
+    <form onSubmit={handleSubmit} noValidate autoComplete="off" data-testid="inline-template-edit">
       <Grid container spacing={2}>
         <Grid size={12}>
           <TextField
@@ -297,7 +295,7 @@ function Template() {
           />
         </Grid>
         <Grid size={{ xs: 12, md: 6 }}>
-          <RepeatableRenderer markdown={template.markdown} values={{}} />
+          <RepeatableRenderer markdown={template.markdown} values={previewValues} />
         </Grid>
         <Grid size={12}>
           <ButtonGroup>
@@ -314,4 +312,4 @@ function Template() {
   );
 }
 
-export default Template;
+export default InlineTemplateEdit;

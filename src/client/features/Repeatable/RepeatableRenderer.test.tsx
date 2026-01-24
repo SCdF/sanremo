@@ -8,14 +8,14 @@ const NOOP = () => {};
 describe('Repeatable Renderer', () => {
   describe('basic rendering', () => {
     it('renders nothing at all', async () => {
-      render(<RepeatableRenderer hasFocus={NOOP} markdown={''} values={[]} />);
+      render(<RepeatableRenderer hasFocus={NOOP} markdown={''} values={{}} />);
 
       const list = await screen.findByRole('list');
       expect(list.textContent).toBe('');
     });
 
     it('renders a block of markdown', async () => {
-      render(<RepeatableRenderer hasFocus={NOOP} markdown={'hello there'} values={[]} />);
+      render(<RepeatableRenderer hasFocus={NOOP} markdown={'hello there'} values={{}} />);
 
       await screen.findByText('hello there');
     });
@@ -28,7 +28,7 @@ This is a paragraph with **bold** and *italic* text.
 - Regular list item 1
 - Regular list item 2`;
 
-      render(<RepeatableRenderer hasFocus={NOOP} markdown={markdown} values={[]} />);
+      render(<RepeatableRenderer hasFocus={NOOP} markdown={markdown} values={{}} />);
 
       await screen.findByText('Heading');
       await screen.findByText(/bold/);
@@ -46,7 +46,7 @@ Some intro text
 - [ ] first checkbox`;
 
       render(
-        <RepeatableRenderer hasFocus={NOOP} markdown={markdown} values={[]} onChange={NOOP} />,
+        <RepeatableRenderer hasFocus={NOOP} markdown={markdown} values={{}} onChange={NOOP} />,
       );
 
       await screen.findByText('Header');
@@ -64,12 +64,7 @@ Some text in between
 - [ ] second checkbox`;
 
       render(
-        <RepeatableRenderer
-          hasFocus={NOOP}
-          markdown={markdown}
-          values={[false, false]}
-          onChange={NOOP}
-        />,
+        <RepeatableRenderer hasFocus={NOOP} markdown={markdown} values={{}} onChange={NOOP} />,
       );
 
       await screen.findByText('first checkbox');
@@ -86,7 +81,7 @@ Some text in between
 Some closing text`;
 
       render(
-        <RepeatableRenderer hasFocus={NOOP} markdown={markdown} values={[]} onChange={NOOP} />,
+        <RepeatableRenderer hasFocus={NOOP} markdown={markdown} values={{}} onChange={NOOP} />,
       );
 
       await screen.findByText('the checkbox');
@@ -106,12 +101,7 @@ Middle text
 # End`;
 
       const { container } = render(
-        <RepeatableRenderer
-          hasFocus={NOOP}
-          markdown={markdown}
-          values={[false, false]}
-          onChange={NOOP}
-        />,
+        <RepeatableRenderer hasFocus={NOOP} markdown={markdown} values={{}} onChange={NOOP} />,
       );
 
       // Verify all content is present
@@ -142,7 +132,7 @@ Middle text
         <RepeatableRenderer
           hasFocus={NOOP}
           markdown={'- [ ] check me'}
-          values={[]}
+          values={{}}
           onChange={() => NOOP()}
         />,
       );
@@ -156,8 +146,8 @@ Middle text
       render(
         <RepeatableRenderer
           hasFocus={NOOP}
-          markdown={'- [ ] check me'}
-          values={[true]}
+          markdown={'- [ ] check me <!-- cb:cb1 -->'}
+          values={{ cb1: true }}
           onChange={() => NOOP()}
         />,
       );
@@ -172,8 +162,8 @@ Middle text
       render(
         <RepeatableRenderer
           hasFocus={NOOP}
-          markdown={'- [ ] check me'}
-          values={[]}
+          markdown={'- [ ] check me <!-- cb:cb1 -->'}
+          values={{}}
           onChange={onChange}
         />,
       );
@@ -183,7 +173,7 @@ Middle text
       fireEvent.click(cb);
 
       expect(onChange).toBeCalledTimes(1);
-      expect(onChange).toBeCalledWith(0);
+      expect(onChange).toBeCalledWith('cb1');
     });
 
     it('onChange fires to the right checkbox when it is clicked', async () => {
@@ -191,8 +181,8 @@ Middle text
       render(
         <RepeatableRenderer
           hasFocus={NOOP}
-          markdown={'- [ ] do not check me\n- [ ] check me instead'}
-          values={[]}
+          markdown={'- [ ] do not check me <!-- cb:cb1 -->\n- [ ] check me instead <!-- cb:cb2 -->'}
+          values={{}}
           onChange={onChange}
         />,
       );
@@ -204,21 +194,21 @@ Middle text
       fireEvent.click(cbs[1]);
 
       expect(onChange).toBeCalledTimes(1);
-      expect(onChange).toBeCalledWith(1);
+      expect(onChange).toBeCalledWith('cb2');
     });
 
     it('renders multiple checkboxes with correct indices and labels', async () => {
       const onChange = vi.fn();
-      const markdown = `- [ ] first
-- [ ] second
-- [ ] third
-- [ ] fourth`;
+      const markdown = `- [ ] first <!-- cb:cb1 -->
+- [ ] second <!-- cb:cb2 -->
+- [ ] third <!-- cb:cb3 -->
+- [ ] fourth <!-- cb:cb4 -->`;
 
       const { container } = render(
         <RepeatableRenderer
           hasFocus={NOOP}
           markdown={markdown}
-          values={[true, false, true, false]}
+          values={{ cb1: true, cb2: false, cb3: true, cb4: false }}
           onChange={onChange}
         />,
       );
@@ -226,7 +216,7 @@ Middle text
       const checkboxes = (await screen.findAllByRole('checkbox')) as HTMLInputElement[];
       expect(checkboxes).toHaveLength(4);
 
-      // Verify checked states match values array
+      // Verify checked states match values
       expect(checkboxes[0].checked).toBe(true);
       expect(checkboxes[1].checked).toBe(false);
       expect(checkboxes[2].checked).toBe(true);
@@ -242,12 +232,12 @@ Middle text
         lastIdx = idx;
       }
 
-      // Click checkboxes and verify correct index is passed to onChange
+      // Click checkboxes and verify correct ID is passed to onChange
       fireEvent.click(checkboxes[2]);
-      expect(onChange).toBeCalledWith(2);
+      expect(onChange).toBeCalledWith('cb3');
 
       fireEvent.click(checkboxes[0]);
-      expect(onChange).toBeCalledWith(0);
+      expect(onChange).toBeCalledWith('cb1');
     });
 
     it('renders checkbox with markdown formatting in label', async () => {
@@ -255,7 +245,7 @@ Middle text
         <RepeatableRenderer
           hasFocus={NOOP}
           markdown={'- [ ] check **bold** and *italic* text'}
-          values={[]}
+          values={{}}
           onChange={NOOP}
         />,
       );
@@ -278,7 +268,7 @@ Middle text
         <RepeatableRenderer
           hasFocus={NOOP}
           markdown={'- [ ] cannot click me'}
-          values={[false]}
+          values={{}}
           onChange={undefined}
         />,
       );
@@ -293,7 +283,7 @@ Middle text
         <RepeatableRenderer
           hasFocus={NOOP}
           markdown={'- [ ] first\n- [ ] second\n- [ ] third'}
-          values={[]} // Empty array, all should be unchecked
+          values={{}} // Empty array, all should be unchecked
           onChange={NOOP}
         />,
       );
@@ -309,8 +299,10 @@ Middle text
       render(
         <RepeatableRenderer
           hasFocus={NOOP}
-          markdown={'- [ ] one\n- [ ] two\n- [ ] three'}
-          values={[true, false, true]}
+          markdown={
+            '- [ ] one <!-- cb:cb1 -->\n- [ ] two <!-- cb:cb2 -->\n- [ ] three <!-- cb:cb3 -->'
+          }
+          values={{ cb1: true, cb2: false, cb3: true }}
           onChange={NOOP}
         />,
       );
@@ -325,12 +317,7 @@ Middle text
     it('renders checkbox with minimal label', async () => {
       // Note: remark-gfm requires at least some content after the checkbox marker
       render(
-        <RepeatableRenderer
-          hasFocus={NOOP}
-          markdown={'- [ ] x'}
-          values={[false]}
-          onChange={NOOP}
-        />,
+        <RepeatableRenderer hasFocus={NOOP} markdown={'- [ ] x'} values={{}} onChange={NOOP} />,
       );
 
       const checkbox = await screen.findByRole('checkbox');
@@ -349,7 +336,7 @@ Middle text
         <RepeatableRenderer
           hasFocus={NOOP}
           markdown={'- [ ] first\n- [ ] second'}
-          values={[false, false]}
+          values={{}}
           onChange={NOOP}
           takesFocus={true}
         />,
@@ -366,8 +353,10 @@ Middle text
       const { container } = render(
         <RepeatableRenderer
           hasFocus={NOOP}
-          markdown={'- [ ] first\n- [ ] second\n- [ ] third'}
-          values={[true, true, false]}
+          markdown={
+            '- [ ] first <!-- cb:cb1 -->\n- [ ] second <!-- cb:cb2 -->\n- [ ] third <!-- cb:cb3 -->'
+          }
+          values={{ cb1: true, cb2: true, cb3: false }}
           onChange={NOOP}
           takesFocus={true}
         />,
@@ -385,7 +374,7 @@ Middle text
         <RepeatableRenderer
           hasFocus={NOOP}
           markdown={'- [ ] first\n- [ ] second'}
-          values={[false, false]}
+          values={{}}
           onChange={NOOP}
           takesFocus={false}
         />,
@@ -405,11 +394,13 @@ Middle text
       // doesn't update the values prop. The parent is responsible for updating values.
       // We use rerender to simulate the parent updating state after onChange fires.
       const onChange = vi.fn();
+      const markdown =
+        '- [ ] first <!-- cb:cb1 -->\n- [ ] second <!-- cb:cb2 -->\n- [ ] third <!-- cb:cb3 -->';
       const { container, rerender } = render(
         <RepeatableRenderer
           hasFocus={NOOP}
-          markdown={'- [ ] first\n- [ ] second\n- [ ] third'}
-          values={[false, false, false]}
+          markdown={markdown}
+          values={{}}
           onChange={onChange}
           takesFocus={true}
         />,
@@ -421,7 +412,7 @@ Middle text
         expect(buttons[0]).toHaveFocus();
       });
 
-      // Click the first checkbox - this calls onChange(0) but doesn't update values
+      // Click the first checkbox - this calls onChange('cb1') but doesn't update values
       const checkboxes = screen.getAllByRole('checkbox');
       fireEvent.click(checkboxes[0]);
 
@@ -429,8 +420,8 @@ Middle text
       rerender(
         <RepeatableRenderer
           hasFocus={NOOP}
-          markdown={'- [ ] first\n- [ ] second\n- [ ] third'}
-          values={[true, false, false]}
+          markdown={markdown}
+          values={{ cb1: true, cb2: false, cb3: false }}
           onChange={onChange}
           takesFocus={true}
         />,
@@ -445,11 +436,12 @@ Middle text
 
     it('stays on same item when unchecking', async () => {
       const onChange = vi.fn();
+      const markdown = '- [ ] first <!-- cb:cb1 -->\n- [ ] second <!-- cb:cb2 -->';
       const { container, rerender } = render(
         <RepeatableRenderer
           hasFocus={NOOP}
-          markdown={'- [ ] first\n- [ ] second'}
-          values={[true, false]}
+          markdown={markdown}
+          values={{ cb1: true, cb2: false }}
           onChange={onChange}
           takesFocus={true}
         />,
@@ -469,8 +461,8 @@ Middle text
       rerender(
         <RepeatableRenderer
           hasFocus={NOOP}
-          markdown={'- [ ] first\n- [ ] second'}
-          values={[false, false]}
+          markdown={markdown}
+          values={{ cb1: false, cb2: false }}
           onChange={onChange}
           takesFocus={true}
         />,
@@ -491,7 +483,7 @@ Middle text
         <RepeatableRenderer
           hasFocus={NOOP}
           markdown={'- [ ] first\n- [ ] second'}
-          values={[false, false]}
+          values={{}}
           onChange={NOOP}
           takesFocus={true}
         />,
@@ -519,7 +511,7 @@ Middle text
         <RepeatableRenderer
           hasFocus={hasFocusCb}
           markdown={'- [ ] first\n- [ ] second'}
-          values={[false, false]}
+          values={{}}
           onChange={NOOP}
           takesFocus={true}
         />,
@@ -539,8 +531,8 @@ Middle text
       render(
         <RepeatableRenderer
           hasFocus={hasFocusCb}
-          markdown={'- [ ] first\n- [ ] second'}
-          values={[true, true]}
+          markdown={'- [ ] first <!-- cb:cb1 -->\n- [ ] second <!-- cb:cb2 -->'}
+          values={{ cb1: true, cb2: true }}
           onChange={NOOP}
           takesFocus={true}
         />,
@@ -557,12 +549,13 @@ Middle text
     it('calls hasFocus callback with false when last checkbox is checked', async () => {
       const hasFocusCb = vi.fn();
       const onChange = vi.fn();
+      const markdown = '- [ ] only one <!-- cb:cb1 -->';
 
       const { rerender } = render(
         <RepeatableRenderer
           hasFocus={hasFocusCb}
-          markdown={'- [ ] only one'}
-          values={[false]}
+          markdown={markdown}
+          values={{}}
           onChange={onChange}
           takesFocus={true}
         />,
@@ -580,8 +573,8 @@ Middle text
       rerender(
         <RepeatableRenderer
           hasFocus={hasFocusCb}
-          markdown={'- [ ] only one'}
-          values={[true]}
+          markdown={markdown}
+          values={{ cb1: true }}
           onChange={onChange}
           takesFocus={true}
         />,
@@ -599,7 +592,7 @@ Middle text
         <RepeatableRenderer
           hasFocus={hasFocusCb}
           markdown={'- [ ] first'}
-          values={[false]}
+          values={{}}
           onChange={NOOP}
           takesFocus={false}
         />,
@@ -621,12 +614,7 @@ Middle text
 - [ ] second`;
 
       render(
-        <RepeatableRenderer
-          hasFocus={NOOP}
-          markdown={markdown}
-          values={[false, false]}
-          onChange={NOOP}
-        />,
+        <RepeatableRenderer hasFocus={NOOP} markdown={markdown} values={{}} onChange={NOOP} />,
       );
 
       const checkboxes = await screen.findAllByRole('checkbox');
@@ -638,7 +626,7 @@ Middle text
         <RepeatableRenderer
           hasFocus={NOOP}
           markdown={'Some text\n- [ ] final checkbox'}
-          values={[false]}
+          values={{}}
           onChange={NOOP}
         />,
       );
@@ -654,7 +642,7 @@ Middle text
         <RepeatableRenderer
           hasFocus={NOOP}
           markdown={'- [ ] first checkbox\n\nSome text after'}
-          values={[false]}
+          values={{}}
           onChange={NOOP}
         />,
       );
@@ -670,7 +658,7 @@ Middle text
         <RepeatableRenderer
           hasFocus={NOOP}
           markdown={'- [ ] Task 1'}
-          values={[false]}
+          values={{}}
           onChange={NOOP}
         />,
       );
@@ -685,7 +673,7 @@ Middle text
         <RepeatableRenderer
           hasFocus={NOOP}
           markdown={'- [ ] Task 1\n- [ ] Task 2'}
-          values={[false, false]}
+          values={{}}
           onChange={NOOP}
         />,
       );
@@ -705,12 +693,7 @@ Middle text
 - [ ] Task 2`;
 
       render(
-        <RepeatableRenderer
-          hasFocus={NOOP}
-          markdown={markdown}
-          values={[false, false, false, false]}
-          onChange={NOOP}
-        />,
+        <RepeatableRenderer hasFocus={NOOP} markdown={markdown} values={{}} onChange={NOOP} />,
       );
 
       const checkboxes = await screen.findAllByRole('checkbox');
@@ -723,17 +706,17 @@ Middle text
     });
 
     it('indexes nested checkboxes in document order', async () => {
-      const markdown = `- [ ] Task 1
-  - [ ] Subtask 1.1
-  - [ ] Subtask 1.2
-- [ ] Task 2`;
+      const markdown = `- [ ] Task 1 <!-- cb:cb1 -->
+  - [ ] Subtask 1.1 <!-- cb:cb2 -->
+  - [ ] Subtask 1.2 <!-- cb:cb3 -->
+- [ ] Task 2 <!-- cb:cb4 -->`;
 
       // Values: Task 1 checked, Subtask 1.1 unchecked, Subtask 1.2 checked, Task 2 unchecked
       render(
         <RepeatableRenderer
           hasFocus={NOOP}
           markdown={markdown}
-          values={[true, false, true, false]}
+          values={{ cb1: true, cb2: false, cb3: true, cb4: false }}
           onChange={NOOP}
         />,
       );
@@ -745,51 +728,41 @@ Middle text
       expect(checkboxes[3]).not.toBeChecked(); // Task 2
     });
 
-    it('calls onChange with correct index for nested checkbox', async () => {
-      const markdown = `- [ ] Task 1
-  - [ ] Subtask 1.1
-  - [ ] Subtask 1.2
-- [ ] Task 2`;
+    it('calls onChange with correct ID for nested checkbox', async () => {
+      const markdown = `- [ ] Task 1 <!-- cb:cb1 -->
+  - [ ] Subtask 1.1 <!-- cb:cb2 -->
+  - [ ] Subtask 1.2 <!-- cb:cb3 -->
+- [ ] Task 2 <!-- cb:cb4 -->`;
 
       const onChange = vi.fn();
       render(
-        <RepeatableRenderer
-          hasFocus={NOOP}
-          markdown={markdown}
-          values={[false, false, false, false]}
-          onChange={onChange}
-        />,
+        <RepeatableRenderer hasFocus={NOOP} markdown={markdown} values={{}} onChange={onChange} />,
       );
 
       const checkboxes = await screen.findAllByRole('checkbox');
 
       // Click Subtask 1.2 (index 2)
       fireEvent.click(checkboxes[2]);
-      expect(onChange).toHaveBeenCalledWith(2);
+      expect(onChange).toHaveBeenCalledWith('cb3');
 
       // Click Task 2 (index 3)
       fireEvent.click(checkboxes[3]);
-      expect(onChange).toHaveBeenCalledWith(3);
+      expect(onChange).toHaveBeenCalledWith('cb4');
     });
 
-    it('clicking nested checkbox label calls onChange with correct index', async () => {
-      const markdown = `- [ ] Task 1
-  - [ ] Subtask 1.1
-- [ ] Task 2`;
+    it('clicking nested checkbox label calls onChange with correct ID', async () => {
+      const markdown = `- [ ] Task 1 <!-- cb:cb1 -->
+  - [ ] Subtask 1.1 <!-- cb:cb2 -->
+- [ ] Task 2 <!-- cb:cb3 -->`;
 
       const onChange = vi.fn();
       render(
-        <RepeatableRenderer
-          hasFocus={NOOP}
-          markdown={markdown}
-          values={[false, false, false]}
-          onChange={onChange}
-        />,
+        <RepeatableRenderer hasFocus={NOOP} markdown={markdown} values={{}} onChange={onChange} />,
       );
 
-      // Click on the label text for Subtask 1.1 (index 1)
+      // Click on the label text for Subtask 1.1 (ID cb2)
       fireEvent.click(await screen.findByText('Subtask 1.1'));
-      expect(onChange).toHaveBeenCalledWith(1);
+      expect(onChange).toHaveBeenCalledWith('cb2');
     });
 
     // Helper to get the ListItemButton elements (focus is on the button, not the checkbox)
@@ -797,16 +770,16 @@ Middle text
       Array.from(container.querySelectorAll('.MuiListItemButton-root')) as HTMLElement[];
 
     it('focus advances through nested checkboxes in document order', async () => {
-      const markdown = `- [ ] Task 1
-  - [ ] Subtask 1.1
-- [ ] Task 2`;
+      const markdown = `- [ ] Task 1 <!-- cb:cb1 -->
+  - [ ] Subtask 1.1 <!-- cb:cb2 -->
+- [ ] Task 2 <!-- cb:cb3 -->`;
 
       const onChange = vi.fn();
       const { container, rerender } = render(
         <RepeatableRenderer
           hasFocus={NOOP}
           markdown={markdown}
-          values={[false, false, false]}
+          values={{}}
           onChange={onChange}
           takesFocus
         />,
@@ -820,14 +793,14 @@ Middle text
 
       // Click Task 1
       fireEvent.click(screen.getAllByRole('checkbox')[0]);
-      expect(onChange).toHaveBeenCalledWith(0);
+      expect(onChange).toHaveBeenCalledWith('cb1');
 
       // Rerender with Task 1 checked
       rerender(
         <RepeatableRenderer
           hasFocus={NOOP}
           markdown={markdown}
-          values={[true, false, false]}
+          values={{ cb1: true, cb2: false, cb3: false }}
           onChange={onChange}
           takesFocus
         />,
