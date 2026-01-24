@@ -3,6 +3,7 @@ import './App.scss';
 import { Typography } from '@mui/material';
 import { lazy, Suspense } from 'react';
 import { Route, Routes } from 'react-router-dom';
+import { MigrationProvider } from './features/Migration';
 import Page from './features/Page/Page';
 import SyncManager from './features/Sync/SyncManager';
 import UpdateManager from './features/Update/UpdateManager';
@@ -25,23 +26,27 @@ function App() {
     <Themed>
       {process.env.NODE_ENV !== 'development' && <UpdateManager />}
       <UserProvider>
-        <SyncManager />
-        <Page>
-          <Suspense fallback={<Loading />}>
-            <Routes>
-              <Route path="about" element={<About />} />
-              <Route path="repeatable/:repeatableId" element={<Repeatable />} />
-              <Route path="template/:templateId" element={<Template />} />
-              <Route path="history" element={<History />} />
-              <Route path="*" element={<Home />} />
-            </Routes>
-          </Suspense>
-        </Page>
-        {isGuest && (
-          <Typography align="center" variant="caption" color="textSecondary" display="block">
-            Data only stored in this browser. Create an account to enable access from other devices.
-          </Typography>
-        )}
+        <MigrationProvider>
+          <SyncManager />
+          <Page>
+            <Suspense fallback={<Loading />}>
+              <Routes>
+                <Route path="about" element={<About />} />
+                <Route path="repeatable/:repeatableId" element={<Repeatable />} />
+                <Route path="template/:templateId" element={<Template />} />
+                <Route path="template/:templateId/from/:repeatableId" element={<Template />} />
+                <Route path="history" element={<History />} />
+                <Route path="*" element={<Home />} />
+              </Routes>
+            </Suspense>
+          </Page>
+          {isGuest && (
+            <Typography align="center" variant="caption" color="textSecondary" display="block">
+              Data only stored in this browser. Create an account to enable access from other
+              devices.
+            </Typography>
+          )}
+        </MigrationProvider>
       </UserProvider>
     </Themed>
   );

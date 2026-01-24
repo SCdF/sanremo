@@ -11,24 +11,35 @@ import { useNavigate, useParams } from 'react-router-dom';
 
 import { v4 as uuid } from 'uuid';
 
-import { SlugType, type TemplateDoc } from '../../shared/types';
+import {
+  CURRENT_SCHEMA_VERSION,
+  type RepeatableDoc,
+  SlugType,
+  type TemplateDoc,
+} from '../../shared/types';
 import db from '../db';
 import { usePageContext } from '../features/Page/pageSlice';
+import { migrateRepeatableValues } from '../features/Repeatable/migrateValues';
 import RepeatableRenderer from '../features/Repeatable/RepeatableRenderer';
-import { clearTemplate, setTemplate } from '../state/docsSlice';
+import { ensureCheckboxIds, parseCheckboxIds } from '../features/Template/checkboxIds';
+import { clearRepeatable, clearTemplate, setRepeatable, setTemplate } from '../state/docsSlice';
 import { useDispatch, useSelector } from '../store';
 
 function Template() {
   const template = useSelector((state) => state.docs.template);
+  const repeatable = useSelector((state) => state.docs.repeatable);
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
   const user = useSelector((state) => state.user.value);
   const handle = db(user);
-  const { templateId } = useParams();
+  const { templateId, repeatableId } = useParams();
+
+  // When editing from a repeatable context, we show the repeatable's values in preview
+  const isInlineEdit = !!repeatableId;
 
   useEffect(() => {
-    async function loadTemplate() {
+    async function loadData() {
       if (templateId === 'new') {
         const now = Date.now();
         const template: TemplateDoc = {
@@ -42,6 +53,7 @@ function Template() {
           updated: now,
           versioned: now,
           values: [],
+          schemaVersion: CURRENT_SCHEMA_VERSION,
         };
 
         await handle.userPut(template);
@@ -49,19 +61,27 @@ function Template() {
         navigate(`/template/${template._id}`, { replace: true });
       } else if (templateId) {
         const template: TemplateDoc = await handle.get(templateId);
-
         dispatch(setTemplate(template));
+
+        // If we're editing from a repeatable context, load the repeatable too
+        if (repeatableId) {
+          const repeatable: RepeatableDoc = await handle.get(repeatableId);
+          dispatch(setRepeatable(repeatable));
+        }
       }
     }
 
-    loadTemplate();
+    loadData();
     return () => {
       dispatch(clearTemplate());
+      if (repeatableId) {
+        dispatch(clearRepeatable());
+      }
     };
-  }, [handle, templateId, navigate, dispatch]);
+  }, [handle, templateId, repeatableId, navigate, dispatch]);
 
   usePageContext({
-    title: `${template?.title || 'New Template'} | edit`,
+    title: `${template?.title || 'New Template'} | ${isInlineEdit ? 'inline edit' : 'edit'}`,
     back: true,
     under: 'home',
   });
@@ -98,28 +118,64 @@ function Template() {
   async function handleSubmit(event: FormEvent<HTMLFormElement> | MouseEvent<HTMLButtonElement>) {
     event.preventDefault();
 
-    const copy = Object.assign({}, template);
-    copy.updated = Date.now();
+    if (!template) return;
 
-    const used = await handle.find({
-      selector: {
-        template: copy._id,
-      },
-      limit: 1000, // PouchDB 9+ requires explicit limit (default is 25)
-    });
+    const templateCopy = Object.assign({}, template);
+    templateCopy.updated = Date.now();
 
-    if (used.docs.length) {
-      copy.versioned = copy.updated;
+    // Ensure all checkboxes have IDs embedded in the markdown
+    templateCopy.markdown = ensureCheckboxIds(templateCopy.markdown);
 
-      const splitId = copy._id.split(':');
-      splitId[3] = String(Number(splitId[3]) + 1);
-      copy._id = splitId.join(':');
-      delete copy._rev;
+    // Parse checkbox IDs and update the values array
+    const checkboxInfos = parseCheckboxIds(templateCopy.markdown);
+    const existingValues = new Map(templateCopy.values.map((v) => [v.id, v.default]));
+    templateCopy.values = checkboxInfos.map((info) => ({
+      id: info.id,
+      default: existingValues.get(info.id) ?? false,
+    }));
+
+    // Determine if we need to create a new version
+    let needsNewVersion: boolean;
+    if (isInlineEdit) {
+      // When editing from a repeatable context, we always create a new version
+      needsNewVersion = true;
+    } else {
+      // Check if this template is used by any repeatables
+      const used = await handle.find({
+        selector: {
+          template: templateCopy._id,
+        },
+        limit: 1000,
+      });
+      needsNewVersion = used.docs.length > 0;
     }
 
-    await handle.userPut(copy);
+    if (needsNewVersion) {
+      templateCopy.versioned = templateCopy.updated;
+      templateCopy.schemaVersion = CURRENT_SCHEMA_VERSION;
 
-    navigate(-1);
+      const splitId = templateCopy._id.split(':');
+      splitId[3] = String(Number(splitId[3]) + 1);
+      templateCopy._id = splitId.join(':');
+      delete templateCopy._rev;
+    }
+
+    await handle.userPut(templateCopy);
+
+    // If we came from a repeatable, migrate it to the new template version
+    if (isInlineEdit && repeatable) {
+      const repeatableCopy = Object.assign({}, repeatable);
+      repeatableCopy.values = migrateRepeatableValues(repeatableCopy.values, templateCopy);
+      repeatableCopy.template = templateCopy._id;
+      repeatableCopy.updated = Date.now();
+
+      await handle.userPut(repeatableCopy);
+
+      // Navigate back to the repeatable
+      navigate(`/repeatable/${repeatable._id}`);
+    } else {
+      navigate(-1);
+    }
   }
 
   // TODO: replace this with slice actions so we don't have to do dumb (and slow presumably) copies
@@ -212,8 +268,21 @@ function Template() {
     return null;
   }
 
+  // When editing from a repeatable context, wait for the repeatable to load
+  if (isInlineEdit && !repeatable) {
+    return null;
+  }
+
+  // Use repeatable's values in preview when editing inline, otherwise show unchecked
+  const previewValues = isInlineEdit && repeatable ? repeatable.values : {};
+
   return (
-    <form onSubmit={handleSubmit} noValidate autoComplete="off" data-testid="template-page">
+    <form
+      onSubmit={handleSubmit}
+      noValidate
+      autoComplete="off"
+      data-testid={isInlineEdit ? 'inline-template-edit' : 'template-page'}
+    >
       <Grid container spacing={2}>
         <Grid size={12}>
           <TextField
@@ -284,7 +353,7 @@ function Template() {
           />
         </Grid>
         <Grid size={{ xs: 12, md: 6 }}>
-          <RepeatableRenderer markdown={template.markdown} values={[]} />
+          <RepeatableRenderer markdown={template.markdown} values={previewValues} />
         </Grid>
         <Grid size={12}>
           <ButtonGroup>

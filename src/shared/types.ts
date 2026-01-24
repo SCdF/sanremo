@@ -38,13 +38,22 @@ export type SlugData =
   | { type: SlugType.Date; value: number }
   | { type: SlugType.Timestamp; value: number };
 
+// Schema version 2: Checkbox values use unique IDs
+export const CURRENT_SCHEMA_VERSION = 2;
+
+export interface CheckboxValue {
+  id: string;
+  default: boolean;
+}
+
 export interface RepeatableDoc extends Doc {
   template: DocId;
   slug: string | number | undefined;
   created: number;
   updated: number;
   completed?: number;
-  values: boolean[];
+  values: Record<string, boolean>;
+  schemaVersion: 2;
 }
 
 export interface TemplateDoc extends Doc {
@@ -55,7 +64,31 @@ export interface TemplateDoc extends Doc {
   created: number;
   updated: number;
   versioned: number;
+  values: CheckboxValue[];
+  schemaVersion: 2;
+}
+
+// Legacy types for migration from schema version 1
+export interface LegacyRepeatableDoc extends Doc {
+  template: DocId;
+  slug: string | number | undefined;
+  created: number;
+  updated: number;
+  completed?: number;
   values: boolean[];
+  schemaVersion?: undefined;
+}
+
+export interface LegacyTemplateDoc extends Doc {
+  deleted?: boolean;
+  title: string;
+  slug: SlugConfig;
+  markdown: string;
+  created: number;
+  updated: number;
+  versioned: number;
+  values: boolean[];
+  schemaVersion?: undefined;
 }
 
 export interface ServerToClientEvents {

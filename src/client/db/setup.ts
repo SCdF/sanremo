@@ -1,5 +1,6 @@
 import migrate004 from './0.0.4';
 
+// FIXME: make setup blocking, move the Migration feature logic into happening here, put setup behind the progress bar
 export default function setup(db: PouchDB.Database) {
   db.createIndex({
     index: {

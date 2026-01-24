@@ -9,6 +9,7 @@ type Props = {
   type?: string;
   // Added by rehypeCheckboxIndex plugin
   dataCheckboxIndex?: number;
+  dataCheckboxId?: string;
 };
 
 /**
@@ -23,17 +24,18 @@ export const MarkdownTaskCheckbox = React.memo((props: Props) => {
   // react-markdown passes data attributes with their camelCase names
   const idx =
     props.dataCheckboxIndex ?? (props['data-checkbox-index' as keyof Props] as number | undefined);
-  const { values, disabled } = useCheckboxContext();
+  const checkboxId =
+    props.dataCheckboxId ?? (props['data-checkbox-id' as keyof Props] as string | undefined);
+  const { values, disabled, getCheckboxId } = useCheckboxContext();
 
-  // Determine checkbox state
-  const isValidCheckbox = idx !== undefined;
-  const isChecked = isValidCheckbox ? (values[idx] ?? false) : false;
-
-  // Only handle checkbox inputs with an index from our rehype plugin
-  if (!isValidCheckbox) {
+  if (idx === undefined) {
     // Fallback: render a standard input for non-task-list checkboxes
     return <input {...(props as React.InputHTMLAttributes<HTMLInputElement>)} />;
   }
+
+  // Determine checkbox state - use the ID if available, fall back to getting ID from index
+  const id = checkboxId ?? getCheckboxId(idx);
+  const isChecked = id ? (values[id] ?? false) : false;
 
   return (
     <Checkbox

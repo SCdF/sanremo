@@ -223,4 +223,50 @@ describe('rehypeCheckboxIndex', () => {
     expect(input.properties?.disabled).toBe(true);
     expect(input.properties?.className).toBe('my-checkbox');
   });
+
+  it('extracts checkbox ID from comment sibling', () => {
+    const tree: Root = {
+      type: 'root',
+      children: [
+        ul([
+          {
+            type: 'element',
+            tagName: 'li',
+            properties: {},
+            children: [
+              checkbox(),
+              { type: 'text', value: ' ' },
+              { type: 'comment', value: ' cb:abc123 ' },
+            ],
+          } as Element,
+        ]),
+      ],
+    };
+
+    let capturedIds: string[] = [];
+    rehypeCheckboxIndex((ids) => {
+      capturedIds = ids;
+    })(tree);
+
+    const list = tree.children[0] as Element;
+    const item = list.children[0] as Element;
+    const input = item.children[0] as Element;
+
+    expect(input.properties?.dataCheckboxId).toBe('abc123');
+    expect(capturedIds).toEqual(['abc123']);
+  });
+
+  it('passes empty string for checkbox without ID comment', () => {
+    const tree: Root = {
+      type: 'root',
+      children: [checkbox()],
+    };
+
+    let capturedIds: string[] = [];
+    rehypeCheckboxIndex((ids) => {
+      capturedIds = ids;
+    })(tree);
+
+    expect(capturedIds).toEqual(['']);
+  });
 });

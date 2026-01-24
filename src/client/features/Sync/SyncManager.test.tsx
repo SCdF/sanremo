@@ -70,6 +70,8 @@ describe('SyncManager', () => {
     });
     handle.allDocs.mockResolvedValue({
       rows: [],
+      total_rows: 0,
+      offset: 0,
     });
     handle.bulkDocs.mockResolvedValue([]);
   });
@@ -117,10 +119,11 @@ describe('SyncManager', () => {
         _id: 'repeatable:instance:123',
         _rev: '1-abc',
         template: 'repeatable:template:test',
-        values: [],
+        values: {},
         created: Date.now(),
         updated: Date.now(),
         slug: 'test',
+        schemaVersion: 2,
       };
 
       handle.changes.mockResolvedValue({
@@ -135,6 +138,8 @@ describe('SyncManager', () => {
 
       handle.allDocs.mockResolvedValue({
         rows: [{ id: localDoc._id, doc: localDoc }],
+        total_rows: 1,
+        offset: 0,
       });
 
       const sentDocs: unknown[] = [];
@@ -190,10 +195,11 @@ describe('SyncManager', () => {
         _id: 'repeatable:instance:456',
         _rev: '2-xyz',
         template: 'repeatable:template:test',
-        values: [true],
+        values: { 'cb-1': true },
         created: Date.now(),
         updated: Date.now(),
         slug: 'server-doc',
+        schemaVersion: 2,
       };
 
       // Mock local database is empty
@@ -203,6 +209,8 @@ describe('SyncManager', () => {
 
       handle.allDocs.mockResolvedValue({
         rows: [],
+        total_rows: 0,
+        offset: 0,
       });
 
       server.use(
@@ -268,6 +276,8 @@ describe('SyncManager', () => {
 
       handle.allDocs.mockResolvedValue({
         rows: [{ key: deletedDoc._id, error: 'not_found' }],
+        total_rows: 1,
+        offset: 0,
       });
 
       server.use(
@@ -350,10 +360,11 @@ describe('SyncManager', () => {
         _id: 'repeatable:instance:123',
         _rev: '1-abc',
         template: 'repeatable:template:test',
-        values: [],
+        values: {},
         created: Date.now(),
         updated: Date.now(),
         slug: 'test',
+        schemaVersion: 2,
       };
 
       handle.changes.mockResolvedValue({
@@ -368,6 +379,8 @@ describe('SyncManager', () => {
 
       handle.allDocs.mockResolvedValue({
         rows: [{ id: localDoc._id, doc: localDoc }],
+        total_rows: 1,
+        offset: 0,
       });
 
       server.use(
@@ -438,14 +451,17 @@ describe('SyncManager', () => {
         _id: 'repeatable:instance:live-update',
         _rev: '1-live',
         template: 'repeatable:template:test',
-        values: [true, false],
+        values: { 'cb-1': true, 'cb-2': false },
         created: Date.now(),
         updated: Date.now(),
         slug: 'live-update',
+        schemaVersion: 2,
       };
 
       handle.allDocs.mockResolvedValue({
         rows: [],
+        total_rows: 0,
+        offset: 0,
       });
 
       server.use(

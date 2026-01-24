@@ -6,6 +6,8 @@ const doc = {
   title: 'Click Me First',
   slug: { type: 'date' },
   created: Date.now(),
+  schemaVersion: 2,
+  values: [{ id: 'abc', default: false }],
   markdown: `# Hello There!
 
 Hello and welcome to my not-well-documented experiment in repeatable checklists!
@@ -29,7 +31,7 @@ You create a template for each set of steps, and use that template every time yo
 Templates are written in [Markdown](https://commonmark.org/help/), with the syntax addition of checkboxes by starting a new line with the \` -
   []\` tag.
 
-- [ ] here is a checkbox you can check!
+- [ ] here is a checkbox you can check! <!-- cb:abc -->
 
 If you go back to the main page you can edit this template to see an example.
 

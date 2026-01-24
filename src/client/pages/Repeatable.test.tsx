@@ -37,6 +37,8 @@ describe('Repeatable', () => {
     store.dispatch(setUserAsLoggedIn({ user }));
 
     handle = getMockDb();
+    // Default mock for find - returns empty docs (no newer version)
+    handle.find.mockResolvedValue({ docs: [] });
   });
 
   function render(children: JSX.Element) {
@@ -48,12 +50,15 @@ describe('Repeatable', () => {
       .mockResolvedValueOnce({
         _id: 'repeatable:instance:1234',
         template: 'repeatable:template:5678',
-        values: [],
+        values: {},
+        schemaVersion: 2,
       } satisfies Partial<RepeatableDoc>)
       .mockResolvedValueOnce({
         _id: 'repeatable:template:5678',
         title: 'A Repeatable',
         markdown: 'Some text',
+        values: [],
+        schemaVersion: 2,
       } satisfies Partial<TemplateDoc>);
     mockUseLocation.mockReturnValue(undefined);
     mockUseParams.mockReturnValue({ repeatableId: '1234' });
@@ -72,12 +77,15 @@ describe('Repeatable', () => {
         slug: {
           type: SlugType.String,
         },
+        values: [],
+        schemaVersion: 2,
       } satisfies Partial<TemplateDoc>)
       .mockResolvedValueOnce({
         _id: 'repeatable:instance:1234',
         _rev: '42-abc',
         slug: 'test',
-        values: [],
+        values: {},
+        schemaVersion: 2,
       } satisfies Partial<RepeatableDoc>);
     handle.userPut.mockResolvedValue({ _id: '4321' });
     mockUseLocation.mockReturnValue({
@@ -114,29 +122,34 @@ describe('Repeatable', () => {
     beforeEach(() => {
       handle.get.mockReset();
       handle.userPut.mockReset();
+      handle.find.mockReset();
       mockUseLocation.mockReset();
       mockUseParams.mockReset();
 
       repeatable = {
         _id: 'repeatable:instance:1234',
-        template: 'repeatable:template:5678',
-        values: [false],
+        template: 'repeatable:template:5678:1',
+        values: { cb1: false },
+        schemaVersion: 2,
       };
       template = {
-        _id: 'repeatable:template:5678',
-        markdown: 'Some text\n- [ ] Something to change',
-        values: [false],
+        _id: 'repeatable:template:5678:1',
+        markdown: 'Some text\n- [ ] Something to change <!-- cb:cb1 -->',
+        values: [{ id: 'cb1', default: false }],
+        schemaVersion: 2,
       };
 
       handle.get.mockImplementation((docId: string) => {
         if (docId === 'repeatable:instance:1234') {
           return Promise.resolve(repeatable);
         }
-        if (docId === 'repeatable:template:5678') {
+        if (docId === 'repeatable:template:5678:1') {
           return Promise.resolve(template);
         }
         return Promise.reject(new Error(`Bad ${docId}`));
       });
+      // Mock find for getLatestTemplateVersion - return the same template as the latest
+      handle.find.mockResolvedValue({ docs: [template] });
       mockUseLocation.mockReturnValue(undefined);
       mockUseParams.mockReturnValue({ repeatableId: 'repeatable:instance:1234' });
       handle.userPut.mockResolvedValue({ _id: 'repeatable:instance:1234', _rev: '2-abc' });
