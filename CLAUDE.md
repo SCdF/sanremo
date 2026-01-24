@@ -194,6 +194,41 @@ import { MyComponent } from './MyComponent';
 - **Server**: ES2022 modules, ES2020 target, Node resolution
 - Strict mode enabled for both
 
+### Magic Numbers
+**Avoid magic numbers and array index access.** Numbers should be named constants or accessed via destructuring:
+```typescript
+// Bad: What does [1] mean?
+const handler = mockCalls.find((call) => call[0] === 'connect')?.[1];
+
+// Good: Destructure with meaningful names
+const handler = mockCalls.find(([eventName]) => eventName === 'connect');
+const [, callback] = handler ?? [];
+
+// Bad: Magic number
+if (retryCount > 3) { ... }
+
+// Good: Named constant
+const MAX_RETRIES = 3;
+if (retryCount > MAX_RETRIES) { ... }
+```
+
+### Type Assertions
+**NEVER use the `as` keyword for type assertions.** If you think you need `as`:
+1. First, try to fix the types at the source (e.g., update interface definitions, add proper generics)
+2. If the types truly cannot be fixed, ask for permission before using `as`
+3. Prefer runtime checks (`if (x !== null)`) over type assertions
+
+Instead of casting, extend mock interfaces or use proper type guards:
+```typescript
+// Bad: Casting to work around missing mock methods
+(handle as unknown as { changes: Mock }).changes = vi.fn();
+
+// Good: Add the method to the mock interface
+export interface MockDatabase {
+  changes: Mock<(options?: unknown) => Promise<{ results: unknown[] }>>;
+}
+```
+
 ### Testing
 - **Client tests**: Vitest with jsdom, setup in `src/client/test-utils/test-setup.ts`
 - **Server tests**: Vitest with default Node environment

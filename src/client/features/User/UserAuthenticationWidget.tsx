@@ -1,5 +1,4 @@
 import { Button, Container, FormHelperText, TextField } from '@mui/material';
-import axios from 'axios';
 import { type FormEvent, useState } from 'react';
 import { useDispatch } from 'react-redux';
 import type { User } from '../../../shared/types';
@@ -30,14 +29,21 @@ function UserAuthenticationWidget(props: { username?: string; action: Action }) 
     }
 
     try {
-      const response = await (props.action === Action.Create ? axios.put : axios.post)(
-        '/api/auth',
-        {
-          username,
-          password,
-        },
-      );
-      const user: User = response.data;
+      const response = await fetch('/api/auth', {
+        method: props.action === Action.Create ? 'PUT' : 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password }),
+      });
+
+      if (!response.ok) {
+        if ([401, 403].includes(response.status)) {
+          setError('Incorrect credentials');
+          return;
+        }
+        throw new Error(`HTTP ${response.status}`);
+      }
+
+      const user: User = await response.json();
 
       if (props.action === Action.Create) {
         await migrateFromGuest(user);
@@ -47,15 +53,7 @@ function UserAuthenticationWidget(props: { username?: string; action: Action }) 
 
       dispatch(setUserAsLoggedIn({ user }));
     } catch (error) {
-      if (
-        axios.isAxiosError(error) &&
-        error.response &&
-        [401, 403].includes(error.response.status)
-      ) {
-        setError('Incorrect credentials');
-      } else {
-        setError((error as Error).message || 'Unknown Error');
-      }
+      setError((error as Error).message || 'Unknown Error');
     }
   }
 
