@@ -15,7 +15,7 @@ It's my Half Life I guess?
 ## Local Development
 
 To dev without a server, you can just
-`yarn` then `yarn dev`.
+`pnpm install` then `pnpm dev`.
 
 If you also want the server server for user support you'll need to: install postgres; init the schema; then build and boot the server.
 
@@ -36,8 +36,8 @@ Then the local server can be built with `npm run buildServer` (no continuous bui
 
 ## Testing
 
-So far unit tests only, run via `yarn test`
+So far unit tests only, run via `pnpm test`
 
 ## Building
 
-The production build is achieved with `yarn build` and started with `yarn start`
+The production build is achieved with `pnpm build` and started with `pnpm start`

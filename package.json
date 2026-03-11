@@ -2,24 +2,24 @@
   "name": "sanremo",
   "type": "module",
   "version": "0.5.0",
-  "packageManager": "yarn@4.0.2",
+  "packageManager": "pnpm@10.28.2",
   "//": [
     " TODO redux -> https://github.com/pmndrs/zustand"
   ],
   "scripts": {
     "start": "node dist/server",
-    "start:local": "yarn build && DATABASE_URL=postgres://postgres:postgres@localhost:15432 PORT=5000 node dist/server",
+    "start:local": "pnpm build && DATABASE_URL=postgres://postgres:postgres@localhost:15432 PORT=5000 node dist/server",
     "psql": "psql postgres://postgres:postgres@localhost:15432",
     "biome": "biome check .",
     "clean": "rm -r dist .parcel-cache 2> /dev/null || true",
     "check": "biome check . && tsc --noEmit -p src/client/tsconfig.json && tsc --noEmit -p src/server/tsconfig.json",
     "build:client": "parcel build --target client --reporter @parcel/reporter-bundle-analyzer",
     "build:server": "parcel build --target server --reporter @parcel/reporter-bundle-analyzer",
-    "build": "yarn clean && parcel build --reporter @parcel/reporter-bundle-analyzer && node ./scripts/inject-manifest.mjs",
+    "build": "pnpm clean && parcel build --reporter @parcel/reporter-bundle-analyzer && node ./scripts/inject-manifest.mjs",
     "dev": "parcel --target client",
     "test:client": "vitest --config src/client/vitest.config.ts src/client",
     "test:server": "vitest --config src/server/vitest.config.ts src/server",
-    "test": "yarn test:client --run && yarn test:server --run"
+    "test": "pnpm test:client --run && pnpm test:server --run"
   },
   "targets": {
     "client": {
@@ -59,9 +59,13 @@
     "@emotion/styled": "11.14.1",
     "@mui/icons-material": "^7.3.7",
     "@mui/material": "^7.3.7",
+    "@parcel/config-default": "^2.16.3",
+    "@parcel/core": "^2.16.4",
     "@parcel/packager-raw-url": "2.16.3",
     "@parcel/reporter-bundle-analyzer": "2.16.3",
     "@parcel/service-worker": "2.16.3",
+    "@parcel/transformer-js": "^2.16.3",
+    "@parcel/transformer-react-refresh-wrap": "^2.16.3",
     "@parcel/transformer-sass": "2.16.3",
     "@parcel/transformer-webmanifest": "2.16.3",
     "@reduxjs/toolkit": "2.11.2",
@@ -72,14 +76,18 @@
     "@types/bcryptjs": "^3.0.0",
     "@types/compression": "1.8.1",
     "@types/connect-pg-simple": "7.0.3",
+    "@types/cookie": "^1.0.0",
     "@types/cookie-parser": "^1.4.10",
+    "@types/debug": "^4.1.12",
     "@types/deep-diff": "^1.0.5",
     "@types/events": "^3.0.3",
     "@types/express": "^5.0.6",
     "@types/express-session": "1.18.2",
     "@types/hast": "^3.0.4",
     "@types/node": "25.0.8",
+    "@types/pg": "^8.18.0",
     "@types/pouchdb": "^6.4.2",
+    "@types/qs": "^6.15.0",
     "@types/react": "19.2.8",
     "@types/react-dom": "19.2.3",
     "@types/react-test-renderer": "19.1.0",
@@ -88,6 +96,7 @@
     "@vitest/coverage-v8": "4.0.17",
     "@vitest/ui": "4.0.17",
     "buffer": "^6.0.3",
+    "cookie": "^1.1.1",
     "date-fns": "4.1.0",
     "deep-diff": "^1.0.2",
     "events": "^3.3.0",
@@ -104,13 +113,16 @@
     "react-dom": "19.2.3",
     "react-markdown": "^10.1.0",
     "react-redux": "9.2.0",
+    "react-router": "^7.13.1",
     "react-router-dom": "^7.12.0",
     "react-test-renderer": "19.2.3",
+    "redux": "^5.0.1",
     "rehype-raw": "^7.0.0",
     "socket.io-client": "4.8.3",
     "supertest": "^7.2.2",
     "ts-node": "^10.9.2",
     "typescript": "5.9.3",
+    "unified": "^11.0.5",
     "uuid": "^13.0.0",
     "vitest": "4.0.17",
     "vitest-when": "0.10.0",
@@ -118,8 +130,18 @@
     "workbox-precaching": "^7.4.0",
     "workbox-routing": "^7.4.0"
   },
-  "resolutions": {
-    "@types/express-session": "1.18.1"
+  "pnpm": {
+    "overrides": {
+      "@types/express-session": "1.18.1"
+    },
+    "onlyBuiltDependencies": [
+      "@parcel/watcher",
+      "@swc/core",
+      "esbuild",
+      "lmdb",
+      "msgpackr-extract",
+      "msw"
+    ]
   },
   "@parcel/resolver-default": {
     "packageExports": true

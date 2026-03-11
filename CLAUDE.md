@@ -11,56 +11,55 @@ Sanremo is an offline-first PWA for managing repeatable checklists. It uses Pouc
 
 ## Package Manager
 
-**IMPORTANT: This project uses Yarn, NOT npm.**
-- Always use `yarn` or `yarn add` commands
-- Never use `npm install` or `npm` commands
-- Package manager is enforced via `.yarnrc` configuration
-- Yarn is located at `/home/scdf/.volta/bin/yarn`
+**IMPORTANT: This project uses pnpm, NOT npm or pnpm.**
+- Always use `pnpm` or `pnpm add` commands
+- Never use `npm install`, `npm`, `pnpm`, or `pnpm add` commands
+- pnpm is located at `/home/scdf/.volta/bin/pnpm`
 
 ## Development Commands
 
 ### Essential Commands
 ```bash
 # Install dependencies
-yarn
+pnpm
 
 # Development (client only, no server needed)
-yarn dev
+pnpm dev
 
 # Build entire application
-yarn build
+pnpm build
 
 # Linting and type checking
-yarn check                # Runs Biome linter + TypeScript type checking
-yarn biome                # Biome linter only
+pnpm check                # Runs Biome linter + TypeScript type checking
+pnpm biome                # Biome linter only
 
 # Testing
-yarn test                 # Run all tests (client + server) once (already includes --run)
-yarn test:client          # Run client tests in watch mode
-yarn test:server          # Run server tests in watch mode
+pnpm test                 # Run all tests (client + server) once (already includes --run)
+pnpm test:client          # Run client tests in watch mode
+pnpm test:server          # Run server tests in watch mode
 
 # Run specific test files (use --run to disable watch mode)
-yarn test:client --run src/client/features/User/UserProvider.test.tsx
-yarn test:server --run src/server/sync/sync.test.ts
+pnpm test:client --run src/client/features/User/UserProvider.test.tsx
+pnpm test:server --run src/server/sync/sync.test.ts
 
-# NOTE: yarn test already includes --run, so don't add --run when using it
+# NOTE: pnpm test already includes --run, so don't add --run when using it
 # Only add --run to test:client or test:server when you want single-run mode
 ```
 
 ### Server Commands (requires PostgreSQL)
 ```bash
 # Start production server
-yarn start
+pnpm start
 
 # Start local development server
-yarn start:local          # Uses postgres://postgres:postgres@localhost:15432
+pnpm start:local          # Uses postgres://postgres:postgres@localhost:15432
 
 # Access PostgreSQL
-yarn psql                 # Connect to local dev database
+pnpm psql                 # Connect to local dev database
 
 # Build targets separately
-yarn build:client
-yarn build:server
+pnpm build:client
+pnpm build:server
 ```
 
 ### Database Setup
@@ -162,7 +161,7 @@ psql < src/server/sql/20210602\ json.sql
 ### Pre-Commit Checklist
 Always run before committing:
 ```bash
-yarn check && yarn test
+pnpm check && pnpm test
 ```
 
 Both must pass with no errors before committing.
