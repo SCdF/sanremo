@@ -12,12 +12,13 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
-      - run: corepack enable
-      - run: yarn
-      - run: yarn check
-      - run: yarn build
-      - run: yarn test
+          cache: 'pnpm'
+      - run: pnpm install
+      - run: pnpm check
+      - run: pnpm build
+      - run: pnpm test

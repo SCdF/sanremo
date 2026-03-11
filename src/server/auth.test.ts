@@ -38,7 +38,6 @@ describe('Authentication Endpoints', () => {
       },
     };
 
-    // @ts-expect-error - express-session types not fully compatible with Express 5
     app.use(session(sess));
     app.use(cookieParser(SECRET));
 
